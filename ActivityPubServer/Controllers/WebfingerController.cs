@@ -26,6 +26,7 @@ public class WebfingerController : ControllerBase
 
         if (finger.IsNull())
         {
+            _logger.LogWarning($"{nameof(finger)} is null");
             return BadRequest("Not found WebFinger.");
         }
         
