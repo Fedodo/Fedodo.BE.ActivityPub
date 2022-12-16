@@ -11,6 +11,8 @@ public class InMemRepository : IInMemRepository
         {
             new()
             {
+                Summary = "This is a test account.",
+                Name = "Test 1234",
                 Context = new[]
                 {
                     "https://www.w3.org/ns/activitystreams",
