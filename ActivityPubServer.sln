@@ -2,6 +2,16 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActivityPubServer", "ActivityPubServer\ActivityPubServer.csproj", "{F50F2386-1EE7-449D-9041-FF0FB7A888FD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", "{28BE88AC-EB4D-4AD5-A03F-A7D265A8BB26}"
+	ProjectSection(SolutionItems) = preProject
+		Kubernetes\ActivityPubServer-Deployment.yaml = Kubernetes\ActivityPubServer-Deployment.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{90FB9E93-A793-40EC-9DA1-3069C055FDD4}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\Build.yaml = .github\workflows\Build.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
