@@ -17,7 +17,7 @@ public class ActorController : ControllerBase
         _repository = repository;
     }
     
-    [HttpGet("/{actorId}")]
+    [HttpGet("{actorId}")]
     public ActionResult<Actor> GetActor(Guid actorId)
     {
         _logger.LogTrace($"Entered {nameof(GetActor)} in {nameof(ActorController)}");
