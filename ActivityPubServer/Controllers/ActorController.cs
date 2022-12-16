@@ -3,12 +3,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
 
-[Route("Test")]
-public class TestController : ControllerBase
+[Route("Actor")]
+public class ActorController : ControllerBase
 {
-    [HttpGet]
-    public ActionResult<Actor> TestActor()
+    private readonly ILogger<ActorController> _logger;
+
+    public ActorController(ILogger<ActorController> logger)
     {
+        _logger = logger;
+    }
+    
+    [HttpGet]
+    public ActionResult<Actor> GetActor()
+    {
+        _logger.LogTrace($"Entered {nameof(GetActor)} in {nameof(ActorController)}");
+        
         Actor actor = new()
         {
             Context = new []
@@ -35,7 +44,7 @@ public class TestController : ControllerBase
                 -----END PUBLIC KEY-----"
             }
         };
-        
+
         return Ok(actor);
     }
 }
