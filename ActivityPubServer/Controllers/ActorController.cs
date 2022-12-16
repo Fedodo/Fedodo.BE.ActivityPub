@@ -1,4 +1,6 @@
+using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model;
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -7,44 +9,26 @@ namespace ActivityPubServer.Controllers;
 public class ActorController : ControllerBase
 {
     private readonly ILogger<ActorController> _logger;
+    private readonly IInMemRepository _repository;
 
-    public ActorController(ILogger<ActorController> logger)
+    public ActorController(ILogger<ActorController> logger, IInMemRepository repository)
     {
         _logger = logger;
+        _repository = repository;
     }
     
-    [HttpGet]
-    public ActionResult<Actor> GetActor()
+    [HttpGet("/{actorId}")]
+    public ActionResult<Actor> GetActor(Guid actorId)
     {
         _logger.LogTrace($"Entered {nameof(GetActor)} in {nameof(ActorController)}");
-        
-        Actor actor = new()
-        {
-            Context = new []
-            {
-                "https://www.w3.org/ns/activitystreams",
-                "https://w3id.org/security/v1"
-            },
-            Id = new Uri("https://ap.lna-dev.net/actor"),
-            Type = "Person",
-            PreferredUsername = "Lukas",
-            Inbox = new Uri("https://ap.lna-dev.net/inbox"),
-            PublicKey = new()
-            {
-                Id = new Uri("https://ap.lna-dev.net/actor#main-key"),
-                Owner = new Uri("https://ap.lna-dev.net/actor"),
-                PublicKeyPem = @"-----BEGIN PUBLIC KEY-----
-                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz/fLWo1xQpjFmcJrxm1c
-                /5OVC5n9pudQUiFuFeOlYhdpVmLFZtVYOCJ/fAg3vsz+pRQH9BVQoAfVHME/Js8i
-                IC/1xPyAXaqz+ZxEquL1jFGjI829u2irps/qihXqUzr9j8nd3VgTvy6mQRyZLQ8U
-                Dj16ZAcRK0NfIts9nySe7lp0R695b4TUMD/bx2wl2qT0et0puye0jeWfh3F7cwD5
-                pciRrAtWVAbe//4RvhVR8I+3H4ue15fpZNO4C7TNk12O+XYjf0pznIZ/hPfMhEYF
-                stpraIb3AI4oKgehJBa26JfGO/2ruG3GL1ZF+jg6gjGG0pojBtSUbGElVO1UAg3P
-                vwIDAQAB
-                -----END PUBLIC KEY-----"
-            }
-        };
 
+        var actor = _repository.GetActor(actorId);
+
+        if (actor.IsNull())
+        {
+            return BadRequest($"No actor found for id: {actorId}");
+        }
+        
         return Ok(actor);
     }
 }
