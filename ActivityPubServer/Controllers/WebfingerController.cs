@@ -1,5 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model;
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -19,10 +20,15 @@ public class WebfingerController : ControllerBase
     [HttpGet]
     public ActionResult<Webfinger> GetWebfinger(string resource)
     {
-        _logger.LogTrace($"Entered {nameof(GetWebfinger)}");
+        _logger.LogTrace($"Entered {nameof(GetWebfinger)} in {nameof(WebfingerController)} with {nameof(resource)} = {resource}");
 
         var finger = _inMemRepository.GetWebfinger(resource);
 
+        if (finger.IsNull())
+        {
+            return BadRequest("Not found WebFinger.");
+        }
+        
         return Ok(finger);
     }
 }

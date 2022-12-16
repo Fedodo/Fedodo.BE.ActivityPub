@@ -1,5 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model;
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -16,12 +17,17 @@ public class ActorController : ControllerBase
         _repository = repository;
     }
     
-    [HttpGet]
-    public ActionResult<Actor> GetActor()
+    [HttpGet("/{actorId}")]
+    public ActionResult<Actor> GetActor(Guid actorId)
     {
         _logger.LogTrace($"Entered {nameof(GetActor)} in {nameof(ActorController)}");
 
-        var actor = _repository.GetActor();
+        var actor = _repository.GetActor(actorId);
+
+        if (actor.IsNull())
+        {
+            return BadRequest($"No actor found for id: {actorId}");
+        }
         
         return Ok(actor);
     }

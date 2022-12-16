@@ -4,6 +4,6 @@ namespace ActivityPubServer.Interfaces;
 
 public interface IInMemRepository
 {
-    public Actor GetActor();
-    public Webfinger GetWebfinger(string resource);
+    public Actor GetActor(Guid actorId);
+    public Webfinger? GetWebfinger(string resource);
 }
