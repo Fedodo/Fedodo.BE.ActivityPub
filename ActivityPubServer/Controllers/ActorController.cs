@@ -26,6 +26,7 @@ public class ActorController : ControllerBase
 
         if (actor.IsNull())
         {
+            _logger.LogWarning($"{nameof(actor)} is null");
             return BadRequest($"No actor found for id: {actorId}");
         }
         
