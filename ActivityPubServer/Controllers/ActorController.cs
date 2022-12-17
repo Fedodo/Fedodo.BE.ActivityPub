@@ -10,11 +10,13 @@ public class ActorController : ControllerBase
 {
     private readonly ILogger<ActorController> _logger;
     private readonly IInMemRepository _repository;
+    private readonly IMongoDbRepository _mongoDbRepository;
 
-    public ActorController(ILogger<ActorController> logger, IInMemRepository repository)
+    public ActorController(ILogger<ActorController> logger, IInMemRepository repository, IMongoDbRepository mongoDbRepository)
     {
         _logger = logger;
         _repository = repository;
+        _mongoDbRepository = mongoDbRepository;
     }
     
     [HttpGet("{actorId}")]
@@ -31,5 +33,13 @@ public class ActorController : ControllerBase
         }
         
         return Ok(actor);
+    }
+
+    [HttpPost]
+    public ActionResult AddActor()
+    {
+        _mongoDbRepository.Create(new Actor(), "test", "testCollection");
+        
+        return Ok();
     }
 }
