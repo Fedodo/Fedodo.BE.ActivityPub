@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
+using ActivityPubServer.Model.Authentication;
 using ActivityPubServer.Model.DTOs;
 using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +12,16 @@ namespace ActivityPubServer.Controllers;
 [Route("Authentication")]
 public class AuthenticationController : ControllerBase
 {
+    private readonly IAuthenticationHandler _authenticationHandler;
     private readonly ILogger<AuthenticationController> _logger;
     private readonly IMongoDbRepository _repository;
 
-    public AuthenticationController(ILogger<AuthenticationController> logger, IMongoDbRepository repository)
+    public AuthenticationController(ILogger<AuthenticationController> logger, IMongoDbRepository repository,
+        IAuthenticationHandler authenticationHandler)
     {
         _logger = logger;
         _repository = repository;
+        _authenticationHandler = authenticationHandler;
     }
 
     [HttpPost]
@@ -86,12 +90,51 @@ public class AuthenticationController : ControllerBase
         await _repository.Create(webfinger, "ActivityPub", "Webfingers");
 
         // Create User
+        User user = new();
+        _authenticationHandler.CreatePasswordHash(actorDto.Password, out var passwordHash, out var passwordSalt);
+        user.PasswordHash = passwordHash;
+        user.PasswordSalt = passwordSalt;
+        user.UserName = actorDto.Name;
+        user.Role = "User";
+        user.PrivateKeyActivityPub = ExtractPrivateKey(rsa);
 
+        await _repository.Create(user, "Authentication", "Users");
 
         return Ok();
     }
 
-    private static string ExtractPublicKey(RSA rsa)
+    [HttpPost("Login")]
+    public async Task<ActionResult<string>> Login(LoginDto userDto)
+    {
+        //TODO OTIMIZE THAT
+        var users = await _repository.GetAll<User>("Authentication", "Users");
+
+        if (users.Where(i => i.UserName == userDto.UserName).Count() <= 0) return BadRequest("User not found");
+
+        if (users.Where(i => i.UserName == userDto.UserName).Count() > 1)
+            return BadRequest("Multible username error detected");
+
+        var user = users.Where(i => i.UserName == userDto.UserName).First();
+
+
+        if (!_authenticationHandler.VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
+            return BadRequest("Wrong password");
+
+        var token = _authenticationHandler.CreateToken(user);
+        return Ok(token);
+    }
+
+    private string ExtractPrivateKey(RSA rsa)
+    {
+        var beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
+        var endRsaPrivateKey = "-----END RSA PRIVATE KEY-----";
+        var keyPrv = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
+        var extractPrivateKey = $"{beginRsaPrivateKey}\n{keyPrv}\n{endRsaPrivateKey}";
+
+        return extractPrivateKey;
+    }
+
+    private string ExtractPublicKey(RSA rsa)
     {
         // Public key export
         var beginRsaPublicKey = "-----BEGIN RSA PUBLIC KEY-----";

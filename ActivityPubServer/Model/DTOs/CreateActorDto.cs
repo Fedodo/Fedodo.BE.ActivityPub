@@ -1,9 +1,15 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ActivityPubServer.Model.DTOs;
 
 public class CreateActorDto
 {
-    public string? Type { get; set; }
-    public string? Name { get; set; }
+    [Required] public string? Type { get; set; }
+
+    [Required] public string? Name { get; set; }
+
     public string? PreferredUsername { get; set; }
     public string? Summary { get; set; }
+
+    [Required] public string? Password { get; set; }
 }
