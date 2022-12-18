@@ -1,7 +1,8 @@
 using ActivityPubServer.Interfaces;
-using ActivityPubServer.Model;
+using ActivityPubServer.Model.ActivityPub;
 using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace ActivityPubServer.Controllers;
 
@@ -9,37 +10,31 @@ namespace ActivityPubServer.Controllers;
 public class ActorController : ControllerBase
 {
     private readonly ILogger<ActorController> _logger;
-    private readonly IInMemRepository _repository;
-    private readonly IMongoDbRepository _mongoDbRepository;
+    private readonly IMongoDbRepository _repository;
 
-    public ActorController(ILogger<ActorController> logger, IInMemRepository repository, IMongoDbRepository mongoDbRepository)
+    public ActorController(ILogger<ActorController> logger, IMongoDbRepository repository)
     {
         _logger = logger;
         _repository = repository;
-        _mongoDbRepository = mongoDbRepository;
     }
-    
+
     [HttpGet("{actorId}")]
-    public ActionResult<Actor> GetActor(Guid actorId)
+    public async Task<ActionResult<Actor>> GetActor(Guid actorId)
     {
         _logger.LogTrace($"Entered {nameof(GetActor)} in {nameof(ActorController)}");
 
-        var actor = _repository.GetActor(actorId);
+        var filterDefinitionBuilder = Builders<Actor>.Filter;
+        var filter = filterDefinitionBuilder.Eq(i => i.Id,
+            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}"));
+
+        var actor = await _repository.GetSpecific(filter, "ActivityPub", "Actors");
 
         if (actor.IsNull())
         {
             _logger.LogWarning($"{nameof(actor)} is null");
             return BadRequest($"No actor found for id: {actorId}");
         }
-        
-        return Ok(actor);
-    }
 
-    [HttpPost]
-    public ActionResult AddActor()
-    {
-        _mongoDbRepository.Create(new Actor(), "test", "testCollection");
-        
-        return Ok();
+        return Ok(actor);
     }
 }

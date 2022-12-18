@@ -1,12 +1,11 @@
 using System.Text.Json.Serialization;
 using ActivityPubServer.Interfaces;
 
-namespace ActivityPubServer.Model;
+namespace ActivityPubServer.Model.ActivityPub;
 
 public class Activity
 {
-    [JsonPropertyName("@context")]
-    public Uri? Context { get; set; }
+    [JsonPropertyName("@context")] public Uri? Context { get; set; }
 
     public Uri? Id { get; set; }
     public string? Type { get; set; }

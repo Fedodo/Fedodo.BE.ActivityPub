@@ -1,15 +1,14 @@
-using ActivityPubServer.Interfaces;
-using ActivityPubServer.Model;
+using ActivityPubServer.Model.ActivityPub;
 
 namespace ActivityPubServer.Repositories;
 
-public class InMemRepository : IInMemRepository
+public class InMemRepository
 {
     public Actor GetActor(Guid actorId)
     {
         List<Actor> actors = new()
         {
-            new()
+            new Actor
             {
                 Summary = "This is a test account.",
                 Name = "Test 1234",
@@ -22,10 +21,10 @@ public class InMemRepository : IInMemRepository
                 Type = "Person",
                 PreferredUsername = "Lukas",
                 Inbox = new Uri("https://ap.lna-dev.net/inbox"),
-                PublicKey = new()
+                PublicKey = new PublicKeyAP
                 {
                     Id = new Uri("https://ap.lna-dev.net/actor#main-key"),
-                    Owner = new Uri($"https://ap.lna-dev.net/actor/037AA32E-0A2F-4785-BC64-4C079E6557C5"),
+                    Owner = new Uri("https://ap.lna-dev.net/actor/037AA32E-0A2F-4785-BC64-4C079E6557C5"),
                     PublicKeyPem = @"-----BEGIN PUBLIC KEY-----
                 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz/fLWo1xQpjFmcJrxm1c
                 /5OVC5n9pudQUiFuFeOlYhdpVmLFZtVYOCJ/fAg3vsz+pRQH9BVQoAfVHME/Js8i
@@ -37,7 +36,7 @@ public class InMemRepository : IInMemRepository
                 -----END PUBLIC KEY-----"
                 }
             },
-            new()
+            new Actor
             {
                 Context = new[]
                 {
@@ -48,10 +47,10 @@ public class InMemRepository : IInMemRepository
                 Type = "Person",
                 PreferredUsername = "TestUser2",
                 Inbox = new Uri("https://ap.lna-dev.net/inbox"),
-                PublicKey = new()
+                PublicKey = new PublicKeyAP
                 {
                     Id = new Uri("https://ap.lna-dev.net/actor#main-key"),
-                    Owner = new Uri($"https://ap.lna-dev.net/actor/018E5972-9C9F-417B-A0CF-E8290904F737"),
+                    Owner = new Uri("https://ap.lna-dev.net/actor/018E5972-9C9F-417B-A0CF-E8290904F737"),
                     PublicKeyPem = @"-----BEGIN PUBLIC KEY-----
                 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz/fLWo1xQpjFmcJrxm1c
                 /5OVC5n9pudQUiFuFeOlYhdpVmLFZtVYOCJ/fAg3vsz+pRQH9BVQoAfVHME/Js8i
@@ -72,12 +71,12 @@ public class InMemRepository : IInMemRepository
     {
         List<Webfinger> webfingers = new()
         {
-            new Webfinger()
+            new Webfinger
             {
                 Subject = "acct:Lukas@ap.lna-dev.net",
-                Links = new []
+                Links = new[]
                 {
-                    new Link()
+                    new Link
                     {
                         Rel = "self",
                         Type = "application/activity+json",
@@ -85,12 +84,12 @@ public class InMemRepository : IInMemRepository
                     }
                 }
             },
-            new Webfinger()
+            new Webfinger
             {
                 Subject = "acct:TestUser2@ap.lna-dev.net",
-                Links = new []
+                Links = new[]
                 {
-                    new Link()
+                    new Link
                     {
                         Rel = "self",
                         Type = "application/activity+json",
@@ -99,7 +98,7 @@ public class InMemRepository : IInMemRepository
                 }
             }
         };
-        
+
         return webfingers.FirstOrDefault(i => i.Subject == resource);
     }
 }
