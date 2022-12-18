@@ -1,4 +1,4 @@
-namespace ActivityPubServer.Model;
+namespace ActivityPubServer.Model.ActivityPub;
 
 public class PublicKeyAP
 {

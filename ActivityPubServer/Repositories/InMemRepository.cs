@@ -1,4 +1,4 @@
-using ActivityPubServer.Model;
+using ActivityPubServer.Model.ActivityPub;
 
 namespace ActivityPubServer.Repositories;
 

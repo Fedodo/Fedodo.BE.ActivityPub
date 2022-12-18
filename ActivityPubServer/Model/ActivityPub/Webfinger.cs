@@ -1,9 +1,7 @@
 using System.Text.Json.Serialization;
 using MongoDB.Bson;
-// [JsonIgnore]
-// public ObjectId Id { get; set; }
 
-namespace ActivityPubServer.Model;
+namespace ActivityPubServer.Model.ActivityPub;
 
 public class Webfinger
 {

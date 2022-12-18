@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Text.Json.Serialization;
 
-namespace ActivityPubServer.Model;
+namespace ActivityPubServer.Model.ActivityPub;
 
 public class Actor
 {

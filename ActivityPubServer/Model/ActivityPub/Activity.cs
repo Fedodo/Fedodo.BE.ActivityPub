@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using ActivityPubServer.Interfaces;
 
-namespace ActivityPubServer.Model;
+namespace ActivityPubServer.Model.ActivityPub;
 
 public class Activity
 {

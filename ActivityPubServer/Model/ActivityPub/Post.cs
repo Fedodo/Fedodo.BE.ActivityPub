@@ -1,6 +1,6 @@
 using ActivityPubServer.Interfaces;
 
-namespace ActivityPubServer.Model;
+namespace ActivityPubServer.Model.ActivityPub;
 
 public class Post : IActivityChild
 {
