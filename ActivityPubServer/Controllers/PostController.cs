@@ -8,8 +8,6 @@ public class PostController : ControllerBase
     [HttpPost]
     public ActionResult Create()
     {
-        
-        
         return Ok();
     }
 }

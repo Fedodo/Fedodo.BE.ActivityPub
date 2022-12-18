@@ -12,8 +12,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IInMemRepository, InMemRepository>();
-
 //Logging
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -26,7 +24,8 @@ BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String))
 builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
 
 // string connectionString = $"mongodb://{Username}:{Password}@{Host}:{Port}";
-string connectionString = $"mongodb+srv://{Environment.GetEnvironmentVariable("MONGO_USERNAME")}:{Environment.GetEnvironmentVariable("MONGO_PASSWORD")}@{Environment.GetEnvironmentVariable("MONGO_HOSTNAME")}/?retryWrites=true&w=majority";
+var connectionString =
+    $"mongodb+srv://{Environment.GetEnvironmentVariable("MONGO_USERNAME")}:{Environment.GetEnvironmentVariable("MONGO_PASSWORD")}@{Environment.GetEnvironmentVariable("MONGO_HOSTNAME")}/?retryWrites=true&w=majority";
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(connectionString));
 
 
@@ -37,8 +36,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors(x => x.AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .WithOrigins("*"));
+    .AllowAnyMethod()
+    .WithOrigins("*"));
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
