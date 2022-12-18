@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using ActivityPubServer.DTOs;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
+using ActivityPubServer.Model.DTOs;
 using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;

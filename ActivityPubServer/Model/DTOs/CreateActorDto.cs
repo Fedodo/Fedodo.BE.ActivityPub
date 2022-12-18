@@ -1,4 +1,4 @@
-namespace ActivityPubServer.DTOs;
+namespace ActivityPubServer.Model.DTOs;
 
 public class CreateActorDto
 {
