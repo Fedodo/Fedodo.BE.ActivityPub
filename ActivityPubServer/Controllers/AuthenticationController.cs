@@ -28,6 +28,7 @@ public class AuthenticationController : ControllerBase
     public async Task<ActionResult<Actor>> CreateUser(CreateActorDto actorDto)
     {
         // Create actor
+        var userId = Guid.NewGuid();
         Actor actor = new()
         {
             // Client generated
@@ -37,8 +38,9 @@ public class AuthenticationController : ControllerBase
             Type = actorDto.Type,
 
             // Server generated
-            Id = new Uri($"https://ap.lna-dev.net/actor/{Guid.NewGuid()}"),
-            Inbox = new Uri("https://ap.lna-dev.net/inbox"), // TODO
+            Id = new Uri($"https://ap.lna-dev.net/actor/{userId}"),
+            Inbox = new Uri($"https://ap.lna-dev.net/inbox/{userId}"),
+            Outbox = new Uri($"https://ap.lna-dev.net/outbox/{userId}"),
 
             // Hardcoded
             Context = new[]
@@ -92,9 +94,10 @@ public class AuthenticationController : ControllerBase
         // Create User
         User user = new();
         _authenticationHandler.CreatePasswordHash(actorDto.Password, out var passwordHash, out var passwordSalt);
+        user.Id = userId;
         user.PasswordHash = passwordHash;
         user.PasswordSalt = passwordSalt;
-        user.UserName = actorDto.Name;
+        user.UserName = actorDto.PreferredUsername;
         user.Role = "User";
         user.PrivateKeyActivityPub = ExtractPrivateKey(rsa);
 
@@ -126,8 +129,8 @@ public class AuthenticationController : ControllerBase
 
     private string ExtractPrivateKey(RSA rsa)
     {
-        var beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
-        var endRsaPrivateKey = "-----END RSA PRIVATE KEY-----";
+        const string beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
+        const string endRsaPrivateKey = "-----END RSA PRIVATE KEY-----";
         var keyPrv = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
         var extractPrivateKey = $"{beginRsaPrivateKey}\n{keyPrv}\n{endRsaPrivateKey}";
 
@@ -137,8 +140,8 @@ public class AuthenticationController : ControllerBase
     private string ExtractPublicKey(RSA rsa)
     {
         // Public key export
-        var beginRsaPublicKey = "-----BEGIN RSA PUBLIC KEY-----";
-        var endRsaPublicKey = "-----END RSA PUBLIC KEY-----";
+        const string beginRsaPublicKey = "-----BEGIN RSA PUBLIC KEY-----";
+        const string endRsaPublicKey = "-----END RSA PUBLIC KEY-----";
         var base64PublicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
         var publicKey = $"{beginRsaPublicKey}\n{base64PublicKey}\n{endRsaPublicKey}";
         return publicKey;

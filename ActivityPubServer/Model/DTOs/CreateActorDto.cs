@@ -8,8 +8,8 @@ public class CreateActorDto
 
     public string? Name { get; set; }
 
-    [Required]
-    public string? PreferredUsername { get; set; }
+    [Required] public string? PreferredUsername { get; set; }
+
     public string? Summary { get; set; }
 
     [Required] public string? Password { get; set; }
