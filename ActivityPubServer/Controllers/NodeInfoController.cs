@@ -38,7 +38,16 @@ public class NodeInfoController : ControllerBase
                 Outbound = new object[0],
                 Inbound = new object[0]
             },
-            Usage = null, // TODO
+            Usage = new Usage()
+            {
+                LocalPosts = 0, // TODO
+                Users = new Users()
+                {
+                    ActiveHalfyear = 1, // TODO
+                    ActiveMonth = 1, // TODO
+                    Total = 1 // TODO
+                }
+            },
             OpenRegistrations = false,
             Metadata = new Dictionary<string, string>()
         };
