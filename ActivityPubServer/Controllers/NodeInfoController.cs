@@ -33,10 +33,14 @@ public class NodeInfoController : ControllerBase
             {
                 "activitypub"
             },
-            Services = null,
-            Usage = null,
+            Services = new Services()
+            {
+                Outbound = new object[0],
+                Inbound = new object[0]
+            },
+            Usage = null, // TODO
             OpenRegistrations = false,
-            Metadata = null
+            Metadata = new Dictionary<string, string>()
         };
 
         return Ok(nodeInfo);
