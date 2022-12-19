@@ -9,12 +9,12 @@ public class NodeInfoController : ControllerBase
     [HttpGet(".well-known/nodeinfo")]
     public ActionResult<Link> GetNodeInfoLink()
     {
-        var link = new NodeLink()
+        var link = new NodeLink
         {
             Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",
             Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.0")
         };
-        
+
         return Ok(link);
     }
 
@@ -24,24 +24,24 @@ public class NodeInfoController : ControllerBase
         var nodeInfo = new NodeInfo
         {
             Version = "2.0",
-            Software = new Software()
+            Software = new Software
             {
                 Name = "Orca-Social",
                 Version = "0.1"
             },
-            Protocols = new string[]
+            Protocols = new[]
             {
                 "activitypub"
             },
-            Services = new Services()
+            Services = new Services
             {
                 Outbound = new object[0],
                 Inbound = new object[0]
             },
-            Usage = new Usage()
+            Usage = new Usage
             {
                 LocalPosts = 0, // TODO
-                Users = new Users()
+                Users = new Users
                 {
                     ActiveHalfyear = 1, // TODO
                     ActiveMonth = 1, // TODO
