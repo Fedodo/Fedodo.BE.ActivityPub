@@ -59,7 +59,7 @@ public class AuthenticationController : ControllerBase
 
         // Add Actor if it is not exiting
         var filterDefinitionBuilder = Builders<Actor>.Filter;
-        var filter = filterDefinitionBuilder.Where(i => i.Name == actor.Name);
+        var filter = filterDefinitionBuilder.Where(i => i.PreferredUsername == actor.PreferredUsername);
         var exitingActor = await _repository.GetSpecific(filter, "ActivityPub", "Actors");
         if (exitingActor.IsNull())
         {
@@ -75,7 +75,7 @@ public class AuthenticationController : ControllerBase
         // Create Webfinger
         var webfinger = new Webfinger
         {
-            Subject = $"acct:{actor.Name}@{Environment.GetEnvironmentVariable("DOMAINNAME")}",
+            Subject = $"acct:{actor.PreferredUsername}@{Environment.GetEnvironmentVariable("DOMAINNAME")}",
             Links = new List<Link>
             {
                 new()
