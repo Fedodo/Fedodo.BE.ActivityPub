@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: ap
-          image: lnadev/activity-pub-server:12
+          image: lnadev/activity-pub-server:14
           imagePullPolicy: Always
           resources:
             limits:
@@ -22,6 +22,23 @@ spec:
           ports:
             - containerPort: 80
               name: port-http
+          env:
+            - name: DOMAINNAME
+              value: "ap.lna-dev.net"
+            - name: MONGO_HOSTNAME
+              value: "cluster0.mnp03hj.mongodb.net"
+            - name: MONGO_USERNAME
+              value: "root"
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: activity-pub-server-secrets
+                  key: mongodb-password
+            - name: API_SECURITY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: activity-pub-server-secrets
+                  key: activity-pub-server-token
 
 ---
 apiVersion: v1
