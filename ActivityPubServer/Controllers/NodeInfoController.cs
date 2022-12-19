@@ -26,7 +26,7 @@ public class NodeInfoController : ControllerBase
             Version = "2.0",
             Software = new Software()
             {
-                Name = "Social-Orca",
+                Name = "Orca-Social",
                 Version = "0.1"
             },
             Protocols = new string[]
