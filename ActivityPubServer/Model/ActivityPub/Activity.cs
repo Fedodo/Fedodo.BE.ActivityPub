@@ -5,7 +5,7 @@ namespace ActivityPubServer.Model.ActivityPub;
 
 public class Activity
 {
-    [JsonPropertyName("@context")] public Uri? Context { get; set; }
+    [JsonPropertyName("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
 
     public Uri? Id { get; set; }
     public string? Type { get; set; }
