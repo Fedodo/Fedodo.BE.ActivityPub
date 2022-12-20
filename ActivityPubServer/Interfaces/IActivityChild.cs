@@ -6,4 +6,5 @@ public interface IActivityChild
     public string? Type { get; set; }
     public DateTime Published { get; set; }
     public Uri? AttributedTo { get; set; }
+    public string? Content { get; set; }
 }
