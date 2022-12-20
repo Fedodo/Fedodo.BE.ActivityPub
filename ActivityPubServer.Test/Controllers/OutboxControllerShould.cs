@@ -1,8 +1,3 @@
-using ActivityPubServer.Controllers;
-using ActivityPubServer.Interfaces;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Serilog;
 using Xunit;
 
 namespace ActivityPubServer.Test.Controllers;

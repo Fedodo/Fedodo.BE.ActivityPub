@@ -131,7 +131,7 @@ public class AuthenticationController : ControllerBase
     {
         const string beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
         const string endRsaPrivateKey = "-----END RSA PRIVATE KEY-----";
-        var keyPrv = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
+        var keyPrv = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
         var extractPrivateKey = $"{beginRsaPrivateKey}\n{keyPrv}\n{endRsaPrivateKey}";
 
         return extractPrivateKey;
