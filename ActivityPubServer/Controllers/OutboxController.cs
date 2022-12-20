@@ -95,10 +95,12 @@ public class OutboxController : ControllerBase
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
         var httpResponse = await http.PostAsync(new Uri("https://mastodon.social/inbox"), contentData);
-
+        
         if (!httpResponse.IsSuccessStatusCode)
         {
-            return Forbid();
+            string responseText = await httpResponse.Content.ReadAsStringAsync();
+            
+            return BadRequest(responseText);
         }
         
         return Ok(activity);
