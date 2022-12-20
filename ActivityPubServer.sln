@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{
 		.github\workflows\Build.yaml = .github\workflows\Build.yaml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActivityPubServer.Test", "ActivityPubServer.Test\ActivityPubServer.Test.csproj", "{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,5 +24,9 @@ Global
 		{F50F2386-1EE7-449D-9041-FF0FB7A888FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F50F2386-1EE7-449D-9041-FF0FB7A888FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F50F2386-1EE7-449D-9041-FF0FB7A888FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
