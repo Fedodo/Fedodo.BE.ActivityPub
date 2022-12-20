@@ -73,30 +73,34 @@ public class OutboxController : ControllerBase
         };
 
         // Set Http Signature
-        var encoder = new UTF8Encoding();
-
         var rsa = RSA.Create();
-        rsa.ImportFromPem(actor.PublicKey.PublicKeyPem.ToCharArray());
+        //rsa.ImportFromPem(actor.PublicKey.PublicKeyPem.ToCharArray());
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
-        var date = DateTime.UtcNow.ToString(""); //	Date: Tue, 15 Nov 1994 08:12:31 GMT
+        var date = DateTime.UtcNow.ToString("R");
         var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}";
-        var signature = rsa.SignData(encoder.GetBytes(signedString.ToCharArray()), HashAlgorithmName.SHA512,
+        var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
+        string signatureString = Convert.ToBase64String(signature);
 
         // Create HTTP request
         HttpClient http = new();
         http.DefaultRequestHeaders.Add("Host", "mastodon.social"); // TODO
-        //requestMessage.Headers.Add("Date",date);
+        //http.DefaultRequestHeaders.Add("Date", date);
         http.DefaultRequestHeaders.Add("Signature",
-            "keyId=\"https://my-example.com/actor#main-key\",headers=\"(request-target) " +
-            $"host date\",signature=\"{encoder.GetChars(signature)}\"");
+            $"keyId=\"{actor.PublicKey.Id}\",headers=\"(request-target) " +
+            $"host date\",signature=\"{signatureString}\"");
 
         var jsonData = JsonSerializer.Serialize(activity);
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
         var httpResponse = await http.PostAsync(new Uri("https://mastodon.social/inbox"), contentData);
 
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            return Forbid();
+        }
+        
         return Ok(activity);
     }
 }
