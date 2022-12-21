@@ -75,13 +75,14 @@ public class OutboxController : ControllerBase
 
         // Set Http Signature
         var jsonData = JsonSerializer.Serialize(activity);
+        var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();
         rsa.ImportFromPem(actor.PublicKey.PublicKeyPem.ToCharArray());
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
-        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}";
+        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: {digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         string signatureString = Convert.ToBase64String(signature);
@@ -90,7 +91,7 @@ public class OutboxController : ControllerBase
         HttpClient http = new();
         http.DefaultRequestHeaders.Add("Host", "mastodon.social"); // TODO
         http.DefaultRequestHeaders.Add("Date", date);
-        http.DefaultRequestHeaders.Add("Digest", $"sha-256={ComputeHash(jsonData)}");
+        http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
         http.DefaultRequestHeaders.Add("Signature",
             $"keyId=\"{actor.PublicKey.Id}\",headers=\"(request-target) " +
             $"host date digest\",signature=\"{signatureString}\"");
