@@ -1,3 +1,4 @@
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -73,8 +74,10 @@ public class OutboxController : ControllerBase
         };
 
         // Set Http Signature
+        var jsonData = JsonSerializer.Serialize(activity);
+
         var rsa = RSA.Create();
-        //rsa.ImportFromPem(actor.PublicKey.PublicKeyPem.ToCharArray());
+        rsa.ImportFromPem(actor.PublicKey.PublicKeyPem.ToCharArray());
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
@@ -82,17 +85,17 @@ public class OutboxController : ControllerBase
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         string signatureString = Convert.ToBase64String(signature);
-
+        
         // Create HTTP request
         HttpClient http = new();
         http.DefaultRequestHeaders.Add("Host", "mastodon.social"); // TODO
-        //http.DefaultRequestHeaders.Add("Date", date);
+        http.DefaultRequestHeaders.Add("Date", date);
+        http.DefaultRequestHeaders.Add("Digest", $"sha-256={ComputeHash(jsonData)}");
         http.DefaultRequestHeaders.Add("Signature",
             $"keyId=\"{actor.PublicKey.Id}\",headers=\"(request-target) " +
-            $"host date\",signature=\"{signatureString}\"");
+            $"host date digest\",signature=\"{signatureString}\"");
 
-        var jsonData = JsonSerializer.Serialize(activity);
-        var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
         var httpResponse = await http.PostAsync(new Uri("https://mastodon.social/inbox"), contentData);
         
@@ -104,5 +107,19 @@ public class OutboxController : ControllerBase
         }
         
         return Ok(activity);
+    }
+
+    private string? ComputeHash(string jsonData)
+    {
+        SHA256 sha = SHA256.Create(); // Create a SHA256 hash from string   
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            // Computing Hash - returns here byte array
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
+
+            var hashedString = Convert.ToBase64String(bytes);
+
+            return hashedString;
+        }
     }
 }
