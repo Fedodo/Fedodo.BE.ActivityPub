@@ -13,4 +13,5 @@ public class Post : IActivityChild
     public Uri? AttributedTo { get; set; }
     public string Summary { get; set; }
     public bool Sensitive { get; set; }
+    public Uri? InReplyTo { get; set; }
 }

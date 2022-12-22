@@ -25,6 +25,20 @@ public class OutboxController : ControllerBase
         _repository = repository;
     }
 
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
+    {
+        var posts = await _repository.GetAll<Post>("Posts", userId.ToString());
+
+        var orderedCollection = new OrderedCollection()
+        {
+            Summary = $"Posts of {userId}",
+            OrderedItems = posts
+        };
+        
+        return Ok(orderedCollection);
+    }
+
     [HttpPost("{userId}")]
     [Authorize(Roles = "User")]
     public async Task<ActionResult> CreatePost(Guid userId) //, IActivityChild activityChild) // TODO
@@ -57,7 +71,7 @@ public class OutboxController : ControllerBase
 
         // Create activity
 
-        var reply = new Reply()
+        var reply = new Post()
         {
             Id = postIdUri,
             Type = "Note",

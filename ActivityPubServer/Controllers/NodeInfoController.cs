@@ -1,5 +1,5 @@
 using ActivityPubServer.Model.ActivityPub;
-using ActivityPubServer.Model.ActivityPub.NodeInfo;
+using ActivityPubServer.Model.NodeInfo;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
