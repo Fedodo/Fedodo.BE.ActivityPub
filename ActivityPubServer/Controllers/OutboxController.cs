@@ -82,7 +82,7 @@ public class OutboxController : ControllerBase
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
-        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: sha-256={digest}"; // TODO Experiment with date formats!
+        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         string signatureString = Convert.ToBase64String(signature);
