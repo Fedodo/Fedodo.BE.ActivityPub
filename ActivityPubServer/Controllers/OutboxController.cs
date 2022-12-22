@@ -9,6 +9,7 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace ActivityPubServer.Controllers;
 
@@ -69,18 +70,18 @@ public class OutboxController : ControllerBase
 
         // Create activity
 
-        var reply = new Post
+        var reply = new Post()
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
             Type = "Note",
             Published = DateTime.UtcNow, // TODO
             AttributedTo = actorId,
             InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
-            Name = "test",
-            Summary = "Summary Text",
-            Sensitive = false,
+            // Name = "test",
+            // Summary = "Summary Text",
+            // Sensitive = false,
             Content = "Hello world #Test",
-            To = "as:Public"
+            To = "https://www.w3.org/ns/activitystreams#Public"
         };
 
         await _repository.Create(reply, "Posts", userId.ToString());
@@ -95,7 +96,7 @@ public class OutboxController : ControllerBase
         };
 
         // Set Http Signature
-        var jsonData = JsonSerializer.Serialize(activity);
+        var jsonData = JsonConvert.SerializeObject(activity);
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();

@@ -1,14 +1,18 @@
 using System.Text.Json.Serialization;
 using ActivityPubServer.Interfaces;
+using Newtonsoft.Json;
 
 namespace ActivityPubServer.Model.ActivityPub;
 
 public class Activity
 {
-    [JsonPropertyName("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
-
+    [JsonProperty("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
+    [JsonProperty("id")]
     public Uri? Id { get; set; }
+    [JsonProperty("type")]
     public string? Type { get; set; }
+    [JsonProperty("actor")]
     public Uri? Actor { get; set; }
+    [JsonProperty("object")]
     public IActivityChild? Object { get; set; }
 }
