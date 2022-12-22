@@ -68,7 +68,7 @@ public class OutboxController : ControllerBase
                 Published = DateTime.UtcNow, // TODO
                 AttributedTo = actorId,
                 InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
-                Content = "<p>Hello world</p>",
+                Content = "Hello world",
                 To = new Uri("https://www.w3.org/ns/activitystreams#Public")
             }
         };
@@ -82,7 +82,7 @@ public class OutboxController : ControllerBase
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
-        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: {digest}"; // TODO Experiment with date formats!
+        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: sha-256={digest}"; // TODO Experiment with date formats!
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         string signatureString = Convert.ToBase64String(signature);
