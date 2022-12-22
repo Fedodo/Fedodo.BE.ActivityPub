@@ -1,3 +1,4 @@
+using System.Text;
 using ActivityPubServer.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,18 +15,28 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult Log(string something)
+    public async Task<ActionResult> Log(object asdf)
     {
-        _logger.LogDebug(something);
+        var bodyStr = "";
+        var req = HttpContext.Request;
+        
+        bodyStr = Encoding.UTF8.GetString((await HttpContext.Request.BodyReader.ReadAsync()).Buffer);
+        
+        _logger.LogDebug(bodyStr);
         
         return Ok();
     }
-    
+
     [HttpPost("{id}")]
-    public ActionResult Log(Guid id, Activity something)
+    public async Task<ActionResult> Log(Guid id)
     {
-        _logger.LogDebug($"Id: {something.Id}, {something.Actor}, {something.Type}, {something.Object}, {something.Context}");
-        
+        var bodyStr = "";
+        var req = HttpContext.Request;
+
+        bodyStr = Encoding.UTF8.GetString((await HttpContext.Request.BodyReader.ReadAsync()).Buffer);
+
+        _logger.LogDebug(bodyStr);
+
         return Ok();
     }
 }
