@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using ActivityPubServer.Interfaces;
 
 namespace ActivityPubServer.Model.ActivityPub;
 

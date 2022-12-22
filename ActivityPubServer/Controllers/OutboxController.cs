@@ -1,4 +1,3 @@
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -30,12 +29,12 @@ public class OutboxController : ControllerBase
     {
         var posts = await _repository.GetAll<Post>("Posts", userId.ToString());
 
-        var orderedCollection = new OrderedCollection()
+        var orderedCollection = new OrderedCollection
         {
             Summary = $"Posts of {userId}",
             OrderedItems = posts
         };
-        
+
         return Ok(orderedCollection);
     }
 
@@ -71,13 +70,13 @@ public class OutboxController : ControllerBase
 
         // Create activity
 
-        var reply = new Post()
+        var reply = new Post
         {
             Id = postIdUri,
             Type = "Note",
             Published = DateTime.UtcNow, // TODO
             AttributedTo = actorId,
-            InReplyTo = new Uri($"https://mastodon.social/@Gargron/100254678717223630"),
+            InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
             Name = "test",
             Summary = "Summary Text",
             Sensitive = false,
@@ -86,7 +85,7 @@ public class OutboxController : ControllerBase
         };
 
         await _repository.Create(reply, "Posts", userId.ToString());
-        
+
         var activity = new Activity
         {
             Actor = actorId,
@@ -105,11 +104,12 @@ public class OutboxController : ControllerBase
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
-        var signedString = $"(request-target): post /inbox\nhost: {targetServerName}\ndate: {date}\ndigest: sha-256={digest}";
+        var signedString =
+            $"(request-target): post /inbox\nhost: {targetServerName}\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
-        string signatureString = Convert.ToBase64String(signature);
-        
+        var signatureString = Convert.ToBase64String(signature);
+
         // Create HTTP request
         HttpClient http = new();
         http.DefaultRequestHeaders.Add("Host", targetServerName);
@@ -122,24 +122,24 @@ public class OutboxController : ControllerBase
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
         var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
-        
+
         if (!httpResponse.IsSuccessStatusCode)
         {
-            string responseText = await httpResponse.Content.ReadAsStringAsync();
-            
+            var responseText = await httpResponse.Content.ReadAsStringAsync();
+
             return BadRequest(responseText);
         }
-        
+
         return Ok(activity);
     }
 
     private string? ComputeHash(string jsonData)
     {
-        SHA256 sha = SHA256.Create(); // Create a SHA256 hash from string   
-        using (SHA256 sha256Hash = SHA256.Create())
+        var sha = SHA256.Create(); // Create a SHA256 hash from string   
+        using (var sha256Hash = SHA256.Create())
         {
             // Computing Hash - returns here byte array
-            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
+            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
 
             var hashedString = Convert.ToBase64String(bytes);
 
