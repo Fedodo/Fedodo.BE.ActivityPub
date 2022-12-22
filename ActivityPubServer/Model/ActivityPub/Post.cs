@@ -4,7 +4,7 @@ namespace ActivityPubServer.Model.ActivityPub;
 
 public class Post : IActivityChild
 {
-    public Uri? To { get; set; }
+    public string? To { get; set; }
     public string? Content { get; set; }
     public Uri? Id { get; set; }
     public string? Type { get; set; }

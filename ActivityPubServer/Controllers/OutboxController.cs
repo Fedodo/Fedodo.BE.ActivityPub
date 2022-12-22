@@ -33,6 +33,7 @@ public class OutboxController : ControllerBase
         var postId = Guid.NewGuid();
         var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/create/{postId}");
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
+        var targetServerName = "mastodon.social";
 
         // Verify user
         var activeUserClaims = HttpContext.User.Claims.ToList();
@@ -61,15 +62,15 @@ public class OutboxController : ControllerBase
             Id = postIdUri,
             Type = "Create", // TODO
             //Object = activityChild // TODO
-            Object = new Reply
+            Object = new Reply()
             {
                 Id = postIdUri,
                 Type = "Note",
                 Published = DateTime.UtcNow, // TODO
                 AttributedTo = actorId,
-                InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
+                InReplyTo = new Uri($"https://mastodon.social/@Gargron/100254678717223630"),
                 Content = "Hello world #Test",
-                To = new Uri("https://www.w3.org/ns/activitystreams#Public")
+                To = "as:Public"
             }
         };
 
@@ -82,14 +83,14 @@ public class OutboxController : ControllerBase
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
-        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: sha-256={digest}";
+        var signedString = $"(request-target): post /inbox\nhost: {targetServerName}\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         string signatureString = Convert.ToBase64String(signature);
         
         // Create HTTP request
         HttpClient http = new();
-        http.DefaultRequestHeaders.Add("Host", "mastodon.social"); // TODO
+        http.DefaultRequestHeaders.Add("Host", targetServerName);
         http.DefaultRequestHeaders.Add("Date", date);
         http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
         http.DefaultRequestHeaders.Add("Signature",
@@ -98,7 +99,7 @@ public class OutboxController : ControllerBase
 
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
-        var httpResponse = await http.PostAsync(new Uri("https://mastodon.social/inbox"), contentData);
+        var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
         
         if (!httpResponse.IsSuccessStatusCode)
         {
