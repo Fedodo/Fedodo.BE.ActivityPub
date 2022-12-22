@@ -1,5 +1,4 @@
 using System.Text;
-using ActivityPubServer.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -19,11 +18,11 @@ public class InboxController : ControllerBase
     {
         var bodyStr = "";
         var req = HttpContext.Request;
-        
+
         bodyStr = Encoding.UTF8.GetString((await HttpContext.Request.BodyReader.ReadAsync()).Buffer);
-        
+
         _logger.LogDebug(bodyStr);
-        
+
         return Ok();
     }
 
