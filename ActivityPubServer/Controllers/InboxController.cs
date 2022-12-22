@@ -1,3 +1,4 @@
+using ActivityPubServer.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -21,9 +22,9 @@ public class InboxController : ControllerBase
     }
     
     [HttpPost("{id}")]
-    public ActionResult Log(Guid id, string something)
+    public ActionResult Log(Guid id, Activity something)
     {
-        _logger.LogDebug(something);
+        _logger.LogDebug($"Id: {something.Id}, {something.Actor}, {something.Type}, {something.Object}, {something.Context}");
         
         return Ok();
     }
