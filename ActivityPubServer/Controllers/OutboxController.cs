@@ -31,9 +31,9 @@ public class OutboxController : ControllerBase
     {
         // General
         var postId = Guid.NewGuid();
-        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/create/{postId}");
+        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/Outbox/{postId}");
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
-        var targetServerName = "mastodon.social";
+        var targetServerName = "mapstodon.space";
 
         // Verify user
         var activeUserClaims = HttpContext.User.Claims.ToList();
@@ -56,22 +56,30 @@ public class OutboxController : ControllerBase
         var actor = await _repository.GetSpecific(filterActor, "ActivityPub", "Actors");
 
         // Create activity
+
+        var reply = new Reply()
+        {
+            Id = postIdUri,
+            Type = "Note",
+            Published = DateTime.UtcNow, // TODO
+            AttributedTo = actorId,
+            InReplyTo = new Uri($"https://mastodon.social/@Gargron/100254678717223630"),
+            Name = "test",
+            Summary = "Summary Text",
+            Sensitive = false,
+            Content = "Hello world #Test",
+            To = "as:Public"
+        };
+
+        await _repository.Create(reply, "Posts", userId.ToString());
+        
         var activity = new Activity
         {
             Actor = actorId,
             Id = postIdUri,
             Type = "Create", // TODO
             //Object = activityChild // TODO
-            Object = new Reply()
-            {
-                Id = postIdUri,
-                Type = "Note",
-                Published = DateTime.UtcNow, // TODO
-                AttributedTo = actorId,
-                InReplyTo = new Uri($"https://mastodon.social/@Gargron/100254678717223630"),
-                Content = "Hello world #Test",
-                To = "as:Public"
-            }
+            Object = reply
         };
 
         // Set Http Signature
