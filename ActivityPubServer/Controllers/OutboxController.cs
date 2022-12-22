@@ -25,14 +25,29 @@ public class OutboxController : ControllerBase
         _repository = repository;
     }
 
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
+    {
+        var posts = await _repository.GetAll<Post>("Posts", userId.ToString());
+
+        var orderedCollection = new OrderedCollection()
+        {
+            Summary = $"Posts of {userId}",
+            OrderedItems = posts
+        };
+        
+        return Ok(orderedCollection);
+    }
+
     [HttpPost("{userId}")]
     [Authorize(Roles = "User")]
     public async Task<ActionResult> CreatePost(Guid userId) //, IActivityChild activityChild) // TODO
     {
         // General
         var postId = Guid.NewGuid();
-        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/create/{postId}");
+        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/Outbox/{postId}");
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
+        var targetServerName = "mapstodon.space";
 
         // Verify user
         var activeUserClaims = HttpContext.User.Claims.ToList();
@@ -55,22 +70,30 @@ public class OutboxController : ControllerBase
         var actor = await _repository.GetSpecific(filterActor, "ActivityPub", "Actors");
 
         // Create activity
+
+        var reply = new Post()
+        {
+            Id = postIdUri,
+            Type = "Note",
+            Published = DateTime.UtcNow, // TODO
+            AttributedTo = actorId,
+            InReplyTo = new Uri($"https://mastodon.social/@Gargron/100254678717223630"),
+            Name = "test",
+            Summary = "Summary Text",
+            Sensitive = false,
+            Content = "Hello world #Test",
+            To = "as:Public"
+        };
+
+        await _repository.Create(reply, "Posts", userId.ToString());
+        
         var activity = new Activity
         {
             Actor = actorId,
             Id = postIdUri,
             Type = "Create", // TODO
             //Object = activityChild // TODO
-            Object = new Post
-            {
-                Id = postIdUri,
-                Type = "Note",
-                Published = DateTime.UtcNow, // TODO
-                AttributedTo = actorId,
-                InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
-                Content = "Hello world",
-                To = new Uri("https://www.w3.org/ns/activitystreams#Public")
-            }
+            Object = reply
         };
 
         // Set Http Signature
@@ -82,14 +105,14 @@ public class OutboxController : ControllerBase
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
-        var signedString = $"(request-target): post /inbox\nhost: mastodon.social\ndate: {date}\ndigest: sha-256={digest}";
+        var signedString = $"(request-target): post /inbox\nhost: {targetServerName}\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         string signatureString = Convert.ToBase64String(signature);
         
         // Create HTTP request
         HttpClient http = new();
-        http.DefaultRequestHeaders.Add("Host", "mastodon.social"); // TODO
+        http.DefaultRequestHeaders.Add("Host", targetServerName);
         http.DefaultRequestHeaders.Add("Date", date);
         http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
         http.DefaultRequestHeaders.Add("Signature",
@@ -98,7 +121,7 @@ public class OutboxController : ControllerBase
 
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
-        var httpResponse = await http.PostAsync(new Uri("https://mastodon.social/inbox"), contentData);
+        var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
         
         if (!httpResponse.IsSuccessStatusCode)
         {

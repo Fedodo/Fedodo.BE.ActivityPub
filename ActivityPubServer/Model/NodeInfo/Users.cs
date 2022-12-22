@@ -1,4 +1,4 @@
-namespace ActivityPubServer.Model.ActivityPub.NodeInfo;
+namespace ActivityPubServer.Model.NodeInfo;
 
 public class Users
 {
