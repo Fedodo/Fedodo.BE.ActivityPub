@@ -12,7 +12,7 @@ public class InboxController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet]
+    [HttpPost]
     public ActionResult Log(string something)
     {
         _logger.LogDebug(something);
@@ -20,7 +20,7 @@ public class InboxController : ControllerBase
         return Ok();
     }
     
-    [HttpGet("{id}")]
+    [HttpPost("{id}")]
     public ActionResult Log(Guid id, string something)
     {
         _logger.LogDebug(something);
