@@ -47,7 +47,7 @@ public class OutboxController : ControllerBase
         var postId = Guid.NewGuid();
         var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/Outbox/{postId}");
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
-        var targetServerName = "mapstodon.space";
+        var targetServerName = "mastodon.social";
 
         // Verify user
         var activeUserClaims = HttpContext.User.Claims.ToList();
