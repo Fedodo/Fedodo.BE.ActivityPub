@@ -4,7 +4,6 @@ namespace ActivityPubServer.Model.ActivityPub;
 
 public class Post : IActivityChild
 {
-    public Uri? InReplyTo { get; set; }
     public Uri? To { get; set; }
     public string? Content { get; set; }
     public Uri? Id { get; set; }

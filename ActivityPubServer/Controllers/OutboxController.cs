@@ -61,14 +61,14 @@ public class OutboxController : ControllerBase
             Id = postIdUri,
             Type = "Create", // TODO
             //Object = activityChild // TODO
-            Object = new Post
+            Object = new Reply
             {
                 Id = postIdUri,
                 Type = "Note",
                 Published = DateTime.UtcNow, // TODO
                 AttributedTo = actorId,
                 InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
-                Content = "Hello world",
+                Content = "Hello world #Test",
                 To = new Uri("https://www.w3.org/ns/activitystreams#Public")
             }
         };
