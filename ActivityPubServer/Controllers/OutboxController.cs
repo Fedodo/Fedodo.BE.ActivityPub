@@ -27,7 +27,7 @@ public class OutboxController : ControllerBase
     [HttpGet("{userId}")]
     public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
     {
-        var posts = await _repository.GetAll<Post>("Posts", userId.ToString());
+        var posts = await _repository.GetAll<Post>("Posts", userId.ToString()); // TODO filter for public posts
 
         var orderedCollection = new OrderedCollection
         {
@@ -44,7 +44,7 @@ public class OutboxController : ControllerBase
     {
         // General
         var postId = Guid.NewGuid();
-        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/Outbox/{postId}");
+        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}");
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
         var targetServerName = "mastodon.social";
 
