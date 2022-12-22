@@ -44,7 +44,6 @@ public class OutboxController : ControllerBase
     {
         // General
         var postId = Guid.NewGuid();
-        var postIdUri = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}");
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
         var targetServerName = "mastodon.social";
 
@@ -72,7 +71,7 @@ public class OutboxController : ControllerBase
 
         var reply = new Post
         {
-            Id = postIdUri,
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
             Type = "Note",
             Published = DateTime.UtcNow, // TODO
             AttributedTo = actorId,
@@ -89,7 +88,7 @@ public class OutboxController : ControllerBase
         var activity = new Activity
         {
             Actor = actorId,
-            Id = postIdUri,
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activitys/{postId}"),
             Type = "Create", // TODO
             //Object = activityChild // TODO
             Object = reply
