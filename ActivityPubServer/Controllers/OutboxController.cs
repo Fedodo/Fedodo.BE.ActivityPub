@@ -44,6 +44,7 @@ public class OutboxController : ControllerBase
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreatePostDto postDto)
     {
         if (!VerifyUser(userId)) return Forbid();
+        if (postDto.IsNull()) return BadRequest("Post can not be null");
 
         // Build props
         var user = await GetUser(userId);
@@ -54,6 +55,7 @@ public class OutboxController : ControllerBase
         var targets = new List<string>();
 
         targets.Add("mastodon.social"); // TODO
+        targets.Add("mastodon.online");
 
         foreach (var target in targets) await SendActivity(activity, user, target, actor);
 
@@ -86,7 +88,6 @@ public class OutboxController : ControllerBase
 
     private async Task<User> GetUser(Guid userId)
     {
-        // Get User
         var filterUserDefinitionBuilder = Builders<User>.Filter;
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
         var user = await _repository.GetSpecific(filterUser, "Authentication", "Users");
@@ -153,17 +154,17 @@ public class OutboxController : ControllerBase
 
         var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
 
-        if (!httpResponse.IsSuccessStatusCode)
-        {
-            var responseText = await httpResponse.Content.ReadAsStringAsync();
+        if (httpResponse.IsSuccessStatusCode) return true;
+        
+        var responseText = await httpResponse.Content.ReadAsStringAsync();
+        
+        _logger.LogWarning($"An error occured sending an activity: {responseText}");
 
-            return false;
-        }
+        return false;
 
-        return true;
     }
 
-    private string? ComputeHash(string jsonData)
+    private string ComputeHash(string jsonData)
     {
         var sha = SHA256.Create(); // Create a SHA256 hash from string   
         using var sha256Hash = SHA256.Create();
