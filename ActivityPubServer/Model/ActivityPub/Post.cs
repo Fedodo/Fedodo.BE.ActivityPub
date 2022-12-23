@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using ActivityPubServer.Interfaces;
 using Newtonsoft.Json;
 
 namespace ActivityPubServer.Model.ActivityPub;

@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Authentication;
@@ -42,13 +41,10 @@ public class OutboxController : ControllerBase
 
     [HttpPost("{userId}")]
     [Authorize(Roles = "User")]
-    public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody]CreatePostDto postDto)
+    public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreatePostDto postDto)
     {
-        if (!VerifyUser(userId))
-        {
-            return Forbid();
-        }
-        
+        if (!VerifyUser(userId)) return Forbid();
+
         // Build props
         var user = await GetUser(userId);
         var actor = await GetActor(userId);
@@ -56,13 +52,10 @@ public class OutboxController : ControllerBase
 
         // Send activities
         var targets = new List<string>();
-        
-        targets.Add("mastodon.social");
 
-        foreach (string target in targets)
-        {
-            await SendActivity(activity, user, target, actor);
-        }
+        targets.Add("mastodon.social"); // TODO
+
+        foreach (var target in targets) await SendActivity(activity, user, target, actor);
 
         return Ok(activity);
     }
@@ -77,11 +70,9 @@ public class OutboxController : ControllerBase
         {
             return true;
         }
-        else
-        {
-            _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
-            return false;
-        }
+
+        _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
+        return false;
     }
 
     private async Task<Actor> GetActor(Guid userId)
