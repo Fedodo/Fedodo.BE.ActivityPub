@@ -15,12 +15,12 @@ public class NodeInfoController : ControllerBase
         _logger = logger;
         _repository = repository;
     }
-    
+
     [HttpGet(".well-known/nodeinfo")]
     public ActionResult<Link> GetNodeInfoLink()
     {
         _logger.LogTrace($"Entered {nameof(GetNodeInfoLink)} in {nameof(NodeInfoController)}");
-        
+
         var link = new NodeLink
         {
             Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",

@@ -29,10 +29,10 @@ public class OutboxController : ControllerBase
     public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
     {
         var filterDefinitionBuilder = Builders<Post>.Filter;
-        var filter = filterDefinitionBuilder.Where(i => i.To == "https://www.w3.org/ns/activitystreams#Public" 
+        var filter = filterDefinitionBuilder.Where(i => i.To == "https://www.w3.org/ns/activitystreams#Public"
                                                         || i.To == "as:Public" || i.To == "public");
-        
-        var posts = await _repository.GetSpecificItems<Post>(filter, "Posts", userId.ToString());
+
+        var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
 
         var orderedCollection = new OrderedCollection
         {
@@ -72,10 +72,7 @@ public class OutboxController : ControllerBase
         var tokenUserId = activeUserClaims.Where(i => i.ValueType.IsNotNull() && i.Type == ClaimTypes.Sid)?.First()
             .Value;
 
-        if (tokenUserId == userId.ToString())
-        {
-            return true;
-        }
+        if (tokenUserId == userId.ToString()) return true;
 
         _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
         return false;
@@ -159,13 +156,12 @@ public class OutboxController : ControllerBase
         var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
 
         if (httpResponse.IsSuccessStatusCode) return true;
-        
+
         var responseText = await httpResponse.Content.ReadAsStringAsync();
-        
+
         _logger.LogWarning($"An error occured sending an activity: {responseText}");
 
         return false;
-
     }
 
     private string ComputeHash(string jsonData)
