@@ -28,7 +28,11 @@ public class OutboxController : ControllerBase
     [HttpGet("{userId}")]
     public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
     {
-        var posts = await _repository.GetAll<Post>("Posts", userId.ToString()); // TODO filter for public posts
+        var filterDefinitionBuilder = Builders<Post>.Filter;
+        var filter = filterDefinitionBuilder.Where(i => i.To == "https://www.w3.org/ns/activitystreams#Public" 
+                                                        || i.To == "as:Public" || i.To == "public");
+        
+        var posts = await _repository.GetSpecificItems<Post>(filter, "Posts", userId.ToString());
 
         var orderedCollection = new OrderedCollection
         {
@@ -82,7 +86,7 @@ public class OutboxController : ControllerBase
         var filterActorDefinitionBuilder = Builders<Actor>.Filter;
         var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id,
             new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}"));
-        var actor = await _repository.GetSpecific(filterActor, "ActivityPub", "Actors");
+        var actor = await _repository.GetSpecificItem(filterActor, "ActivityPub", "Actors");
         return actor;
     }
 
@@ -90,7 +94,7 @@ public class OutboxController : ControllerBase
     {
         var filterUserDefinitionBuilder = Builders<User>.Filter;
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
-        var user = await _repository.GetSpecific(filterUser, "Authentication", "Users");
+        var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
         return user;
     }
 

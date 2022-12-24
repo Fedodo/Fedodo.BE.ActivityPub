@@ -18,7 +18,7 @@ public class ActorController : ControllerBase
         _repository = repository;
     }
 
-    [HttpGet("{actorId}")]
+    [HttpGet("{actorId:guid}")]
     public async Task<ActionResult<Actor>> GetActor(Guid actorId)
     {
         _logger.LogTrace($"Entered {nameof(GetActor)} in {nameof(ActorController)}");
@@ -27,7 +27,7 @@ public class ActorController : ControllerBase
         var filter = filterDefinitionBuilder.Eq(i => i.Id,
             new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}"));
 
-        var actor = await _repository.GetSpecific(filter, "ActivityPub", "Actors");
+        var actor = await _repository.GetSpecificItem(filter, "ActivityPub", "Actors");
 
         if (actor.IsNull())
         {
