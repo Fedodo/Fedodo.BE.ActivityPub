@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Authentication;
 using ActivityPubServer.Model.DTOs;
+using ActivityPubServer.Model.Helpers;
 using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,22 +18,23 @@ namespace ActivityPubServer.Controllers;
 [Route("outbox")]
 public class OutboxController : ControllerBase
 {
+    private readonly IKnownServersHandler _knownServersHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
 
-    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository)
+    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
+        IKnownServersHandler knownServersHandler)
     {
         _logger = logger;
         _repository = repository;
+        _knownServersHandler = knownServersHandler;
     }
 
     [HttpGet("{userId}")]
     public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
     {
         var filterDefinitionBuilder = Builders<Post>.Filter;
-        var filter = filterDefinitionBuilder.Where(i => i.To == "https://www.w3.org/ns/activitystreams#Public"
-                                                        || i.To == "as:Public" || i.To == "public");
-
+        var filter = filterDefinitionBuilder.Where(i => i.IsPostPublic());
         var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
 
         var orderedCollection = new OrderedCollection
@@ -56,10 +59,33 @@ public class OutboxController : ControllerBase
         var activity = await CreateActivity(userId, postDto);
 
         // Send activities
-        var targets = new List<string>();
+        var targets = new List<ServerNameInboxPair>();
 
-        targets.Add("mastodon.social"); // TODO
-        targets.Add("mastodon.online");
+        if (postDto.IsPostPublic())
+        {
+            if (postDto.InReplyTo.IsNotNull()) await _knownServersHandler.Add(postDto.InReplyTo.ToString());
+
+            var servers = await _knownServersHandler.GetAll();
+
+            foreach (var item in servers)
+                targets.Add(new ServerNameInboxPair
+                {
+                    ServerName = item.ServerDomainName,
+                    Inbox = item.DefaultInbox
+                });
+        }
+        else
+        {
+            var serverNameInboxPair = new ServerNameInboxPair
+            {
+                ServerName = postDto.To.ExtractServerName(),
+                Inbox = new Uri(postDto.To)
+            };
+
+            targets.Add(serverNameInboxPair);
+
+            await _knownServersHandler.Add(postDto.To);
+        }
 
         foreach (var target in targets) await SendActivity(activity, user, target, actor);
 
@@ -126,7 +152,8 @@ public class OutboxController : ControllerBase
         return activity;
     }
 
-    private async Task<bool> SendActivity(Activity activity, User user, string targetServerName, Actor actor)
+    private async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair,
+        Actor actor)
     {
         // Set Http Signature
         var jsonData = JsonConvert.SerializeObject(activity);
@@ -137,14 +164,14 @@ public class OutboxController : ControllerBase
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =
-            $"(request-target): post /inbox\nhost: {targetServerName}\ndate: {date}\ndigest: sha-256={digest}";
+            $"(request-target): post /inbox\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         var signatureString = Convert.ToBase64String(signature);
 
         // Create HTTP request
         HttpClient http = new();
-        http.DefaultRequestHeaders.Add("Host", targetServerName);
+        http.DefaultRequestHeaders.Add("Host", serverInboxPair.ServerName);
         http.DefaultRequestHeaders.Add("Date", date);
         http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
         http.DefaultRequestHeaders.Add("Signature",
@@ -153,7 +180,7 @@ public class OutboxController : ControllerBase
 
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
-        var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
+        var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
 
         if (httpResponse.IsSuccessStatusCode) return true;
 
