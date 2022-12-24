@@ -27,7 +27,7 @@ public class WebfingerController : ControllerBase
         var filterDefinitionBuilder = Builders<Webfinger>.Filter;
         var filter = filterDefinitionBuilder.Eq(i => i.Subject, resource);
 
-        var finger = await _repository.GetSpecific(filter, "ActivityPub", "Webfingers");
+        var finger = await _repository.GetSpecificItem(filter, "ActivityPub", "Webfingers");
 
         if (finger.IsNull())
         {

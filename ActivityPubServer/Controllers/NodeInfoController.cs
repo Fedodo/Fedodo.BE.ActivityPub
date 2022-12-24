@@ -1,3 +1,4 @@
+using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.NodeInfo;
 using Microsoft.AspNetCore.Mvc;
@@ -6,9 +7,20 @@ namespace ActivityPubServer.Controllers;
 
 public class NodeInfoController : ControllerBase
 {
+    private readonly ILogger<NodeInfoController> _logger;
+    private readonly IMongoDbRepository _repository;
+
+    public NodeInfoController(ILogger<NodeInfoController> logger, IMongoDbRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
     [HttpGet(".well-known/nodeinfo")]
     public ActionResult<Link> GetNodeInfoLink()
     {
+        _logger.LogTrace($"Entered {nameof(GetNodeInfoLink)} in {nameof(NodeInfoController)}");
+
         var link = new NodeLink
         {
             Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",
@@ -21,12 +33,14 @@ public class NodeInfoController : ControllerBase
     [HttpGet("nodeinfo/2.0")]
     public ActionResult<NodeInfo> GetNodeInfo()
     {
+        _logger.LogTrace($"Entered {nameof(GetNodeInfo)} in {nameof(NodeInfoController)}");
+
         var nodeInfo = new NodeInfo
         {
             Version = "2.0",
             Software = new Software
             {
-                Name = "Orca-Social",
+                Name = "Fedido",
                 Version = "0.1"
             },
             Protocols = new[]

@@ -57,13 +57,27 @@ public class MongoDbRepository : IMongoDbRepository
         return result;
     }
 
-    public async Task<T> GetSpecific<T>(FilterDefinition<T> filter, string databaseName, string collectionName)
+    public async Task<T> GetSpecificItem<T>(FilterDefinition<T> filter, string databaseName, string collectionName)
     {
         _logger.LogInformation($"Getting specific item with type: {typeof(T)}");
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
         var result = (await collection.FindAsync(filter)).SingleOrDefault();
+
+        _logger.LogInformation($"Returning specific item with type: {typeof(T)}");
+
+        return result;
+    }
+
+    public async Task<IEnumerable<T>> GetSpecificItems<T>(FilterDefinition<T> filter, string databaseName,
+        string collectionName)
+    {
+        _logger.LogInformation($"Getting specific item with type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+        var result = (await collection.FindAsync(filter)).ToList();
 
         _logger.LogInformation($"Returning specific item with type: {typeof(T)}");
 

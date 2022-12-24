@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
+using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Authentication;
+using ActivityPubServer.Model.DTOs;
+using ActivityPubServer.Model.Helpers;
 using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,19 +18,24 @@ namespace ActivityPubServer.Controllers;
 [Route("outbox")]
 public class OutboxController : ControllerBase
 {
+    private readonly IKnownServersHandler _knownServersHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
 
-    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository)
+    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
+        IKnownServersHandler knownServersHandler)
     {
         _logger = logger;
         _repository = repository;
+        _knownServersHandler = knownServersHandler;
     }
 
     [HttpGet("{userId}")]
     public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
     {
-        var posts = await _repository.GetAll<Post>("Posts", userId.ToString()); // TODO filter for public posts
+        var filterDefinitionBuilder = Builders<Post>.Filter;
+        var filter = filterDefinitionBuilder.Where(i => i.IsPostPublic());
+        var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
 
         var orderedCollection = new OrderedCollection
         {
@@ -41,78 +48,130 @@ public class OutboxController : ControllerBase
 
     [HttpPost("{userId}")]
     [Authorize(Roles = "User")]
-    public async Task<ActionResult> CreatePost(Guid userId) //, IActivityChild activityChild) // TODO
+    public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreatePostDto postDto)
     {
-        // General
-        var postId = Guid.NewGuid();
-        var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
-        var targetServerName = "mastodon.social";
+        if (!VerifyUser(userId)) return Forbid();
+        if (postDto.IsNull()) return BadRequest("Post can not be null");
 
-        // Verify user
+        // Build props
+        var user = await GetUser(userId);
+        var actor = await GetActor(userId);
+        var activity = await CreateActivity(userId, postDto);
+
+        // Send activities
+        var targets = new List<ServerNameInboxPair>();
+
+        if (postDto.IsPostPublic())
+        {
+            if (postDto.InReplyTo.IsNotNull()) await _knownServersHandler.Add(postDto.InReplyTo.ToString());
+
+            var servers = await _knownServersHandler.GetAll();
+
+            foreach (var item in servers)
+                targets.Add(new ServerNameInboxPair
+                {
+                    ServerName = item.ServerDomainName,
+                    Inbox = item.DefaultInbox
+                });
+        }
+        else
+        {
+            var serverNameInboxPair = new ServerNameInboxPair
+            {
+                ServerName = postDto.To.ExtractServerName(),
+                Inbox = new Uri(postDto.To)
+            };
+
+            targets.Add(serverNameInboxPair);
+
+            await _knownServersHandler.Add(postDto.To);
+        }
+
+        foreach (var target in targets) await SendActivity(activity, user, target, actor);
+
+        return Ok(activity);
+    }
+
+    private bool VerifyUser(Guid userId)
+    {
         var activeUserClaims = HttpContext.User.Claims.ToList();
         var tokenUserId = activeUserClaims.Where(i => i.ValueType.IsNotNull() && i.Type == ClaimTypes.Sid)?.First()
             .Value;
 
-        if (tokenUserId != userId.ToString())
-        {
-            _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
-            return Forbid();
-        }
+        if (tokenUserId == userId.ToString()) return true;
 
-        // Get User
-        var filterUserDefinitionBuilder = Builders<User>.Filter;
-        var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
-        var user = await _repository.GetSpecific(filterUser, "Authentication", "Users");
+        _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
+        return false;
+    }
+
+    private async Task<Actor> GetActor(Guid userId)
+    {
         var filterActorDefinitionBuilder = Builders<Actor>.Filter;
         var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id,
             new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}"));
-        var actor = await _repository.GetSpecific(filterActor, "ActivityPub", "Actors");
+        var actor = await _repository.GetSpecificItem(filterActor, "ActivityPub", "Actors");
+        return actor;
+    }
 
-        // Create activity
+    private async Task<User> GetUser(Guid userId)
+    {
+        var filterUserDefinitionBuilder = Builders<User>.Filter;
+        var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
+        var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
+        return user;
+    }
 
-        var reply = new Post()
+    private async Task<Activity> CreateActivity(Guid userId, CreatePostDto postDto)
+    {
+        var postId = Guid.NewGuid();
+        var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
+
+        var post = new Post
         {
+            To = postDto.To,
+            Name = postDto.Name,
+            Summary = postDto.Summary,
+            Sensitive = postDto.Sensitive,
+            InReplyTo = postDto.InReplyTo,
+            Content = postDto.Content,
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
-            Type = "Note",
-            Published = DateTime.UtcNow, // TODO
-            AttributedTo = actorId,
-            InReplyTo = new Uri("https://mastodon.social/@Gargron/100254678717223630"),
-            // Name = "test",
-            // Summary = "Summary Text",
-            // Sensitive = false,
-            Content = "Hello world #Test",
-            To = "https://www.w3.org/ns/activitystreams#Public"
+            Type = postDto.Type,
+            Published = postDto.Published,
+            AttributedTo = actorId
         };
 
-        await _repository.Create(reply, "Posts", userId.ToString());
+        await _repository.Create(post, "Posts", userId.ToString());
 
         var activity = new Activity
         {
             Actor = actorId,
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activitys/{postId}"),
             Type = "Create", // TODO
-            //Object = activityChild // TODO
-            Object = reply
+            Object = post
         };
+        return activity;
+    }
 
+    private async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair,
+        Actor actor)
+    {
         // Set Http Signature
         var jsonData = JsonConvert.SerializeObject(activity);
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();
-        rsa.ImportFromPem(actor.PublicKey.PublicKeyPem.ToCharArray());
         rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =
-            $"(request-target): post /inbox\nhost: {targetServerName}\ndate: {date}\ndigest: sha-256={digest}";
+            $"(request-target): post /inbox\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         var signatureString = Convert.ToBase64String(signature);
 
         // Create HTTP request
         HttpClient http = new();
-        http.DefaultRequestHeaders.Add("Host", targetServerName);
+        http.DefaultRequestHeaders.Add("Host", serverInboxPair.ServerName);
         http.DefaultRequestHeaders.Add("Date", date);
         http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
         http.DefaultRequestHeaders.Add("Signature",
@@ -121,29 +180,26 @@ public class OutboxController : ControllerBase
 
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
-        var httpResponse = await http.PostAsync(new Uri($"https://{targetServerName}/inbox"), contentData);
+        var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
 
-        if (!httpResponse.IsSuccessStatusCode)
-        {
-            var responseText = await httpResponse.Content.ReadAsStringAsync();
+        if (httpResponse.IsSuccessStatusCode) return true;
 
-            return BadRequest(responseText);
-        }
+        var responseText = await httpResponse.Content.ReadAsStringAsync();
 
-        return Ok(activity);
+        _logger.LogWarning($"An error occured sending an activity: {responseText}");
+
+        return false;
     }
 
-    private string? ComputeHash(string jsonData)
+    private string ComputeHash(string jsonData)
     {
         var sha = SHA256.Create(); // Create a SHA256 hash from string   
-        using (var sha256Hash = SHA256.Create())
-        {
-            // Computing Hash - returns here byte array
-            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
+        using var sha256Hash = SHA256.Create();
+        // Computing Hash - returns here byte array
+        var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
 
-            var hashedString = Convert.ToBase64String(bytes);
+        var hashedString = Convert.ToBase64String(bytes);
 
-            return hashedString;
-        }
+        return hashedString;
     }
 }

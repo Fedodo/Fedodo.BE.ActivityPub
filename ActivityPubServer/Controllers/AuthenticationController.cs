@@ -62,7 +62,7 @@ public class AuthenticationController : ControllerBase
         // Add Actor if it is not exiting
         var filterDefinitionBuilder = Builders<Actor>.Filter;
         var filter = filterDefinitionBuilder.Where(i => i.PreferredUsername == actor.PreferredUsername);
-        var exitingActor = await _repository.GetSpecific(filter, "ActivityPub", "Actors");
+        var exitingActor = await _repository.GetSpecificItem(filter, "ActivityPub", "Actors");
         if (exitingActor.IsNull())
         {
             await _repository.Create(actor, "ActivityPub", "Actors");
