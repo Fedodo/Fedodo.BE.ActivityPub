@@ -1,5 +1,6 @@
 using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
+using MongoDB.Driver;
 
 namespace ActivityPubServer.Handlers;
 
@@ -14,15 +15,24 @@ public class KnownServersHandler : IKnownServersHandler
 
     public async Task Add(string postTo)
     {
-        // TODO Check if the server already exists
-
         Model.ActivityPubServer server = new()
         {
             ServerDomainName = postTo.ExtractServerName()
         };
         server.DefaultInbox = new Uri($"https://{server.ServerDomainName}/inbox");
-
-        await _repository.Create(server, "Information", "KnownServers");
+        
+        var filterDefinitionBuilder = Builders<Model.ActivityPubServer>.Filter;
+        var filter = filterDefinitionBuilder.Where(i => i.ServerDomainName == server.ServerDomainName);
+        var items = await _repository.GetSpecificItems(filter, "Information", "KnownServers");
+        
+        if (items.Any())
+        {
+            return;
+        }
+        else
+        {
+            await _repository.Create(server, "Information", "KnownServers");
+        }
     }
 
     public async Task<IEnumerable<Model.ActivityPubServer>> GetAll()
