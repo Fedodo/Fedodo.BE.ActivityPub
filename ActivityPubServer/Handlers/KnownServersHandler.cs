@@ -20,19 +20,12 @@ public class KnownServersHandler : IKnownServersHandler
             ServerDomainName = postTo.ExtractServerName()
         };
         server.DefaultInbox = new Uri($"https://{server.ServerDomainName}/inbox");
-        
+
         var filterDefinitionBuilder = Builders<Model.ActivityPubServer>.Filter;
         var filter = filterDefinitionBuilder.Where(i => i.ServerDomainName == server.ServerDomainName);
         var items = await _repository.GetSpecificItems(filter, "Information", "KnownServers");
-        
-        if (items.Any())
-        {
-            return;
-        }
-        else
-        {
-            await _repository.Create(server, "Information", "KnownServers");
-        }
+
+        if (!items.Any()) await _repository.Create(server, "Information", "KnownServers");
     }
 
     public async Task<IEnumerable<Model.ActivityPubServer>> GetAll()
