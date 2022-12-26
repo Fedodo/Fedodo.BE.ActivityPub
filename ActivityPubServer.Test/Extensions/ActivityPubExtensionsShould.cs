@@ -7,20 +7,6 @@ namespace ActivityPubServer.Test.Extensions;
 
 public class ActivityPubExtensionsShould
 {
-    [Fact]
-    public void IsPostPublic()
-    {
-        // Arrange
-        Post post = new()
-        {
-            
-        };
-
-        // Act
-
-        // Assert
-    }
-
     [Theory]
     [InlineData("https://lna-dev.net")]
     [InlineData("http://lna-dev.net")]
