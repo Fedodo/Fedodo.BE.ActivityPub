@@ -1,4 +1,5 @@
 using System.Text;
+using ActivityPubServer.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -27,8 +28,12 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost("{id}")]
-    public async Task<ActionResult> Log(Guid id)
+    public async Task<ActionResult> Log(Guid id, Activity activity)
     {
+        var headers = HttpContext.Request.Headers;
+
+        var signature = headers["Signature"];
+
         var bodyStr = "";
         var req = HttpContext.Request;
 
