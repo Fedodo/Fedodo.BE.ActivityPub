@@ -66,7 +66,7 @@ public class InboxController : ControllerBase
             var rsa = RSA.Create();
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
-            var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {digest}";
+            var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}";
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
             if (rsa.VerifyHash(Encoding.UTF8.GetBytes(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
