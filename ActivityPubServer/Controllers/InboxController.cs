@@ -16,27 +16,21 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> GeneralInbox([FromBody]Activity activity)
+    public async Task<ActionResult> GeneralInbox([FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(GeneralInbox)} in {nameof(InboxController)}");
 
-        if (!await VerifySignature(HttpContext.Request.Headers))
-        {
-            return BadRequest("Invalid Signature");
-        }
+        if (!await VerifySignature(HttpContext.Request.Headers)) return BadRequest("Invalid Signature");
 
         return Ok();
     }
 
     [HttpPost("{userId}")]
-    public async Task<ActionResult> Log(Guid userId, [FromBody]Activity activity)
+    public async Task<ActionResult> Log(Guid userId, [FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(Log)} in {nameof(InboxController)}");
 
-        if (!await VerifySignature(HttpContext.Request.Headers))
-        {
-            return BadRequest("Invalid Signature");
-        }
+        if (!await VerifySignature(HttpContext.Request.Headers)) return BadRequest("Invalid Signature");
 
 
         return Ok();
@@ -62,27 +56,25 @@ public class InboxController : ControllerBase
         if (response.IsSuccessStatusCode)
         {
             var resultActor = await response.Content.ReadFromJsonAsync<Actor>();
-            
+
             var rsa = RSA.Create();
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
-            var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}";
+            var comparisionString =
+                $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}";
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
-            if (rsa.VerifyHash(Convert.FromBase64String(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+            if (rsa.VerifyData(Encoding.UTF8.GetBytes(comparisionString), Convert.FromBase64String(signatureHash),
+                    HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
                 _logger.LogDebug("Action with valid Signature received.");
                 return true;
             }
-            else
-            {
-                _logger.LogWarning("Action with invalid Signature received!!!");
-                return false;
-            }
-        }
-        else
-        {
-            _logger.LogInformation("Could not retrieve PublicKey");
+
+            _logger.LogWarning("Action with invalid Signature received!!!");
             return false;
         }
+
+        _logger.LogInformation("Could not retrieve PublicKey");
+        return false;
     }
 }
