@@ -15,32 +15,49 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> Log(object asdf)
+    public async Task<ActionResult> Log([FromBody]Activity activity)
     {
-        var bodyStr = "";
-        var req = HttpContext.Request;
-
-        bodyStr = Encoding.UTF8.GetString((await HttpContext.Request.BodyReader.ReadAsync()).Buffer);
-
-        _logger.LogDebug(bodyStr);
+        if (!await VerifySignature(HttpContext.Request.Headers))
+        {
+            return BadRequest("Invalid Signature");
+        }
 
         return Ok();
     }
 
-    [HttpPost("{id}")]
-    public async Task<ActionResult> Log(Guid id, Activity activity)
+    [HttpPost("{userId}")]
+    public async Task<ActionResult> Log(Guid userId, [FromBody]Activity activity)
     {
-        var headers = HttpContext.Request.Headers;
+        if (!await VerifySignature(HttpContext.Request.Headers))
+        {
+            return BadRequest("Invalid Signature");
+        }
 
-        var signature = headers["Signature"];
-
-        var bodyStr = "";
-        var req = HttpContext.Request;
-
-        bodyStr = Encoding.UTF8.GetString((await HttpContext.Request.BodyReader.ReadAsync()).Buffer);
-
-        _logger.LogDebug(bodyStr);
 
         return Ok();
+    }
+
+    private async Task<bool> VerifySignature(IHeaderDictionary requestHeaders)
+    {
+        _logger.LogTrace("Verifying Signature");
+        
+        
+        // TODO Digit Header
+        
+        
+        var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
+
+        var keyId = new Uri(signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
+            .Replace("\"", "") ?? string.Empty);
+        var headers = signatureHeader.FirstOrDefault(i => i.StartsWith("headers"))?.Replace("headers=", "")
+            .Replace("\"", "");
+        var signature = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
+            .Replace("\"", ""); // TODO Maybe converted to BASE 64
+
+        var http = new HttpClient();
+        var response = await http.GetAsync(keyId);
+        var resultActor = await response.Content.ReadFromJsonAsync<Actor>();
+
+        return false; // TODO
     }
 }
