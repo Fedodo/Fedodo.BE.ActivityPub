@@ -87,7 +87,7 @@ public class OutboxController : ControllerBase
             await _knownServersHandler.Add(postDto.To);
         }
 
-        foreach (var target in targets) await SendActivity(activity, user, target, actor);
+        foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
 
         return Ok(activity);
     }

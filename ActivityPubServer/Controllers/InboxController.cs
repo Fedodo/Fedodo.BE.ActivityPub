@@ -51,7 +51,7 @@ public class InboxController : ControllerBase
             .Replace("\"", "") ?? string.Empty);
         var headers = signatureHeader.FirstOrDefault(i => i.StartsWith("headers"))?.Replace("headers=", "")
             .Replace("\"", "");
-        var digest = signatureHeader.FirstOrDefault(i => i.StartsWith("digest"))?.Replace("digest=\"sha-256=", "")
+        var digest = signatureHeader.FirstOrDefault(i => i.StartsWith("digest"))?.Replace("digest=", "")
             .Replace("\"", "");
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", ""); // TODO Maybe converted to BASE 64
@@ -66,7 +66,8 @@ public class InboxController : ControllerBase
             var rsa = RSA.Create();
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
-            var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: sha-256={digest}";
+            var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {digest}";
+            _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
             if (rsa.VerifyHash(Encoding.UTF8.GetBytes(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
                 _logger.LogDebug("Action with valid Signature received.");
