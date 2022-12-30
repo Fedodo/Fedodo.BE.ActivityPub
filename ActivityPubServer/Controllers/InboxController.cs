@@ -59,20 +59,28 @@ public class InboxController : ControllerBase
 
         var http = new HttpClient();
         var response = await http.GetAsync(keyId);
-        var resultActor = await response.Content.ReadFromJsonAsync<Actor>();
-
-        var rsa = RSA.Create();
-        rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
-
-        var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: sha-256={digest}";
-        if (rsa.VerifyHash(Encoding.UTF8.GetBytes(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+        if (response.IsSuccessStatusCode)
         {
-            _logger.LogDebug("Action with valid Signature received.");
-            return true;
+            var resultActor = await response.Content.ReadFromJsonAsync<Actor>();
+            
+            var rsa = RSA.Create();
+            rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
+
+            var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: sha-256={digest}";
+            if (rsa.VerifyHash(Encoding.UTF8.GetBytes(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+            {
+                _logger.LogDebug("Action with valid Signature received.");
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("Action with invalid Signature received!!!");
+                return false;
+            }
         }
         else
         {
-            _logger.LogWarning("Action with invalid Signature received!!!");
+            _logger.LogInformation("Could not retrieve PublicKey");
             return false;
         }
     }
