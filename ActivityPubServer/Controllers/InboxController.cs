@@ -43,10 +43,6 @@ public class InboxController : ControllerBase
         var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
         var keyId = new Uri(signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
             .Replace("\"", "") ?? string.Empty);
-        var headers = signatureHeader.FirstOrDefault(i => i.StartsWith("headers"))?.Replace("headers=", "")
-            .Replace("\"", "");
-        var digest = signatureHeader.FirstOrDefault(i => i.StartsWith("digest"))?.Replace("digest=", "")
-            .Replace("\"", "");
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", "");
         _logger.LogDebug($"KeyId=\"{keyId}\"");
@@ -61,7 +57,7 @@ public class InboxController : ControllerBase
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
             var comparisionString =
-                $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}";
+                $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}"; // TODO Recompute Digest from Body TODO Validate Time
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
             if (rsa.VerifyData(Encoding.UTF8.GetBytes(comparisionString), Convert.FromBase64String(signatureHash),
                     HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
