@@ -1,5 +1,4 @@
 using ActivityPubServer.Extensions;
-using ActivityPubServer.Model.ActivityPub;
 using Shouldly;
 using Xunit;
 
