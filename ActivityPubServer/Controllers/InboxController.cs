@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using ActivityPubServer.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
@@ -40,24 +41,34 @@ public class InboxController : ControllerBase
     private async Task<bool> VerifySignature(IHeaderDictionary requestHeaders)
     {
         _logger.LogTrace("Verifying Signature");
-        
-        
-        // TODO Digit Header
-        
-        
-        var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
 
+        var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
         var keyId = new Uri(signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
             .Replace("\"", "") ?? string.Empty);
         var headers = signatureHeader.FirstOrDefault(i => i.StartsWith("headers"))?.Replace("headers=", "")
             .Replace("\"", "");
-        var signature = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
+        var digest = signatureHeader.FirstOrDefault(i => i.StartsWith("digest"))?.Replace("digest=\"sha-256=", "")
+            .Replace("\"", "");
+        var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", ""); // TODO Maybe converted to BASE 64
 
         var http = new HttpClient();
         var response = await http.GetAsync(keyId);
         var resultActor = await response.Content.ReadFromJsonAsync<Actor>();
 
-        return false; // TODO
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
+
+        var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: sha-256={digest}";
+        if (rsa.VerifyHash(Encoding.UTF8.GetBytes(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+        {
+            _logger.LogDebug("Action with valid Signature received.");
+            return true;
+        }
+        else
+        {
+            _logger.LogWarning("Action with invalid Signature received!!!");
+            return false;
+        }
     }
 }
