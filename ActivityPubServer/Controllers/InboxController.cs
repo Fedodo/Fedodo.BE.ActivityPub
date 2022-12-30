@@ -54,7 +54,7 @@ public class InboxController : ControllerBase
         var digest = signatureHeader.FirstOrDefault(i => i.StartsWith("digest"))?.Replace("digest=", "")
             .Replace("\"", "");
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
-            .Replace("\"", ""); // TODO Maybe converted to BASE 64
+            .Replace("\"", "");
         _logger.LogDebug($"KeyId=\"{keyId}\"");
 
         var http = new HttpClient();
@@ -68,7 +68,7 @@ public class InboxController : ControllerBase
 
             var comparisionString = $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}";
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
-            if (rsa.VerifyHash(Encoding.UTF8.GetBytes(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+            if (rsa.VerifyHash(Convert.FromBase64String(signatureHash), Encoding.UTF8.GetBytes(comparisionString), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
                 _logger.LogDebug("Action with valid Signature received.");
                 return true;
