@@ -16,8 +16,10 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> Log([FromBody]Activity activity)
+    public async Task<ActionResult> GeneralInbox([FromBody]Activity activity)
     {
+        _logger.LogTrace($"Entered {nameof(GeneralInbox)} in {nameof(InboxController)}");
+
         if (!await VerifySignature(HttpContext.Request.Headers))
         {
             return BadRequest("Invalid Signature");
@@ -29,6 +31,8 @@ public class InboxController : ControllerBase
     [HttpPost("{userId}")]
     public async Task<ActionResult> Log(Guid userId, [FromBody]Activity activity)
     {
+        _logger.LogTrace($"Entered {nameof(Log)} in {nameof(InboxController)}");
+
         if (!await VerifySignature(HttpContext.Request.Headers))
         {
             return BadRequest("Invalid Signature");
@@ -51,6 +55,7 @@ public class InboxController : ControllerBase
             .Replace("\"", "");
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", ""); // TODO Maybe converted to BASE 64
+        _logger.LogDebug($"KeyId=\"{keyId}\"");
 
         var http = new HttpClient();
         var response = await http.GetAsync(keyId);
