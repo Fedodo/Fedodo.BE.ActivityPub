@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: ap
-          image: lnadev/activity-pub-server:43
+          image: lnadev/activity-pub-server:44
           imagePullPolicy: Always
           resources:
             limits:

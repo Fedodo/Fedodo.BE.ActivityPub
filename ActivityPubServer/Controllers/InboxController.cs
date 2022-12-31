@@ -41,6 +41,12 @@ public class InboxController : ControllerBase
         _logger.LogTrace("Verifying Signature");
 
         var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
+
+        foreach (var item in signatureHeader)
+        {
+            _logger.LogDebug($"Signature Header Part=\"{item}\"");
+        }
+        
         var keyId = new Uri(signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
             .Replace("\"", "").Replace("#main-key", "") ?? string.Empty);
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")

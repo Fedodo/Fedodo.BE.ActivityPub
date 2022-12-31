@@ -201,7 +201,7 @@ public class OutboxController : ControllerBase
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =
-            $"(request-target): post /inbox\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
+            $"(request-target): post {serverInboxPair.Inbox.AbsolutePath}\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
         var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
         var signatureString = Convert.ToBase64String(signature);
