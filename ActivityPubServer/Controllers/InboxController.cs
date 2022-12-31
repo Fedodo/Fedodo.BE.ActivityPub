@@ -20,7 +20,7 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GeneralInbox)} in {nameof(InboxController)}");
 
-        if (!await VerifySignature(HttpContext.Request.Headers)) return BadRequest("Invalid Signature");
+        if (!await VerifySignature(HttpContext.Request.Headers, "/inbox")) return BadRequest("Invalid Signature");
 
         return Ok();
     }
@@ -30,13 +30,13 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(Log)} in {nameof(InboxController)}");
 
-        if (!await VerifySignature(HttpContext.Request.Headers)) return BadRequest("Invalid Signature");
+        if (!await VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}")) return BadRequest("Invalid Signature");
 
 
         return Ok();
     }
 
-    private async Task<bool> VerifySignature(IHeaderDictionary requestHeaders)
+    private async Task<bool> VerifySignature(IHeaderDictionary requestHeaders, string currentPath)
     {
         _logger.LogTrace("Verifying Signature");
 
@@ -58,7 +58,7 @@ public class InboxController : ControllerBase
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
             var comparisionString =
-                $"(request-target): post /inbox\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}"; // TODO Recompute Digest from Body TODO Validate Time
+                $"(request-target): post {currentPath}\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}"; // TODO Recompute Digest from Body TODO Validate Time
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
             if (rsa.VerifyData(Encoding.UTF8.GetBytes(comparisionString), Convert.FromBase64String(signatureHash),
                     HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
