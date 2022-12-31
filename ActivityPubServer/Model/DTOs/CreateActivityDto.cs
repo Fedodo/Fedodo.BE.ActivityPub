@@ -7,15 +7,13 @@ namespace ActivityPubServer.Model.DTOs;
 public class CreateActivityDto
 {
     [JsonProperty("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
-    
-    [Required]
-    [JsonProperty("type")] public string Type { get; set; }
 
-    [Required]
-    [JsonProperty("object")] public object Object { get; set; }
+    [Required] [JsonProperty("type")] public string Type { get; set; }
+
+    [Required] [JsonProperty("object")] public object Object { get; set; }
 
     [JsonProperty("to")] public string To { get; set; }
-    
+
     public CreatePostDto ExtractCreatePostDtoFromObject()
     {
         var jsonElement = (JsonElement)Object;
@@ -23,7 +21,7 @@ public class CreateActivityDto
 
         return createPostDto;
     }
-    
+
     public string ExtractStringFromObject()
     {
         var jsonElement = (JsonElement)Object;
