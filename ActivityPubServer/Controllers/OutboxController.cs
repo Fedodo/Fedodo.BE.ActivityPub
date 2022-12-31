@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
@@ -15,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace ActivityPubServer.Controllers;
 
-[Route("outbox")]
+[Route("Outbox")]
 public class OutboxController : ControllerBase
 {
     private readonly IKnownServersHandler _knownServersHandler;
@@ -48,23 +49,41 @@ public class OutboxController : ControllerBase
 
     [HttpPost("{userId}")]
     [Authorize(Roles = "User")]
-    public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreatePostDto postDto)
+    public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         if (!VerifyUser(userId)) return Forbid();
-        if (postDto.IsNull()) return BadRequest("Post can not be null");
+        if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
-        // Build props
         var user = await GetUser(userId);
         var actor = await GetActor(userId);
-        var activity = await CreateActivity(userId, postDto);
+        var activity = await CreateActivity(userId, activityDto);
 
-        // Send activities
+        await SendActivities(activity, user, actor);
+
+        return Ok(activity);
+    }
+
+    private async Task SendActivities(Activity activity, User user, Actor actor)
+    {
         var targets = new List<ServerNameInboxPair>();
 
-        if (postDto.IsPostPublic())
+        if (activity.IsActivityPublic() && activity.Type == "Create")
         {
-            if (postDto.InReplyTo.IsNotNull()) await _knownServersHandler.Add(postDto.InReplyTo.ToString());
+            var post = activity.ExtractPostFromObject();
 
+            if (post.InReplyTo.IsNotNull()) await _knownServersHandler.Add(post.InReplyTo.ToString());
+
+            var servers = await _knownServersHandler.GetAll();
+
+            foreach (var item in servers)
+                targets.Add(new ServerNameInboxPair
+                {
+                    ServerName = item.ServerDomainName,
+                    Inbox = item.DefaultInbox
+                });
+        }
+        else if (activity.IsActivityPublic())
+        {
             var servers = await _knownServersHandler.GetAll();
 
             foreach (var item in servers)
@@ -78,18 +97,16 @@ public class OutboxController : ControllerBase
         {
             var serverNameInboxPair = new ServerNameInboxPair
             {
-                ServerName = postDto.To.ExtractServerName(),
-                Inbox = new Uri(postDto.To)
+                ServerName = activity.To.ExtractServerName(),
+                Inbox = new Uri(activity.To)
             };
 
             targets.Add(serverNameInboxPair);
 
-            await _knownServersHandler.Add(postDto.To);
+            await _knownServersHandler.Add(activity.To);
         }
 
         foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
-
-        return Ok(activity);
     }
 
     private bool VerifyUser(Guid userId)
@@ -121,34 +138,55 @@ public class OutboxController : ControllerBase
         return user;
     }
 
-    private async Task<Activity> CreateActivity(Guid userId, CreatePostDto postDto)
+    private async Task<Activity> CreateActivity(Guid userId, CreateActivityDto activityDto)
     {
         var postId = Guid.NewGuid();
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
-
-        var post = new Post
+        object? obj = null;
+        
+        switch (activityDto.Type)
         {
-            To = postDto.To,
-            Name = postDto.Name,
-            Summary = postDto.Summary,
-            Sensitive = postDto.Sensitive,
-            InReplyTo = postDto.InReplyTo,
-            Content = postDto.Content,
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
-            Type = postDto.Type,
-            Published = postDto.Published,
-            AttributedTo = actorId
-        };
+            case "Create":
+            {
+                var createPostDto = activityDto.ExtractCreatePostDtoFromObject();
 
-        await _repository.Create(post, "Posts", userId.ToString());
-
+                var post = new Post
+                {
+                    To = createPostDto.To,
+                    Name = createPostDto.Name,
+                    Summary = createPostDto.Summary,
+                    Sensitive = createPostDto.Sensitive,
+                    InReplyTo = createPostDto.InReplyTo,
+                    Content = createPostDto.Content,
+                    Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
+                    Type = createPostDto.Type,
+                    Published = createPostDto.Published,
+                    AttributedTo = actorId
+                };
+            
+                await _repository.Create(post, "Posts", userId.ToString());
+            
+                obj = post;
+                break;
+            }
+            case "Like":
+            {
+                obj = activityDto.ExtractStringFromObject();
+            }
+                break;
+        }
+        
         var activity = new Activity
         {
             Actor = actorId,
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activitys/{postId}"),
-            Type = "Create", // TODO
-            Object = post
+            Type = activityDto.Type,
+            To = activityDto.To,
+            Object = obj
         };
+        
+        await _repository.Create(activity, "Activities", userId.ToString());
+
         return activity;
     }
 

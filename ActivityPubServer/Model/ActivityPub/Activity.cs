@@ -1,3 +1,5 @@
+using System.Text.Json;
+using ActivityPubServer.Model.DTOs;
 using Newtonsoft.Json;
 
 namespace ActivityPubServer.Model.ActivityPub;
@@ -13,4 +15,14 @@ public class Activity
     [JsonProperty("actor")] public Uri Actor { get; set; }
 
     [JsonProperty("object")] public object Object { get; set; }
+    
+    [JsonProperty("to")] public string To { get; set; }
+    
+    public Post ExtractPostFromObject()
+    {
+        var jsonElement = (JsonElement)Object;
+        var post = JsonConvert.DeserializeObject<Post>(jsonElement.GetRawText());
+
+        return post;
+    }
 }
