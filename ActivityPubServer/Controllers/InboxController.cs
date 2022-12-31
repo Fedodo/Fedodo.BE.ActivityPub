@@ -63,7 +63,7 @@ public class InboxController : ControllerBase
             var rsa = RSA.Create();
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
-            var comparisionString =
+            var comparisionString = //TODO Add content type as seen in the logs !!! Also be more flexible fore different signed headers.
                 $"(request-target): post {currentPath}\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}"; // TODO Recompute Digest from Body TODO Validate Time
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
             if (rsa.VerifyData(Encoding.UTF8.GetBytes(comparisionString), Convert.FromBase64String(signatureHash),
