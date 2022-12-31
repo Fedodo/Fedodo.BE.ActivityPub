@@ -5,7 +5,7 @@ namespace ActivityPubServer.Model.ActivityPub;
 
 public class Actor
 {
-    [JsonPropertyName("@context")] public IEnumerable<string>? Context { get; set; }
+    [JsonPropertyName("@context")] public IEnumerable<object>? Context { get; set; }
 
     public Uri? Id { get; set; } // This is the URL of the Actor Document. It is kind of a self reference.
     public string? Type { get; set; }
