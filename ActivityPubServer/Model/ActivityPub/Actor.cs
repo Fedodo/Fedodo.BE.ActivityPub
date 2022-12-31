@@ -16,6 +16,6 @@ public class Actor
     public Uri? Outbox { get; set; }
     public Uri? Followers { get; set; }
     public Uri? Following { get; set; }
-    public IEnumerable<object>? Icon { get; set; }
+    public object? Icon { get; set; }
     public PublicKeyAP? PublicKey { get; set; }
 }
