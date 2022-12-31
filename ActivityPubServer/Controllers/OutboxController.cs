@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
@@ -143,7 +142,7 @@ public class OutboxController : ControllerBase
         var postId = Guid.NewGuid();
         var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
         object? obj = null;
-        
+
         switch (activityDto.Type)
         {
             case "Create":
@@ -163,9 +162,9 @@ public class OutboxController : ControllerBase
                     Published = createPostDto.Published,
                     AttributedTo = actorId
                 };
-            
+
                 await _repository.Create(post, "Posts", userId.ToString());
-            
+
                 obj = post;
                 break;
             }
@@ -175,7 +174,7 @@ public class OutboxController : ControllerBase
             }
                 break;
         }
-        
+
         var activity = new Activity
         {
             Actor = actorId,
@@ -184,7 +183,7 @@ public class OutboxController : ControllerBase
             To = activityDto.To,
             Object = obj
         };
-        
+
         await _repository.Create(activity, "Activities", userId.ToString());
 
         return activity;

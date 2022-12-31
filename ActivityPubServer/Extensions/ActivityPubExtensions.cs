@@ -14,7 +14,7 @@ public static class ActivityPubExtensions
     {
         return post.To is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public";
     }
-    
+
     public static bool IsActivityPublic(this Activity activity)
     {
         return activity.To is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public";
