@@ -168,7 +168,7 @@ public class OutboxController : ControllerBase
                 obj = post;
                 break;
             }
-            case "Like":
+            case "Like" or "Follow":
             {
                 obj = activityDto.ExtractStringFromObject();
             }

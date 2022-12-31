@@ -42,12 +42,13 @@ public class InboxController : ControllerBase
 
         var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
         var keyId = new Uri(signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
-            .Replace("\"", "") ?? string.Empty);
+            .Replace("\"", "").Replace("#main-key", "") ?? string.Empty);
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", "");
         _logger.LogDebug($"KeyId=\"{keyId}\"");
 
         var http = new HttpClient();
+        http.DefaultRequestHeaders.Add("Accept", "application/ld+json");
         var response = await http.GetAsync(keyId);
         if (response.IsSuccessStatusCode)
         {
