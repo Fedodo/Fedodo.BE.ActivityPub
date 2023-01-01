@@ -40,7 +40,7 @@ public class AuthenticationController : ControllerBase
             Type = actorDto.Type,
 
             // Server generated
-            Id = new Uri($"https://{domainName}actor/{userId}"),
+            Id = new Uri($"https://{domainName}/actor/{userId}"),
             Inbox = new Uri($"https://{domainName}/inbox/{userId}"),
             Outbox = new Uri($"https://{domainName}/outbox/{userId}"),
             Following = new Uri($"https://{domainName}/following/{userId}"),
