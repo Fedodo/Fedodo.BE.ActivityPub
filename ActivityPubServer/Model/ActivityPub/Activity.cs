@@ -24,4 +24,13 @@ public class Activity
 
         return post;
     }
+    
+    public string ExtractStringFromObject()
+    {
+        var jsonElement = (JsonElement)Object;
+        var rawText = jsonElement.GetRawText();
+        var text = rawText.Remove(0, 1).Remove(rawText.Length - 2, 1);
+
+        return text;
+    }
 }
