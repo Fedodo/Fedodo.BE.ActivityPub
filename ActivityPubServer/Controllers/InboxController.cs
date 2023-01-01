@@ -71,7 +71,14 @@ public class InboxController : ControllerBase
                         Following = new Uri((string)sendActivity.Object)
                     };
 
-                    await _repository.Create(followObject, "Following", userId.ToString().ToLower());
+                    var followingDefinitionBuilder = Builders<FollowingHelper>.Filter;
+                    var followingHelperFilter = followingDefinitionBuilder.Eq(i => i.Following, followObject.Following);
+                    var fItem = await _repository.GetSpecificItems(followingHelperFilter, "Following", userId.ToString().ToLower());
+                    
+                    if (fItem.IsNullOrEmpty())
+                    {
+                        await _repository.Create(followObject, "Following", userId.ToString().ToLower());
+                    }
                 }
                 else
                     _logger.LogWarning("Not found activity which was accepted");
