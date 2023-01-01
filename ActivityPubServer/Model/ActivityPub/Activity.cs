@@ -24,7 +24,7 @@ public class Activity
 
         return item;
     }
-    
+
     public string ExtractStringFromObject()
     {
         var jsonElement = (JsonElement)Object;

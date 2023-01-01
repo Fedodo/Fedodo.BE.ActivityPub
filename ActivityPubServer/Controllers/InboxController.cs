@@ -10,10 +10,11 @@ namespace ActivityPubServer.Controllers;
 public class InboxController : ControllerBase
 {
     private readonly IHttpSignatureHandler _httpSignatureHandler;
-    private readonly IMongoDbRepository _repository;
     private readonly ILogger<InboxController> _logger;
+    private readonly IMongoDbRepository _repository;
 
-    public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler, IMongoDbRepository repository)
+    public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
+        IMongoDbRepository repository)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
@@ -51,10 +52,10 @@ public class InboxController : ControllerBase
             }
             case "Accept":
             {
-                _logger.LogTrace($"Got an Accept activity");
-                
+                _logger.LogTrace("Got an Accept activity");
+
                 var acceptedActivity = activity.ExtractItemFromObject<Activity>();
-                
+
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
                 var sendActivity = await _repository.GetSpecificItem(filter, "Activities", userId.ToString().ToLower());
@@ -62,12 +63,12 @@ public class InboxController : ControllerBase
                 if (sendActivity.IsNotNull())
                 {
                     _logger.LogDebug("Found activity which was accepted");
+
+                    await _repository.Create(sendActivity.ExtractStringFromObject(), "Following", userId.ToString().ToLower());
                 }
                 else
-                {
                     _logger.LogWarning("Not found activity which was accepted");
-                }
-                
+
                 break;
             }
         }
