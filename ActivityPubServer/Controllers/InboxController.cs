@@ -1,6 +1,7 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace ActivityPubServer.Controllers;
 
@@ -8,12 +9,14 @@ namespace ActivityPubServer.Controllers;
 public class InboxController : ControllerBase
 {
     private readonly IHttpSignatureHandler _httpSignatureHandler;
+    private readonly IMongoDbRepository _repository;
     private readonly ILogger<InboxController> _logger;
 
-    public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler)
+    public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler, IMongoDbRepository repository)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
+        _repository = repository;
     }
 
     [HttpPost]
@@ -47,9 +50,22 @@ public class InboxController : ControllerBase
             }
             case "Accept":
             {
-                var acceptedItemString = activity.ExtractStringFromObject();
+                _logger.LogTrace($"Got an Accept activity");
                 
-                _logger.LogDebug($"acceptedItemString:{acceptedItemString}");
+                var acceptedActivity = activity.ExtractItemFromObject<Activity>();
+                
+                var actorDefinitionBuilder = Builders<Activity>.Filter;
+                var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
+                var sendActivity = await _repository.GetSpecificItem(filter, "Activities", userId.ToString().ToLower());
+
+                if (acceptedActivity.Type == sendActivity.Type && acceptedActivity.Actor == sendActivity.Actor && acceptedActivity.Object == sendActivity.Object)
+                {
+                    _logger.LogDebug("Found activity which was accepted");
+                }
+                else
+                {
+                    _logger.LogWarning("Not found activity which was accepted");
+                }
                 
                 break;
             }

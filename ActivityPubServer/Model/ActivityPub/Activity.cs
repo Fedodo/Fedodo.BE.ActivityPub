@@ -15,14 +15,14 @@ public class Activity
 
     [JsonProperty("object")] public object Object { get; set; }
 
-    [JsonProperty("to")] public string To { get; set; }
+    [JsonProperty("to")] public string? To { get; set; }
 
-    public Post ExtractPostFromObject()
+    public T ExtractItemFromObject<T>()
     {
         var jsonElement = (JsonElement)Object;
-        var post = JsonConvert.DeserializeObject<Post>(jsonElement.GetRawText());
+        var item = JsonConvert.DeserializeObject<T>(jsonElement.GetRawText());
 
-        return post;
+        return item;
     }
     
     public string ExtractStringFromObject()

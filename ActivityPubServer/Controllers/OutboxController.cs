@@ -68,7 +68,7 @@ public class OutboxController : ControllerBase
 
         if (activity.IsActivityPublic() && activity.Type == "Create")
         {
-            var post = activity.ExtractPostFromObject();
+            var post = activity.ExtractItemFromObject<Post>();
 
             if (post.InReplyTo.IsNotNull()) await _knownServersHandler.Add(post.InReplyTo.ToString());
 
