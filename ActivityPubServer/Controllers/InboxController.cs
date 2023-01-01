@@ -35,6 +35,25 @@ public class InboxController : ControllerBase
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
 
+        switch (activity.Type)
+        {
+            case "Create":
+            {
+                break;
+            }
+            case "Follow":
+            {
+                break;
+            }
+            case "Accept":
+            {
+                var acceptedItemString = activity.ExtractStringFromObject();
+                
+                _logger.LogDebug($"acceptedItemString:{acceptedItemString}");
+                
+                break;
+            }
+        }
 
         return Ok();
     }
