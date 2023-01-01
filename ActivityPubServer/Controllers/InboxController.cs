@@ -68,7 +68,7 @@ public class InboxController : ControllerBase
                     var followObject = new FollowingHelper()
                     {
                         Id = Guid.NewGuid(),
-                        Following = new Uri(sendActivity.ExtractStringFromObject())
+                        Following = new Uri((string)sendActivity.Object)
                     };
 
                     await _repository.Create(followObject, "Following", userId.ToString().ToLower());
