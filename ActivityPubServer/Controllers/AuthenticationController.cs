@@ -29,6 +29,8 @@ public class AuthenticationController : ControllerBase
     {
         // Create actor
         var userId = Guid.NewGuid();
+        var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
+
         Actor actor = new()
         {
             // Client generated
@@ -38,9 +40,10 @@ public class AuthenticationController : ControllerBase
             Type = actorDto.Type,
 
             // Server generated
-            Id = new Uri($"https://ap.lna-dev.net/actor/{userId}"),
-            Inbox = new Uri($"https://ap.lna-dev.net/inbox/{userId}"),
-            Outbox = new Uri($"https://ap.lna-dev.net/outbox/{userId}"),
+            Id = new Uri($"https://{domainName}actor/{userId}"),
+            Inbox = new Uri($"https://{domainName}/inbox/{userId}"),
+            Outbox = new Uri($"https://{domainName}/outbox/{userId}"),
+            Following = new Uri($"https://{domainName}/following/{userId}"),
 
             // Hardcoded
             Context = new[]

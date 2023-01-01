@@ -31,13 +31,13 @@ public class OutboxController : ControllerBase
     }
 
     [HttpGet("{userId}")]
-    public async Task<ActionResult<OrderedCollection>> GetAllPublicPosts(Guid userId)
+    public async Task<ActionResult<OrderedCollection<Post>>> GetAllPublicPosts(Guid userId)
     {
         var filterDefinitionBuilder = Builders<Post>.Filter;
         var filter = filterDefinitionBuilder.Where(i => i.IsPostPublic());
         var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
 
-        var orderedCollection = new OrderedCollection
+        var orderedCollection = new OrderedCollection<Post>
         {
             Summary = $"Posts of {userId}",
             OrderedItems = posts
