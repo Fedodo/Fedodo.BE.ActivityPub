@@ -1,4 +1,3 @@
-using System.Drawing;
 using System.Text.Json.Serialization;
 
 namespace ActivityPubServer.Model.ActivityPub;
