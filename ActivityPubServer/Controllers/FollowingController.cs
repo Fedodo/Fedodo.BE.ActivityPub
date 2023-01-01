@@ -1,5 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
+using ActivityPubServer.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ActivityPubServer.Controllers;
@@ -22,12 +23,12 @@ public class FollowingController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
 
-        var followings = await _repository.GetAll<string>("Following", userId.ToString());
+        var followings = await _repository.GetAll<FollowingHelper>("Following", userId.ToString());
 
         var orderedCollection = new OrderedCollection<string>
         {
             Summary = $"Followings of {userId}",
-            OrderedItems = followings
+            OrderedItems = followings.Select(i => i.Following.ToString())
         };
 
         return Ok(orderedCollection);

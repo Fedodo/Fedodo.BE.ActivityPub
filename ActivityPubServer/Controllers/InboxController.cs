@@ -1,5 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
+using ActivityPubServer.Model.Helpers;
 using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -64,7 +65,13 @@ public class InboxController : ControllerBase
                 {
                     _logger.LogDebug("Found activity which was accepted");
 
-                    await _repository.Create(sendActivity.ExtractStringFromObject(), "Following", userId.ToString().ToLower());
+                    var followObject = new FollowingHelper()
+                    {
+                        Id = Guid.NewGuid(),
+                        Following = new Uri(sendActivity.ExtractStringFromObject())
+                    };
+
+                    await _repository.Create(followObject, "Following", userId.ToString().ToLower());
                 }
                 else
                     _logger.LogWarning("Not found activity which was accepted");
