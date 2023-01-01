@@ -1,5 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -58,7 +59,7 @@ public class InboxController : ControllerBase
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
                 var sendActivity = await _repository.GetSpecificItem(filter, "Activities", userId.ToString().ToLower());
 
-                if (acceptedActivity.Type == sendActivity.Type && acceptedActivity.Actor == sendActivity.Actor && acceptedActivity.Object == sendActivity.Object)
+                if (sendActivity.IsNotNull())
                 {
                     _logger.LogDebug("Found activity which was accepted");
                 }
