@@ -51,6 +51,8 @@ public class InboxController : ControllerBase
             .Replace("\"", "").Replace("#main-key", "") ?? string.Empty);
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", "");
+        var headers = signatureHeader.FirstOrDefault(i => i.StartsWith("headers"))?.Replace("headers=", "")
+            .Replace("\"", "");
         _logger.LogDebug($"KeyId=\"{keyId}\"");
 
         var http = new HttpClient();
@@ -63,9 +65,30 @@ public class InboxController : ControllerBase
             var rsa = RSA.Create();
             rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
 
-            var comparisionString =
-                $"(request-target): post {currentPath}\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}"; // TODO Recompute Digest from Body TODO Validate Time
+            string? comparisionString = null;
+
+            switch (headers)
+            {
+                case "(request-target) host date digest":
+                {
+                    comparisionString =
+                        $"(request-target): post {currentPath}\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}"; // TODO Recompute Digest from Body TODO Validate Time
+                    break;
+                }
+                case "(request-target) host date digest content-type":
+                {
+                    comparisionString = $"(request-target): post {currentPath}\nhost: {requestHeaders.Host}\ndate: {requestHeaders.Date}\ndigest: {requestHeaders["Digest"]}\ncontent-type: {requestHeaders.ContentType}"; // TODO Recompute Digest from Body TODO Validate Time
+                    break;
+                }
+                default:
+                {
+                    _logger.LogWarning($"No header configuration found for {headers}!");
+                    
+                    break;
+                }
+            }
             _logger.LogDebug($"{nameof(comparisionString)}=\"{comparisionString}\"");
+            
             if (rsa.VerifyData(Encoding.UTF8.GetBytes(comparisionString), Convert.FromBase64String(signatureHash),
                     HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
