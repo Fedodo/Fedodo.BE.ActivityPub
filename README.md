@@ -3,11 +3,8 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-
-<!-- TODO Change the links -->
-<!-- TODO Remove if you do not have a pipeline or wakatime -->
-[![wakatime](https://wakatime.com/badge/user/d37401d6-1566-41ea-b7ab-8cc7d2c9f55b/project/931d730c-4999-4084-84d0-9639c865bcce.svg?style=for-the-badge&logo=appveyor)](https://wakatime.com/badge/user/d37401d6-1566-41ea-b7ab-8cc7d2c9f55b/project/931d730c-4999-4084-84d0-9639c865bcce.svg?style=for-the-badge&logo=appveyor)
-[![HugoBuildAndDeploy](https://img.shields.io/github/workflow/status/LNA-DEV/Fedido.Server/PipelineName?style=for-the-badge)](https://github.com/LNA-DEV/Fedido.Server/actions/workflows/PipelineName.yaml)  
+[![wakatime](https://wakatime.com/badge/github/LNA-DEV/Fedido.Server.svg?style=for-the-badge&logo=appveyor)](https://wakatime.com/badge/github/LNA-DEV/Fedido.Server.svg?style=for-the-badge&logo=appveyor)
+[![HugoBuildAndDeploy](https://img.shields.io/github/actions/workflow/status/LNA-DEV/Fedido.Server/Build.yaml?style=for-the-badge)](https://github.com/LNA-DEV/Fedido.Server/actions/workflows/Build.yaml)  
 
 <!-- PROJECT LOGO -->
 <br/>
