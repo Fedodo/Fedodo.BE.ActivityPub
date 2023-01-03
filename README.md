@@ -1,5 +1,3 @@
-<!-- VERSION: LNA-DEV-README-TEMPLATE V1.3 -->
-
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -9,22 +7,20 @@
 <!-- TODO Change the links -->
 <!-- TODO Remove if you do not have a pipeline or wakatime -->
 [![wakatime](https://wakatime.com/badge/user/d37401d6-1566-41ea-b7ab-8cc7d2c9f55b/project/931d730c-4999-4084-84d0-9639c865bcce.svg?style=for-the-badge&logo=appveyor)](https://wakatime.com/badge/user/d37401d6-1566-41ea-b7ab-8cc7d2c9f55b/project/931d730c-4999-4084-84d0-9639c865bcce.svg?style=for-the-badge&logo=appveyor)
-[![HugoBuildAndDeploy](https://img.shields.io/github/workflow/status/LNA-DEV/README-TEMPLATE/PipelineName?style=for-the-badge)](https://github.com/LNA-DEV/README-TEMPLATE/actions/workflows/PipelineName.yaml)  
+[![HugoBuildAndDeploy](https://img.shields.io/github/workflow/status/LNA-DEV/Fedido.Server/PipelineName?style=for-the-badge)](https://github.com/LNA-DEV/Fedido.Server/actions/workflows/PipelineName.yaml)  
 
 <!-- PROJECT LOGO -->
-<!-- TODO Change the Link -->
-<!-- TODO Change the image -->
-<br />
+<br/>
 <div align="center">
-  <a href="https://github.com/lna-dev/README-TEMPLATE">
-    <img src="https://lna-dev.com/Assets/Metadata/Pingüino-Square.png" alt="Logo" width="80" height="80">
+  <a href="https://github.com/lna-dev/Fedido.Server">
+    <img src="https://fachinformatikerpruefungsvorbereitung.de/Assets/Images/Pingüino-Square.png" alt="Logo" width="80" height="80">
   </a>
 
 <!-- TODO Change the project name -->
-### README-Template
+### Fedido.Server
 
 <!-- TODO Change the description -->
-In this repository I have created a README-Template based on Best-README-Template
+In this repository I have created a Fedido.Server based on Best-Fedido.Server
 
 <p align="center">
 
@@ -34,9 +30,9 @@ In this repository I have created a README-Template based on Best-README-Templat
 <a href="https://lna-dev.com"><strong>Explore the Project »</strong></a>
 <br />
 <br />
-<a href="https://github.com/lna-dev/README-TEMPLATE/issues">Report Bug</a>
+<a href="https://github.com/lna-dev/Fedido.Server/issues">Report Bug</a>
 ·
-<a href="https://github.com/lna-dev/README-TEMPLATE/issues">Request Feature</a>
+<a href="https://github.com/lna-dev/Fedido.Server/issues">Request Feature</a>
   </p>
 </div>
 
@@ -66,31 +62,25 @@ If you have any ideas or want to contribute yourself... go for it. I really appr
 <br>
 
 <!-- LICENSE -->
-<!-- TODO Add the License description -->
 ## License 📝
 
-The code is distributed under the MIT License. See `LICENSE` for more information.
+The code is distributed under the AGPL-3.0 License. See `LICENSE` for more information.
 
 <br>
 
 <!-- ACKNOWLEDGMENTS -->
-<!-- TODO Add your acknowledgments -->
 ## Acknowledgments 🙏
 
-- [LNA-DEV README-Template](https://github.com/lna-dev/README-Template)
-- [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
 - [Markdown-Badges](https://github.com/Ileriayo/markdown-badges)
 
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- TODO Update your user name -->
-<!-- TODO Update your project name -->
-[contributors-shield]: https://img.shields.io/github/contributors/lna-dev/README-TEMPLATE.svg?style=for-the-badge
-[contributors-url]: https://github.com/lna-dev/README-TEMPLATE/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/lna-dev/README-TEMPLATE.svg?style=for-the-badge
-[forks-url]: https://github.com/lna-dev/README-TEMPLATE/network/members
-[stars-shield]: https://img.shields.io/github/stars/lna-dev/README-TEMPLATE.svg?style=for-the-badge
-[stars-url]: https://github.com/lna-dev/README-TEMPLATE/stargazers
-[issues-shield]: https://img.shields.io/github/issues/lna-dev/README-TEMPLATE.svg?style=for-the-badge
-[issues-url]: https://github.com/lna-dev/README-TEMPLATE/issues
-[license-shield]: https://img.shields.io/github/license/lna-dev/README-TEMPLATE.svg?style=for-the-badge
-[license-url]: https://github.com/lna-dev/README-TEMPLATE/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/lna-dev/Fedido.Server.svg?style=for-the-badge
+[contributors-url]: https://github.com/lna-dev/Fedido.Server/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/lna-dev/Fedido.Server.svg?style=for-the-badge
+[forks-url]: https://github.com/lna-dev/Fedido.Server/network/members
+[stars-shield]: https://img.shields.io/github/stars/lna-dev/Fedido.Server.svg?style=for-the-badge
+[stars-url]: https://github.com/lna-dev/Fedido.Server/stargazers
+[issues-shield]: https://img.shields.io/github/issues/lna-dev/Fedido.Server.svg?style=for-the-badge
+[issues-url]: https://github.com/lna-dev/Fedido.Server/issues
+[license-shield]: https://img.shields.io/github/license/lna-dev/Fedido.Server.svg?style=for-the-badge
+[license-url]: https://github.com/lna-dev/Fedido.Server/blob/master/LICENSE
