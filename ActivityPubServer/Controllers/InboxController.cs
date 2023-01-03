@@ -45,6 +45,9 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
+                var post = activity.ExtractItemFromObject<Post>();
+                
+                
                 break;
             }
             case "Follow":
