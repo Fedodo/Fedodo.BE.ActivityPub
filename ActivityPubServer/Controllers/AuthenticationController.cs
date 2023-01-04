@@ -44,6 +44,7 @@ public class AuthenticationController : ControllerBase
             Inbox = new Uri($"https://{domainName}/inbox/{userId}"),
             Outbox = new Uri($"https://{domainName}/outbox/{userId}"),
             Following = new Uri($"https://{domainName}/following/{userId}"),
+            Followers = new Uri($"https://{domainName}/followers/{userId}"),
 
             // Hardcoded
             Context = new[]

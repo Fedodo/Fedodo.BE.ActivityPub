@@ -12,7 +12,7 @@ public class UserVerificationHandler : IUserVerificationHandler
     {
         _logger = logger;
     }
-    
+
     public bool VerifyUser(Guid userId, HttpContext context)
     {
         var activeUserClaims = context.User.Claims.ToList();

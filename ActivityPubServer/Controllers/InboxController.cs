@@ -1,4 +1,3 @@
-using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Helpers;
@@ -25,7 +24,7 @@ public class InboxController : ControllerBase
         _repository = repository;
         _userVerificationHandler = userVerificationHandler;
     }
-    
+
     [HttpGet("{userId:guid}")]
     [Authorize(Roles = "User")]
     public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
@@ -90,13 +89,30 @@ public class InboxController : ControllerBase
 
                 if (fItem.IsNotNullOrEmpty())
                     return BadRequest("Post already exists");
-                
+
                 await _repository.Create(post, "Inbox", userId.ToString().ToLower());
 
                 break;
             }
             case "Follow":
             {
+                var actorId = activity.ExtractStringFromObject();
+
+                _logger.LogDebug($"Got follow from \"{actorId}\"");
+
+                var followObject = new FollowingHelper
+                {
+                    Id = Guid.NewGuid(),
+                    Following = new Uri(actorId)
+                };
+
+                var definitionBuilder = Builders<FollowingHelper>.Filter;
+                var helperFilter = definitionBuilder.Eq(i => i.Following, followObject.Following);
+                var fItem = await _repository.GetSpecificItems(helperFilter, "Followers", userId.ToString());
+
+                if (fItem.IsNullOrEmpty())
+                    await _repository.Create(followObject, "Followers", userId.ToString());
+
                 break;
             }
             case "Accept":
