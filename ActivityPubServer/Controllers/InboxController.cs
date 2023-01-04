@@ -44,6 +44,11 @@ public class InboxController : ControllerBase
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
 
+        if (activity.IsNull())
+        {
+            return BadRequest("Activity can not be null!");
+        }
+
         switch (activity.Type)
         {
             case "Create":
