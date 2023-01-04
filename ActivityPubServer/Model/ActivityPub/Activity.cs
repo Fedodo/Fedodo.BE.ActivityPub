@@ -5,7 +5,11 @@ namespace ActivityPubServer.Model.ActivityPub;
 
 public class Activity
 {
-    [JsonPropertyName("@context")] public Uri Context { get; set; } = new("https://www.w3.org/ns/activitystreams");
+    [JsonPropertyName("@context")]
+    public IEnumerable<object>? Context { get; set; } = new List<object>()
+    {
+        "https://www.w3.org/ns/activitystreams"
+    };
 
     [JsonPropertyName("id")] public Uri Id { get; set; }
 
@@ -15,7 +19,7 @@ public class Activity
 
     [JsonPropertyName("object")] public object Object { get; set; }
 
-    [JsonPropertyName("to")] public string? To { get; set; }
+    [JsonPropertyName("to")] public IEnumerable<string>? To { get; set; }
 
     public T ExtractItemFromObject<T>()
     {

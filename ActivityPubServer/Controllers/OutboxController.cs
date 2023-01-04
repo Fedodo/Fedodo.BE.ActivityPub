@@ -94,15 +94,18 @@ public class OutboxController : ControllerBase
         }
         else
         {
-            var serverNameInboxPair = new ServerNameInboxPair
+            foreach (var item in activity.To)
             {
-                ServerName = activity.To.ExtractServerName(),
-                Inbox = new Uri(activity.To)
-            };
-
-            targets.Add(serverNameInboxPair);
-
-            await _knownServersHandler.Add(activity.To);
+                var serverNameInboxPair = new ServerNameInboxPair
+                {
+                    ServerName = item.ExtractServerName(),
+                    Inbox = new Uri(item)
+                };
+    
+                targets.Add(serverNameInboxPair);
+    
+                await _knownServersHandler.Add(item);
+            }
         }
 
         foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
