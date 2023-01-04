@@ -1,7 +1,9 @@
+using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Helpers;
 using CommonExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -13,13 +15,32 @@ public class InboxController : ControllerBase
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IUserVerificationHandler _userVerificationHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
-        IMongoDbRepository repository)
+        IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
+        _userVerificationHandler = userVerificationHandler;
+    }
+    
+    [HttpGet("{userId:guid}")]
+    [Authorize(Roles = "User")]
+    public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
+    {
+        if (!_userVerificationHandler.VerifyUser(userId, HttpContext)) return Forbid();
+
+        var posts = await _repository.GetAll<Post>("Inbox", userId.ToString().ToLower());
+
+        var orderedCollection = new OrderedCollection<Post>
+        {
+            Summary = $"Inbox of {userId}",
+            OrderedItems = posts
+        };
+
+        return Ok(orderedCollection);
     }
 
     [HttpPost]
@@ -65,11 +86,12 @@ public class InboxController : ControllerBase
 
                 var postDefinitionBuilder = Builders<Post>.Filter;
                 var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
-                var fItem = await _repository.GetSpecificItems(postFilter, "ForeignData", "Posts");
+                var fItem = await _repository.GetSpecificItems(postFilter, "Inbox", userId.ToString().ToLower());
 
                 if (fItem.IsNotNullOrEmpty())
                     return BadRequest("Post already exists");
-                await _repository.Create(post, "ForeignData", "Posts");
+                
+                await _repository.Create(post, "Inbox", userId.ToString().ToLower());
 
                 break;
             }

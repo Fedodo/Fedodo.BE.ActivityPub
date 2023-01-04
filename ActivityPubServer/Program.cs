@@ -60,6 +60,7 @@ BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String))
 builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
 builder.Services.AddSingleton<IKnownServersHandler, KnownServersHandler>();
 builder.Services.AddSingleton<IHttpSignatureHandler, HttpSignatureHandler>();
+builder.Services.AddSingleton<IUserVerificationHandler, UserVerificationHandler>();
 
 var connectionString =
     $"mongodb+srv://{Environment.GetEnvironmentVariable("MONGO_USERNAME")}:{Environment.GetEnvironmentVariable("MONGO_PASSWORD")}@{Environment.GetEnvironmentVariable("MONGO_HOSTNAME")}/?retryWrites=true&w=majority";
