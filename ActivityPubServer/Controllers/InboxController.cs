@@ -11,18 +11,21 @@ namespace ActivityPubServer.Controllers;
 [Route("Inbox")]
 public class InboxController : ControllerBase
 {
+    private readonly IActivityHandler _activityHandler;
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IUserVerificationHandler _userVerificationHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
-        IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler)
+        IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler,
+        IActivityHandler activityHandler)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
         _userVerificationHandler = userVerificationHandler;
+        _activityHandler = activityHandler;
     }
 
     [HttpGet("{userId:guid}")]
@@ -112,6 +115,25 @@ public class InboxController : ControllerBase
 
                 if (fItem.IsNullOrEmpty())
                     await _repository.Create(followObject, "Followers", userId.ToString());
+
+                var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
+                var user = await _activityHandler.GetUser(userId);
+                var actor = await _activityHandler.GetActor(userId);
+
+                var acceptActivity = new Activity
+                {
+                    Id = new Uri($"https://{domainName}/accepts/{Guid.NewGuid()}"),
+                    Type = "Accept",
+                    Actor = actor.Id,
+                    Object = activity.Id,
+                    To = new List<string>
+                    {
+                        //activity.Actor.ToString()
+                        "as:Public"
+                    }
+                };
+
+                await _activityHandler.SendActivities(acceptActivity, user, actor);
 
                 break;
             }
