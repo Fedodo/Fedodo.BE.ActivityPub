@@ -23,6 +23,11 @@ public class Activity
 
     public T ExtractItemFromObject<T>()
     {
+        if (Object.GetType() == typeof(T))
+        {
+            return (T)Object;
+        }
+        
         var jsonElement = (JsonElement)Object;
         var item = jsonElement.Deserialize<T>();
 
