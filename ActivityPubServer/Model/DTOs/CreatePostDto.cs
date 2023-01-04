@@ -5,9 +5,7 @@ namespace ActivityPubServer.Model.DTOs;
 
 public class CreatePostDto
 {
-    [JsonPropertyName("to")] 
-    [Required]
-    public IEnumerable<string>? To { get; set; }
+    [JsonPropertyName("to")] [Required] public IEnumerable<string>? To { get; set; }
 
     public string? Name { get; set; }
     public string? Summary { get; set; }

@@ -6,7 +6,7 @@ namespace ActivityPubServer.Model.ActivityPub;
 public class Activity
 {
     [JsonPropertyName("@context")]
-    public IEnumerable<object>? Context { get; set; } = new List<object>()
+    public IEnumerable<object>? Context { get; set; } = new List<object>
     {
         "https://www.w3.org/ns/activitystreams"
     };

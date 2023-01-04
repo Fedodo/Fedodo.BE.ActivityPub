@@ -3,7 +3,6 @@ using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;

@@ -101,9 +101,9 @@ public class OutboxController : ControllerBase
                     ServerName = item.ExtractServerName(),
                     Inbox = new Uri(item)
                 };
-    
+
                 targets.Add(serverNameInboxPair);
-    
+
                 await _knownServersHandler.Add(item);
             }
         }
