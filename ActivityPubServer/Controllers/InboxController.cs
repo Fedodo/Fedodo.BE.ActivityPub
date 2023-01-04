@@ -24,9 +24,9 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> GeneralInbox([FromBody] Activity activity)
+    public async Task<ActionResult> SharedInbox([FromBody] Activity activity)
     {
-        _logger.LogTrace($"Entered {nameof(GeneralInbox)} in {nameof(InboxController)}");
+        _logger.LogTrace($"Entered {nameof(SharedInbox)} in {nameof(InboxController)}");
 
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, "/inbox"))
             return BadRequest("Invalid Signature");
@@ -35,15 +35,17 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost("{userId:guid}")]
-    public async Task<ActionResult> Log(Guid userId, [FromBody] Activity activity)
+    public async Task<ActionResult> Inbox(Guid userId, [FromBody] Activity activity)
     {
-        _logger.LogTrace($"Entered {nameof(Log)} in {nameof(InboxController)}");
+        _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
         
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
 
         if (activity.IsNull())
         {
+           _logger.LogWarning($"Activity is NULL in {nameof(Inbox)}"); 
+            
             return BadRequest("Activity can not be null!");
         }
 
