@@ -3,6 +3,7 @@ using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
@@ -14,12 +15,12 @@ using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// // This will log all requests
-// builder.Services.AddHttpLogging(options =>
-// {
-//     options.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
-//                             HttpLoggingFields.RequestBody;
-// });
+// This will log all requests
+builder.Services.AddHttpLogging(options =>
+{
+    options.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
+                            HttpLoggingFields.RequestBody;
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -80,7 +81,7 @@ app.UseCors(x => x.AllowAnyHeader()
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-// app.UseHttpLogging();
+app.UseHttpLogging();
 
 Log.Information("Starting api");
 
