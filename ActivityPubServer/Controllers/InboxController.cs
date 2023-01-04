@@ -30,6 +30,13 @@ public class InboxController : ControllerBase
 
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, "/inbox"))
             return BadRequest("Invalid Signature");
+        
+        if (activity.IsNull())
+        {
+            _logger.LogWarning($"Activity is NULL in {nameof(SharedInbox)}"); 
+            
+            return BadRequest("Activity can not be null!");
+        }
 
         return Ok();
     }
