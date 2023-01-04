@@ -4,7 +4,7 @@ namespace ActivityPubServer.Model.ActivityPub;
 
 public class Post
 {
-    [JsonPropertyName("to")] public string To { get; set; }
+    [JsonPropertyName("to")] public IEnumerable<string>? To { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
     [JsonPropertyName("summary")] public string? Summary { get; set; }
     [JsonPropertyName("sensitive")] public bool? Sensitive { get; set; }
