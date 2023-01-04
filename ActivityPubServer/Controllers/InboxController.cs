@@ -64,6 +64,19 @@ public class InboxController : ControllerBase
                 
                 _logger.LogDebug("Successfully extracted post from Object");
                 
+                var postDefinitionBuilder = Builders<Post>.Filter;
+                var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
+                var fItem = await _repository.GetSpecificItems(postFilter, "ForeignData", "Posts");
+
+                if (fItem.IsNotNull())
+                {
+                    return BadRequest("Post already exists");
+                }
+                else
+                {
+                    await _repository.Create(post, "ForeignData", "Posts");
+                }
+
                 break;
             }
             case "Follow":
