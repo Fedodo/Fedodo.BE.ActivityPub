@@ -99,14 +99,12 @@ public class InboxController : ControllerBase
             }
             case "Follow":
             {
-                var actorId = activity.ExtractStringFromObject();
-
-                _logger.LogDebug($"Got follow from \"{actorId}\"");
+                _logger.LogDebug($"Got follow for \"{activity.ExtractStringFromObject()}\" from \"{activity.Actor}\"");
 
                 var followObject = new FollowingHelper
                 {
                     Id = Guid.NewGuid(),
-                    Following = new Uri(actorId)
+                    Following = activity.Actor
                 };
 
                 var definitionBuilder = Builders<FollowingHelper>.Filter;
