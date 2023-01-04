@@ -23,6 +23,8 @@ public class Activity
 
     public T ExtractItemFromObject<T>()
     {
+        // This could be made to an extension method in CommonExtensions
+        
         if (Object.GetType() == typeof(T))
         {
             return (T)Object;
