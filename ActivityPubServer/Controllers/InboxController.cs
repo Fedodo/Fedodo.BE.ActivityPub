@@ -47,6 +47,7 @@ public class InboxController : ControllerBase
             {
                 var post = activity.ExtractItemFromObject<Post>();
                 
+                _logger.LogDebug("Successfully extracted post from Object");
                 
                 break;
             }

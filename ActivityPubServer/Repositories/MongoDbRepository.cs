@@ -19,14 +19,14 @@ public class MongoDbRepository : IMongoDbRepository
 
     public async Task Create<T>(T item, string databaseName, string collectionName)
     {
-        _logger.LogInformation($"Creating item with type: {typeof(T)}");
+        _logger.LogTrace($"Creating item with type: {typeof(T)}");
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
 
         await collection.InsertOneAsync(item);
 
-        _logger.LogInformation($"Finished creating item with type: {typeof(T)}");
+        _logger.LogTrace($"Finished creating item with type: {typeof(T)}");
     }
 
     // public async Task Delete<T>(string id, string databaseName, string collectionName) where T : IStandardItem
@@ -45,27 +45,27 @@ public class MongoDbRepository : IMongoDbRepository
 
     public async Task<IEnumerable<T>> GetAll<T>(string databaseName, string collectionName)
     {
-        _logger.LogInformation($"Getting all items of type: {typeof(T)}");
+        _logger.LogTrace($"Getting all items of type: {typeof(T)}");
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
 
         var result = (await collection.FindAsync(new BsonDocument())).ToList();
 
-        _logger.LogInformation($"Finished getting all items of type: {typeof(T)}");
+        _logger.LogTrace($"Finished getting all items of type: {typeof(T)}");
 
         return result;
     }
 
     public async Task<T> GetSpecificItem<T>(FilterDefinition<T> filter, string databaseName, string collectionName)
     {
-        _logger.LogInformation($"Getting specific item with type: {typeof(T)}");
+        _logger.LogTrace($"Getting specific item with type: {typeof(T)}");
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
         var result = (await collection.FindAsync(filter)).SingleOrDefault();
 
-        _logger.LogInformation($"Returning specific item with type: {typeof(T)}");
+        _logger.LogTrace($"Returning specific item with type: {typeof(T)}");
 
         return result;
     }
@@ -73,13 +73,13 @@ public class MongoDbRepository : IMongoDbRepository
     public async Task<IEnumerable<T>> GetSpecificItems<T>(FilterDefinition<T> filter, string databaseName,
         string collectionName)
     {
-        _logger.LogInformation($"Getting specific item with type: {typeof(T)}");
+        _logger.LogTrace($"Getting specific item with type: {typeof(T)}");
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
         var result = (await collection.FindAsync(filter)).ToList();
 
-        _logger.LogInformation($"Returning specific item with type: {typeof(T)}");
+        _logger.LogTrace($"Returning specific item with type: {typeof(T)}");
 
         return result;
     }
