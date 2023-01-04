@@ -3,6 +3,7 @@ using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
@@ -13,6 +14,12 @@ using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpLogging(options =>
+{
+    options.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
+                            HttpLoggingFields.RequestBody; // TODO Remove this
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
