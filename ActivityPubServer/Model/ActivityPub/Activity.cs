@@ -24,7 +24,7 @@ public class Activity
     public T ExtractItemFromObject<T>()
     {
         var jsonElement = (JsonElement)Object;
-        var item = JsonSerializer.Deserialize<T>(jsonElement.GetRawText());
+        var item = jsonElement.Deserialize<T>();
 
         return item;
     }
