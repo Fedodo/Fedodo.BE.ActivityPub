@@ -10,7 +10,7 @@ public class ActivityShould
     public void ExtractItemFromObject()
     {
         // Arrange
-        var activity = new Activity()
+        var activity = new Activity
         {
             Object = new
             {

@@ -1,8 +1,9 @@
-using System.Text;
+using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Helpers;
 using CommonExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -14,13 +15,32 @@ public class InboxController : ControllerBase
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IUserVerificationHandler _userVerificationHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
-        IMongoDbRepository repository)
+        IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
+        _userVerificationHandler = userVerificationHandler;
+    }
+    
+    [HttpGet("{userId:guid}")]
+    [Authorize(Roles = "User")]
+    public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
+    {
+        if (!_userVerificationHandler.VerifyUser(userId, HttpContext)) return Forbid();
+
+        var posts = await _repository.GetAll<Post>("Inbox", userId.ToString().ToLower());
+
+        var orderedCollection = new OrderedCollection<Post>
+        {
+            Summary = $"Inbox of {userId}",
+            OrderedItems = posts
+        };
+
+        return Ok(orderedCollection);
     }
 
     [HttpPost]
@@ -30,11 +50,11 @@ public class InboxController : ControllerBase
 
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, "/inbox"))
             return BadRequest("Invalid Signature");
-        
+
         if (activity.IsNull())
         {
-            _logger.LogWarning($"Activity is NULL in {nameof(SharedInbox)}"); 
-            
+            _logger.LogWarning($"Activity is NULL in {nameof(SharedInbox)}");
+
             return BadRequest("Activity can not be null!");
         }
 
@@ -45,14 +65,14 @@ public class InboxController : ControllerBase
     public async Task<ActionResult> Inbox(Guid userId, [FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
-        
+
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
 
         if (activity.IsNull())
         {
-           _logger.LogWarning($"Activity is NULL in {nameof(Inbox)}"); 
-            
+            _logger.LogWarning($"Activity is NULL in {nameof(Inbox)}");
+
             return BadRequest("Activity can not be null!");
         }
 
@@ -61,21 +81,17 @@ public class InboxController : ControllerBase
             case "Create":
             {
                 var post = activity.ExtractItemFromObject<Post>();
-                
+
                 _logger.LogDebug("Successfully extracted post from Object");
-                
+
                 var postDefinitionBuilder = Builders<Post>.Filter;
                 var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
-                var fItem = await _repository.GetSpecificItems(postFilter, "ForeignData", "Posts");
+                var fItem = await _repository.GetSpecificItems(postFilter, "Inbox", userId.ToString().ToLower());
 
                 if (fItem.IsNotNullOrEmpty())
-                {
                     return BadRequest("Post already exists");
-                }
-                else
-                {
-                    await _repository.Create(post, "ForeignData", "Posts");
-                }
+                
+                await _repository.Create(post, "Inbox", userId.ToString().ToLower());
 
                 break;
             }
@@ -97,7 +113,7 @@ public class InboxController : ControllerBase
                 {
                     _logger.LogDebug("Found activity which was accepted");
 
-                    var followObject = new FollowingHelper()
+                    var followObject = new FollowingHelper
                     {
                         Id = Guid.NewGuid(),
                         Following = new Uri((string)sendActivity.Object)
@@ -105,15 +121,16 @@ public class InboxController : ControllerBase
 
                     var followingDefinitionBuilder = Builders<FollowingHelper>.Filter;
                     var followingHelperFilter = followingDefinitionBuilder.Eq(i => i.Following, followObject.Following);
-                    var fItem = await _repository.GetSpecificItems(followingHelperFilter, "Following", userId.ToString().ToLower());
-                    
+                    var fItem = await _repository.GetSpecificItems(followingHelperFilter, "Following",
+                        userId.ToString().ToLower());
+
                     if (fItem.IsNullOrEmpty())
-                    {
                         await _repository.Create(followObject, "Following", userId.ToString().ToLower());
-                    }
                 }
                 else
+                {
                     _logger.LogWarning("Not found activity which was accepted");
+                }
 
                 break;
             }

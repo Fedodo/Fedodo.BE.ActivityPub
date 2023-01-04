@@ -21,12 +21,14 @@ public class OutboxController : ControllerBase
     private readonly IKnownServersHandler _knownServersHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IUserVerificationHandler _userVerification;
 
     public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
-        IKnownServersHandler knownServersHandler)
+        IKnownServersHandler knownServersHandler, IUserVerificationHandler userVerification)
     {
         _logger = logger;
         _repository = repository;
+        _userVerification = userVerification;
         _knownServersHandler = knownServersHandler;
     }
 
@@ -50,7 +52,7 @@ public class OutboxController : ControllerBase
     [Authorize(Roles = "User")]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
-        if (!VerifyUser(userId)) return Forbid();
+        if (!_userVerification.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
         var user = await GetUser(userId);
@@ -101,26 +103,14 @@ public class OutboxController : ControllerBase
                     ServerName = item.ExtractServerName(),
                     Inbox = new Uri(item)
                 };
-    
+
                 targets.Add(serverNameInboxPair);
-    
+
                 await _knownServersHandler.Add(item);
             }
         }
 
         foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
-    }
-
-    private bool VerifyUser(Guid userId)
-    {
-        var activeUserClaims = HttpContext.User.Claims.ToList();
-        var tokenUserId = activeUserClaims.Where(i => i.ValueType.IsNotNull() && i.Type == ClaimTypes.Sid)?.First()
-            .Value;
-
-        if (tokenUserId == userId.ToString()) return true;
-
-        _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
-        return false;
     }
 
     private async Task<Actor> GetActor(Guid userId)

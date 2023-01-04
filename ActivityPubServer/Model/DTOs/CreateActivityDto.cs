@@ -7,14 +7,16 @@ namespace ActivityPubServer.Model.DTOs;
 public class CreateActivityDto
 {
     [JsonPropertyName("@context")]
-    public IEnumerable<object>? Context { get; set; } = new List<object>()
+    public IEnumerable<object>? Context { get; set; } = new List<object>
     {
         "https://www.w3.org/ns/activitystreams"
     };
 
     [Required] [JsonPropertyName("type")] public string Type { get; set; }
 
-    [Required] [JsonPropertyName("object")] public object Object { get; set; }
+    [Required]
+    [JsonPropertyName("object")]
+    public object Object { get; set; }
 
     [JsonPropertyName("to")] public IEnumerable<string>? To { get; set; }
 
