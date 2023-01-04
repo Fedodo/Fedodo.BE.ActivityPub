@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ActivityPubServer.Model.DTOs;
 
 public class CreatePostDto
 {
-    [Required] public string To { get; set; }
+    [JsonPropertyName("to")] 
+    [Required]
+    public IEnumerable<string>? To { get; set; }
 
     public string? Name { get; set; }
     public string? Summary { get; set; }

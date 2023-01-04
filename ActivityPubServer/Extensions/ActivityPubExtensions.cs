@@ -7,12 +7,12 @@ public static class ActivityPubExtensions
 {
     public static bool IsPostPublic(this Post post)
     {
-        return post.To is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public";
+        return post.To.Any(item => item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public");
     }
 
     public static bool IsPostPublic(this CreatePostDto post)
     {
-        return post.To is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public";
+        return post.To.Any(item => item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public");
     }
 
     public static bool IsActivityPublic(this Activity activity)
