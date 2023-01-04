@@ -1,23 +1,23 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ActivityPubServer.Model.DTOs;
 
 public class CreateActivityDto
 {
-    [JsonProperty("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
+    [JsonPropertyName("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
 
-    [Required] [JsonProperty("type")] public string Type { get; set; }
+    [Required] [JsonPropertyName("type")] public string Type { get; set; }
 
-    [Required] [JsonProperty("object")] public object Object { get; set; }
+    [Required] [JsonPropertyName("object")] public object Object { get; set; }
 
-    [JsonProperty("to")] public string To { get; set; }
+    [JsonPropertyName("to")] public string To { get; set; }
 
     public CreatePostDto ExtractCreatePostDtoFromObject()
     {
         var jsonElement = (JsonElement)Object;
-        var createPostDto = JsonConvert.DeserializeObject<CreatePostDto>(jsonElement.GetRawText());
+        var createPostDto = JsonSerializer.Deserialize<CreatePostDto>(jsonElement.GetRawText());
 
         return createPostDto;
     }

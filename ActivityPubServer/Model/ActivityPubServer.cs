@@ -1,5 +1,5 @@
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
-using Newtonsoft.Json;
 
 namespace ActivityPubServer.Model;
 
