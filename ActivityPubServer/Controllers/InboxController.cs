@@ -1,3 +1,4 @@
+using System.Text;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Helpers;
@@ -37,6 +38,8 @@ public class InboxController : ControllerBase
     public async Task<ActionResult> Log(Guid userId, [FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(Log)} in {nameof(InboxController)}");
+        
+        _logger.LogDebug(Encoding.UTF8.GetString((await HttpContext.Request.BodyReader.ReadAsync()).Buffer));
 
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
