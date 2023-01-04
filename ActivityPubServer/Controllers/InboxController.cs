@@ -68,7 +68,7 @@ public class InboxController : ControllerBase
                 var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
                 var fItem = await _repository.GetSpecificItems(postFilter, "ForeignData", "Posts");
 
-                if (fItem.IsNotNull())
+                if (fItem.IsNotNullOrEmpty())
                 {
                     return BadRequest("Post already exists");
                 }
