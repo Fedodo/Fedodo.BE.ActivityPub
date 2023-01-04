@@ -15,10 +15,11 @@ using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// This will log all requests
 builder.Services.AddHttpLogging(options =>
 {
     options.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
-                            HttpLoggingFields.RequestBody; // TODO Remove this
+                            HttpLoggingFields.RequestBody;
 });
 
 builder.Services.AddControllers();
@@ -78,6 +79,7 @@ app.UseCors(x => x.AllowAnyHeader()
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.UseHttpLogging();
 
 Log.Information("Starting api");
 
