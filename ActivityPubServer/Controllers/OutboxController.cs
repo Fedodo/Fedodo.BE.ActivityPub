@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.ActivityPub;
@@ -11,7 +12,6 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 
 namespace ActivityPubServer.Controllers;
 
@@ -193,7 +193,7 @@ public class OutboxController : ControllerBase
         Actor actor)
     {
         // Set Http Signature
-        var jsonData = JsonConvert.SerializeObject(activity);
+        var jsonData = JsonSerializer.Serialize(activity);
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();

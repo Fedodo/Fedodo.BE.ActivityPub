@@ -1,26 +1,26 @@
 using System.Text.Json;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ActivityPubServer.Model.ActivityPub;
 
 public class Activity
 {
-    [JsonProperty("@context")] public Uri Context { get; } = new("https://www.w3.org/ns/activitystreams");
+    [JsonPropertyName("@context")] public Uri Context { get; set; } = new("https://www.w3.org/ns/activitystreams");
 
-    [JsonProperty("id")] public Uri Id { get; set; }
+    [JsonPropertyName("id")] public Uri Id { get; set; }
 
-    [JsonProperty("type")] public string Type { get; set; }
+    [JsonPropertyName("type")] public string Type { get; set; }
 
-    [JsonProperty("actor")] public Uri Actor { get; set; }
+    [JsonPropertyName("actor")] public Uri Actor { get; set; }
 
-    [JsonProperty("object")] public object Object { get; set; }
+    [JsonPropertyName("object")] public object Object { get; set; }
 
-    [JsonProperty("to")] public string? To { get; set; }
+    [JsonPropertyName("to")] public string? To { get; set; }
 
     public T ExtractItemFromObject<T>()
     {
         var jsonElement = (JsonElement)Object;
-        var item = JsonConvert.DeserializeObject<T>(jsonElement.GetRawText());
+        var item = JsonSerializer.Deserialize<T>(jsonElement.GetRawText());
 
         return item;
     }
