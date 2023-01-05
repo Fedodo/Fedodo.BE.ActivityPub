@@ -3,7 +3,7 @@ using ActivityPubServer.Model.ActivityPub;
 using ActivityPubServer.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ActivityPubServer.Controllers;
+namespace ActivityPubServer.Controllers.ActivityPub;
 
 [Route("Followers")]
 public class FollowersController : ControllerBase

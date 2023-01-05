@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
-namespace ActivityPubServer.Controllers;
+namespace ActivityPubServer.Controllers.ActivityPub;
 
 [Route("Outbox")]
 public class OutboxController : ControllerBase

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
-namespace ActivityPubServer.Controllers;
+namespace ActivityPubServer.Controllers.ActivityPub;
 
 [Route("Inbox")]
 public class InboxController : ControllerBase
