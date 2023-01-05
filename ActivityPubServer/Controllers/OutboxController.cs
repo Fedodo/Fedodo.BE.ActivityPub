@@ -6,6 +6,7 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using OpenIddict.Validation.AspNetCore;
 
 namespace ActivityPubServer.Controllers;
 
@@ -43,7 +44,7 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{userId}")]
-    [Authorize(Roles = "User")]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         if (!_userVerification.VerifyUser(userId, HttpContext)) return Forbid();

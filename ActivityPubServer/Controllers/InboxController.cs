@@ -5,6 +5,7 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using OpenIddict.Validation.AspNetCore;
 
 namespace ActivityPubServer.Controllers;
 
@@ -29,7 +30,7 @@ public class InboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    [Authorize(Roles = "User")]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
     {
         if (!_userVerificationHandler.VerifyUser(userId, HttpContext)) return Forbid();

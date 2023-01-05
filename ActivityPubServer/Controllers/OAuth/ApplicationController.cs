@@ -1,36 +1,44 @@
-using MongoDB.Driver;
+using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 
-namespace ActivityPubServer;
+namespace ActivityPubServer.Controllers.OAuth;
 
-public class Worker : IHostedService
+[Route("/api/v1/")]
+public class ApplicationController : ControllerBase
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public Worker(IServiceProvider serviceProvider)
-        => _serviceProvider = serviceProvider;
-
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public ApplicationController(IServiceProvider serviceProvider)
     {
+        _serviceProvider = serviceProvider;
+    }
+    
+    [HttpPost]
+    [Route("apps")]
+    public async Task<ActionResult<object>> RegisterClient(string clientName, Uri redirectUri)
+    {
+        object obj = null;
+        
         await using var scope = _serviceProvider.CreateAsyncScope();
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        if (await manager.FindByClientIdAsync("balosar-blazor-client") is null)
+        if (await manager.FindByClientIdAsync(clientName) is null)
         {
-            await manager.CreateAsync(new OpenIddictApplicationDescriptor
+            obj = await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = "balosar-blazor-client",
+                ClientId = clientName,
                 ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
-                DisplayName = "Blazor client application",
+                DisplayName = $"{clientName} client application",
                 Type = OpenIddictConstants.ClientTypes.Public,
                 PostLogoutRedirectUris =
                 {
-                    new Uri("https://localhost:44310/authentication/logout-callback")
+                    new Uri(
+                        "https://localhost:44310/authentication/logout-callback") //                     new Uri("http://localhost/swagger/index.html")
                 },
-                RedirectUris =
+                RedirectUris = 
                 {
-                    new Uri("https://localhost:44310/authentication/login-callback")
+                    redirectUri
                 },
                 Permissions =
                 {
@@ -51,7 +59,6 @@ public class Worker : IHostedService
             });
         }
 
+        return Ok(obj);
     }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -36,19 +37,48 @@ var builder = WebApplication.CreateBuilder(args);
 // });
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-    {
-        Description = "Standard Authorization Header using the Bearer scheme (\"bearer {token}\")",
-        In = ParameterLocation.Header,
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
-    });
 
-    options.OperationFilter<SecurityRequirementsOperationFilter>();
-});
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(
+    c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiPlayground", Version = "v1" });
+        c.AddSecurityDefinition(
+            "oauth",
+            new OpenApiSecurityScheme
+            {
+                Flows = new OpenApiOAuthFlows
+                {
+                    AuthorizationCode = new OpenApiOAuthFlow()
+                    {
+                        Scopes = new Dictionary<string, string>
+                        {
+                            ["api"] = "api scope description"
+                        },
+                        TokenUrl = new Uri("http://localhost/oauth/token"),
+                        AuthorizationUrl = new Uri("http://localhost/oauth/authorize")
+                    }
+                },
+                In = ParameterLocation.Header,
+                Name = HeaderNames.Authorization,
+                Type = SecuritySchemeType.OAuth2
+            }
+        );
+        c.AddSecurityRequirement(
+            new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                            { Type = ReferenceType.SecurityScheme, Id = "oauth" },
+                    },
+                    new[] { "api" }
+                }
+            }
+        );
+    }
+);
 
 
 
@@ -71,7 +101,9 @@ builder.Services.AddOpenIddict()
         options.AddEncryptionKey(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("API_SECURITY_KEY"))));
         
-        options.AddDevelopmentSigningCertificate();
+        options.UseAspNetCore().DisableTransportSecurityRequirement();
+
+        options.AddDevelopmentSigningCertificate(); // TODO
         
         options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
@@ -98,11 +130,8 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore();
     });
 
-builder.Services.AddHostedService<Worker>();
 
-
-
-    var provider = builder.Services.BuildServiceProvider();
+var provider = builder.Services.BuildServiceProvider();
     var context = provider.GetRequiredService<IOpenIddictMongoDbContext>();
     var options = provider.GetRequiredService<IOptionsMonitor<OpenIddictMongoDbOptions>>().CurrentValue;
     var database = await context.GetDatabaseAsync(CancellationToken.None);
