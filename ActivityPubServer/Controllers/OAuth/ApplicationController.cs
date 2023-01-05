@@ -33,8 +33,7 @@ public class ApplicationController : ControllerBase
                 Type = OpenIddictConstants.ClientTypes.Public,
                 PostLogoutRedirectUris =
                 {
-                    new Uri(
-                        "https://localhost:44310/authentication/logout-callback") //                     new Uri("http://localhost/swagger/index.html")
+                    new Uri("https://localhost:44310/authentication/logout-callback") //                     new Uri("http://localhost/swagger/index.html")
                 },
                 RedirectUris = 
                 {

@@ -53,10 +53,12 @@ builder.Services.AddSwaggerGen(
                     {
                         Scopes = new Dictionary<string, string>
                         {
-                            ["api"] = "api scope description"
+                            ["email"] = "api scope description",
+                            ["profile"] = "api scope description",
+                            ["roles"] = "api scope description"
                         },
                         TokenUrl = new Uri("http://localhost/oauth/token"),
-                        AuthorizationUrl = new Uri("http://localhost/oauth/authorize")
+                        AuthorizationUrl = new Uri("http://localhost/oauth/authorize"),
                     }
                 },
                 In = ParameterLocation.Header,
