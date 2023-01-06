@@ -4,7 +4,7 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
-namespace ActivityPubServer.Controllers;
+namespace ActivityPubServer.Controllers.ActivityPub;
 
 [Route("Actor")]
 public class ActorController : ControllerBase

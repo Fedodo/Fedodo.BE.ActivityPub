@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
-namespace ActivityPubServer.Controllers;
+namespace ActivityPubServer.Controllers.ActivityPub;
 
 [Route("Outbox")]
 public class OutboxController : ControllerBase
@@ -30,7 +30,7 @@ public class OutboxController : ControllerBase
     public async Task<ActionResult<OrderedCollection<Post>>> GetAllPublicPosts(Guid userId)
     {
         var filterDefinitionBuilder = Builders<Post>.Filter;
-        var filter = filterDefinitionBuilder.Where(i => i.IsPostPublic());
+        var filter = filterDefinitionBuilder.Where(i => i.IsPostPublic()); //TODO
         var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
 
         var orderedCollection = new OrderedCollection<Post>
