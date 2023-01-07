@@ -16,10 +16,15 @@ public class UserVerificationHandler : IUserVerificationHandler
     public bool VerifyUser(Guid userId, HttpContext context)
     {
         var activeUserClaims = context.User.Claims.ToList();
-        var tokenUserId = activeUserClaims.Where(i => i.ValueType.IsNotNull() && i.Type == ClaimTypes.Sid)?.First()
-            .Value;
+        var tokenUserId = activeUserClaims.Where(i => i.ValueType.IsNotNull() && i.Type == ClaimTypes.Sid)?.FirstOrDefault();
 
-        if (tokenUserId == userId.ToString()) return true;
+        if (tokenUserId.IsNull())
+        {
+            _logger.LogWarning($"No {nameof(tokenUserId)} found for {nameof(userId)}:\"{userId}\"");
+            return false;
+        }
+
+        if (tokenUserId.Value == userId.ToString()) return true;
 
         _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
         return false;

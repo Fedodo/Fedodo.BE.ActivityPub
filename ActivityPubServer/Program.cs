@@ -39,6 +39,8 @@ var builder = WebApplication.CreateBuilder(args);
 // });
 
 builder.Services.AddControllers();
+builder.Services.AddRazorPages();
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(
@@ -90,10 +92,7 @@ builder.Services.AddSwaggerGen(
 
 
 
-// builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-//     .Add <OpenId>()
-//     .AddDefaultTokenProviders()
-//     .AddDefaultUI();
+
 
 builder.Services.AddOpenIddict()
     .AddCore(options =>
@@ -239,6 +238,7 @@ builder.Services.AddSingleton<IKnownServersHandler, KnownServersHandler>();
 builder.Services.AddSingleton<IHttpSignatureHandler, HttpSignatureHandler>();
 builder.Services.AddSingleton<IUserVerificationHandler, UserVerificationHandler>();
 builder.Services.AddSingleton<IActivityHandler, ActivityHandler>();
+builder.Services.AddSingleton<IUserHandler, UserHandler>();
 
 builder.Services.AddSingleton<IMongoClient>(mongoClient);
 builder.Services.AddSingleton<IAuthenticationHandler, AuthenticationHandler>();

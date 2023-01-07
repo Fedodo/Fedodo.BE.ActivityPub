@@ -14,17 +14,19 @@ namespace ActivityPubServer.Controllers;
 public class OutboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;
+    private readonly IUserHandler _userHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IUserVerificationHandler _userVerification;
 
     public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
-        IUserVerificationHandler userVerification, IActivityHandler activityHandler)
+        IUserVerificationHandler userVerification, IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _repository = repository;
         _userVerification = userVerification;
         _activityHandler = activityHandler;
+        _userHandler = userHandler;
     }
 
     [HttpGet("{userId:guid}")]
@@ -50,7 +52,7 @@ public class OutboxController : ControllerBase
         if (!_userVerification.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
-        var user = await _activityHandler.GetUser(userId);
+        var user = await _userHandler.GetUser(userId);
         var actor = await _activityHandler.GetActor(userId);
         var activity = await CreateActivity(userId, activityDto);
 

@@ -13,6 +13,7 @@ namespace ActivityPubServer.Controllers;
 public class InboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;
+    private readonly IUserHandler _userHandler;
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
@@ -20,13 +21,14 @@ public class InboxController : ControllerBase
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
         IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler,
-        IActivityHandler activityHandler)
+        IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
         _userVerificationHandler = userVerificationHandler;
         _activityHandler = activityHandler;
+        _userHandler = userHandler;
     }
 
     [HttpGet("{userId:guid}")]
@@ -116,7 +118,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(followObject, "Followers", userId.ToString());
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
-                var user = await _activityHandler.GetUser(userId);
+                var user = await _userHandler.GetUser(userId);
                 var actor = await _activityHandler.GetActor(userId);
 
                 var acceptActivity = new Activity
