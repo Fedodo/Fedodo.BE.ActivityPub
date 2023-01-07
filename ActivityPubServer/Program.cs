@@ -3,6 +3,7 @@ using ActivityPubServer;
 using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.Authentication;
+using ActivityPubServer.Model.OAuth;
 using ActivityPubServer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
@@ -20,6 +21,7 @@ using OpenIddict.MongoDb;
 using OpenIddict.MongoDb.Models;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 
 var connectionString =
@@ -44,7 +46,7 @@ builder.Services.AddSwaggerGen(
     {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiPlayground", Version = "v1" });
         c.AddSecurityDefinition(
-            "oauth",
+            "oauth2",
             new OpenApiSecurityScheme
             {
                 Flows = new OpenApiOAuthFlows
@@ -67,18 +69,18 @@ builder.Services.AddSwaggerGen(
             }
         );
         c.AddSecurityRequirement(
-            new OpenApiSecurityRequirement
+            new OpenApiSecurityRequirement 
             {
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                            { Type = ReferenceType.SecurityScheme, Id = "oauth" },
+                    new OpenApiSecurityScheme{
+                        Reference = new OpenApiReference{
+                            Id = "oauth2", //The name of the previously defined security scheme.
+                            Type = ReferenceType.SecurityScheme
+                        }
                     },
-                    new[] { "api" }
+                    new List<string>()
                 }
-            }
-        );
+            });
     }
 );
 
@@ -88,8 +90,10 @@ builder.Services.AddSwaggerGen(
 
 
 
-
-builder.Services.AddIdentity<User, IdentityRole>().AddDefaultTokenProviders();
+// builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//     .Add <OpenId>()
+//     .AddDefaultTokenProviders()
+//     .AddDefaultUI();
 
 builder.Services.AddOpenIddict()
     .AddCore(options =>
@@ -244,7 +248,17 @@ builder.WebHost.UseUrls("http://*:");
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c =>
+{
+    // // c.SwaggerEndpoint("/swagger/v1/swagger.json", "Versioned API v1.0");
+    // c.DocumentTitle = "Title Documentation";
+    // c.DocExpansion(DocExpansion.None);
+    // c.RoutePrefix = string.Empty;
+    c.OAuthClientId("swagger2");
+    c.OAuthAppName("Combitime API");
+    c.OAuthScopeSeparator(",");
+    c.OAuthUsePkce();
+});
 app.UseCors(x => x.AllowAnyHeader()
     .AllowAnyMethod()
     .WithOrigins("*"));
