@@ -39,17 +39,17 @@ public class WellKnownController : ControllerBase
         return Ok(finger);
     }
     
-    [HttpGet]
-    [Route("oauth-authorization-server")]
-    public async Task<ActionResult<object>> GetOauthInfo()
-    {
-        _logger.LogTrace($"Entered {nameof(GetOauthInfo)} in {nameof(WellKnownController)}");
-
-        var obj = new
-        {
-            issuer = Environment.GetEnvironmentVariable("DOMAINNAME")
-        };
-        
-        return Ok(obj);
-    }
+    // [HttpGet]
+    // [Route("oauth-authorization-server")]
+    // public async Task<ActionResult<object>> GetOauthInfo()
+    // {
+    //     _logger.LogTrace($"Entered {nameof(GetOauthInfo)} in {nameof(WellKnownController)}");
+    //
+    //     var obj = new
+    //     {
+    //         issuer = Environment.GetEnvironmentVariable("DOMAINNAME")
+    //     };
+    //     
+    //     return Ok(obj);
+    // }
 }

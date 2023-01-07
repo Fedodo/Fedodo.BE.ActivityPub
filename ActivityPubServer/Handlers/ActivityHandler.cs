@@ -16,13 +16,15 @@ public class ActivityHandler : IActivityHandler
     private readonly IKnownServersHandler _knownServersHandler;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IUserHandler _userHandler;
 
     public ActivityHandler(ILogger<ActivityHandler> logger, IKnownServersHandler knownServersHandler,
-        IMongoDbRepository repository)
+        IMongoDbRepository repository, IUserHandler userHandler)
     {
         _logger = logger;
         _knownServersHandler = knownServersHandler;
         _repository = repository;
+        _userHandler = userHandler;
     }
 
     public async Task<Actor> GetActor(Guid userId)
@@ -32,14 +34,6 @@ public class ActivityHandler : IActivityHandler
             new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}"));
         var actor = await _repository.GetSpecificItem(filterActor, "ActivityPub", "Actors");
         return actor;
-    }
-
-    public async Task<User> GetUser(Guid userId)
-    {
-        var filterUserDefinitionBuilder = Builders<User>.Filter;
-        var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
-        var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
-        return user;
     }
 
     public async Task SendActivities(Activity activity, User user, Actor actor)
