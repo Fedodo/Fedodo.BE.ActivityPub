@@ -236,7 +236,6 @@ BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String))
 builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
 builder.Services.AddSingleton<IKnownServersHandler, KnownServersHandler>();
 builder.Services.AddSingleton<IHttpSignatureHandler, HttpSignatureHandler>();
-builder.Services.AddSingleton<IUserVerificationHandler, UserVerificationHandler>();
 builder.Services.AddSingleton<IActivityHandler, ActivityHandler>();
 builder.Services.AddSingleton<IUserHandler, UserHandler>();
 

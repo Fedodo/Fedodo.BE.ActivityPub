@@ -1,5 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.Authentication;
+using CommonExtensions;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 
@@ -22,5 +23,22 @@ public class UserHandler : IUserHandler
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
         var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
         return user;
+    }
+    
+    public bool VerifyUser(Guid userId, HttpContext context)
+    {
+        var activeUserClaims = context.User.Claims.ToList();
+        var tokenUserId = activeUserClaims.Where(i => i.ValueType.IsNotNull() && i.Type == "sub")?.FirstOrDefault();
+
+        if (tokenUserId.IsNull())
+        {
+            _logger.LogWarning($"No {nameof(tokenUserId)} found for {nameof(userId)}:\"{userId}\"");
+            return false;
+        }
+
+        if (tokenUserId.Value == userId.ToString()) return true;
+
+        _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
+        return false;
     }
 }

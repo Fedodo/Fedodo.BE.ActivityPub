@@ -16,4 +16,5 @@
   &lt;TestAncestor&gt;
     &lt;TestId&gt;xUnit::30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E::net6.0::ActivityPubServer.Test.Model.ActivityPub.ActivityShould.ExtractItemFromObject&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Iddict/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -17,16 +17,13 @@ public class InboxController : ControllerBase
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IUserVerificationHandler _userVerificationHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
-        IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler,
-        IActivityHandler activityHandler, IUserHandler userHandler)
+        IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
-        _userVerificationHandler = userVerificationHandler;
         _activityHandler = activityHandler;
         _userHandler = userHandler;
     }
@@ -35,7 +32,7 @@ public class InboxController : ControllerBase
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
     {
-        if (!_userVerificationHandler.VerifyUser(userId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
         var posts = await _repository.GetAll<Post>("Inbox", userId.ToString().ToLower());
 

@@ -17,14 +17,11 @@ public class OutboxController : ControllerBase
     private readonly IUserHandler _userHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IUserVerificationHandler _userVerification;
 
-    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
-        IUserVerificationHandler userVerification, IActivityHandler activityHandler, IUserHandler userHandler)
+    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _repository = repository;
-        _userVerification = userVerification;
         _activityHandler = activityHandler;
         _userHandler = userHandler;
     }
@@ -49,7 +46,7 @@ public class OutboxController : ControllerBase
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
-        if (!_userVerification.VerifyUser(userId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
         var user = await _userHandler.GetUser(userId);
