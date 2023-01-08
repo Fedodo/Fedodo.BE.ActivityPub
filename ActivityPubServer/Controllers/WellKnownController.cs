@@ -38,7 +38,7 @@ public class WellKnownController : ControllerBase
 
         return Ok(finger);
     }
-    
+
     // [HttpGet]
     // [Route("oauth-authorization-server")]
     // public async Task<ActionResult<object>> GetOauthInfo()

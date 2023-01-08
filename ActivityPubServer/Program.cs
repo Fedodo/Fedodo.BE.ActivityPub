@@ -1,13 +1,7 @@
 using System.Text;
-using ActivityPubServer;
 using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
-using ActivityPubServer.Model.Authentication;
-using ActivityPubServer.Model.OAuth;
 using ActivityPubServer.Repositories;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -20,9 +14,6 @@ using OpenIddict.Abstractions;
 using OpenIddict.MongoDb;
 using OpenIddict.MongoDb.Models;
 using Serilog;
-using Swashbuckle.AspNetCore.Filters;
-using Swashbuckle.AspNetCore.SwaggerUI;
-
 
 var connectionString =
     $"mongodb+srv://{Environment.GetEnvironmentVariable("MONGO_USERNAME")}:{Environment.GetEnvironmentVariable("MONGO_PASSWORD")}@{Environment.GetEnvironmentVariable("MONGO_HOSTNAME")}/?retryWrites=true&w=majority";
@@ -53,7 +44,7 @@ builder.Services.AddSwaggerGen(
             {
                 Flows = new OpenApiOAuthFlows
                 {
-                    AuthorizationCode = new OpenApiOAuthFlow()
+                    AuthorizationCode = new OpenApiOAuthFlow
                     {
                         Scopes = new Dictionary<string, string>
                         {
@@ -62,7 +53,7 @@ builder.Services.AddSwaggerGen(
                             ["roles"] = "api scope description"
                         },
                         TokenUrl = new Uri("http://localhost/oauth/token"),
-                        AuthorizationUrl = new Uri("http://localhost/oauth/authorize"),
+                        AuthorizationUrl = new Uri("http://localhost/oauth/authorize")
                     }
                 },
                 In = ParameterLocation.Header,
@@ -71,11 +62,13 @@ builder.Services.AddSwaggerGen(
             }
         );
         c.AddSecurityRequirement(
-            new OpenApiSecurityRequirement 
+            new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecurityScheme{
-                        Reference = new OpenApiReference{
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
                             Id = "oauth2", //The name of the previously defined security scheme.
                             Type = ReferenceType.SecurityScheme
                         }
@@ -85,13 +78,6 @@ builder.Services.AddSwaggerGen(
             });
     }
 );
-
-
-
-
-
-
-
 
 
 builder.Services.AddOpenIddict()
@@ -105,23 +91,24 @@ builder.Services.AddOpenIddict()
     {
         options.AddEncryptionKey(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("API_SECURITY_KEY"))));
-        
+
         options.UseAspNetCore().DisableTransportSecurityRequirement();
 
         options.AddDevelopmentSigningCertificate(); // TODO
-        
+
         options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
             .EnableLogoutEndpointPassthrough()
             .EnableStatusCodePagesIntegration()
             .EnableTokenEndpointPassthrough();
-        
+
         // Mark the "email", "profile" and "roles" scopes as supported scopes.
-        options.RegisterScopes(OpenIddictConstants.Scopes.Email, OpenIddictConstants.Scopes.Profile, OpenIddictConstants.Scopes.Roles);
+        options.RegisterScopes(OpenIddictConstants.Scopes.Email, OpenIddictConstants.Scopes.Profile,
+            OpenIddictConstants.Scopes.Roles);
 
         options.SetTokenEndpointUris("oauth/token");
         options.SetAuthorizationEndpointUris("oauth/authorize");
-        
+
         options.AllowAuthorizationCodeFlow()
             .AllowRefreshTokenFlow();
     })
@@ -137,91 +124,86 @@ builder.Services.AddOpenIddict()
 
 
 var provider = builder.Services.BuildServiceProvider();
-    var context = provider.GetRequiredService<IOpenIddictMongoDbContext>();
-    var options = provider.GetRequiredService<IOptionsMonitor<OpenIddictMongoDbOptions>>().CurrentValue;
-    var database = await context.GetDatabaseAsync(CancellationToken.None);
+var context = provider.GetRequiredService<IOpenIddictMongoDbContext>();
+var options = provider.GetRequiredService<IOptionsMonitor<OpenIddictMongoDbOptions>>().CurrentValue;
+var database = await context.GetDatabaseAsync(CancellationToken.None);
 
-    var applications = database.GetCollection<OpenIddictMongoDbApplication>(options.ApplicationsCollectionName);
+var applications = database.GetCollection<OpenIddictMongoDbApplication>(options.ApplicationsCollectionName);
 
-    await applications.Indexes.CreateManyAsync(new[]
-    {
-        new CreateIndexModel<OpenIddictMongoDbApplication>(
-            Builders<OpenIddictMongoDbApplication>.IndexKeys.Ascending(application => application.ClientId),
-            new CreateIndexOptions
-            {
-                Unique = true
-            }),
-
-        new CreateIndexModel<OpenIddictMongoDbApplication>(
-            Builders<OpenIddictMongoDbApplication>.IndexKeys.Ascending(
-                application => application.PostLogoutRedirectUris),
-            new CreateIndexOptions
-            {
-                Background = true
-            }),
-
-        new CreateIndexModel<OpenIddictMongoDbApplication>(
-            Builders<OpenIddictMongoDbApplication>.IndexKeys.Ascending(application => application.RedirectUris),
-            new CreateIndexOptions
-            {
-                Background = true
-            })
-    });
-
-    var authorizations = database.GetCollection<OpenIddictMongoDbAuthorization>(options.AuthorizationsCollectionName);
-
-    await authorizations.Indexes.CreateOneAsync(
-        new CreateIndexModel<OpenIddictMongoDbAuthorization>(
-            Builders<OpenIddictMongoDbAuthorization>.IndexKeys
-                .Ascending(authorization => authorization.ApplicationId)
-                .Ascending(authorization => authorization.Scopes)
-                .Ascending(authorization => authorization.Status)
-                .Ascending(authorization => authorization.Subject)
-                .Ascending(authorization => authorization.Type),
-            new CreateIndexOptions
-            {
-                Background = true
-            }));
-
-    var scopes = database.GetCollection<OpenIddictMongoDbScope>(options.ScopesCollectionName);
-
-    await scopes.Indexes.CreateOneAsync(new CreateIndexModel<OpenIddictMongoDbScope>(
-        Builders<OpenIddictMongoDbScope>.IndexKeys.Ascending(scope => scope.Name),
+await applications.Indexes.CreateManyAsync(new[]
+{
+    new CreateIndexModel<OpenIddictMongoDbApplication>(
+        Builders<OpenIddictMongoDbApplication>.IndexKeys.Ascending(application => application.ClientId),
         new CreateIndexOptions
         {
             Unique = true
+        }),
+
+    new CreateIndexModel<OpenIddictMongoDbApplication>(
+        Builders<OpenIddictMongoDbApplication>.IndexKeys.Ascending(
+            application => application.PostLogoutRedirectUris),
+        new CreateIndexOptions
+        {
+            Background = true
+        }),
+
+    new CreateIndexModel<OpenIddictMongoDbApplication>(
+        Builders<OpenIddictMongoDbApplication>.IndexKeys.Ascending(application => application.RedirectUris),
+        new CreateIndexOptions
+        {
+            Background = true
+        })
+});
+
+var authorizations = database.GetCollection<OpenIddictMongoDbAuthorization>(options.AuthorizationsCollectionName);
+
+await authorizations.Indexes.CreateOneAsync(
+    new CreateIndexModel<OpenIddictMongoDbAuthorization>(
+        Builders<OpenIddictMongoDbAuthorization>.IndexKeys
+            .Ascending(authorization => authorization.ApplicationId)
+            .Ascending(authorization => authorization.Scopes)
+            .Ascending(authorization => authorization.Status)
+            .Ascending(authorization => authorization.Subject)
+            .Ascending(authorization => authorization.Type),
+        new CreateIndexOptions
+        {
+            Background = true
         }));
 
-    var tokens = database.GetCollection<OpenIddictMongoDbToken>(options.TokensCollectionName);
+var scopes = database.GetCollection<OpenIddictMongoDbScope>(options.ScopesCollectionName);
 
-    await tokens.Indexes.CreateManyAsync(new[]
+await scopes.Indexes.CreateOneAsync(new CreateIndexModel<OpenIddictMongoDbScope>(
+    Builders<OpenIddictMongoDbScope>.IndexKeys.Ascending(scope => scope.Name),
+    new CreateIndexOptions
     {
-        new CreateIndexModel<OpenIddictMongoDbToken>(
-            Builders<OpenIddictMongoDbToken>.IndexKeys.Ascending(token => token.ReferenceId),
-            new CreateIndexOptions<OpenIddictMongoDbToken>
-            {
-                // Note: partial filter expressions are not supported on Azure Cosmos DB.
-                // As a workaround, the expression and the unique constraint can be removed.
-                PartialFilterExpression = Builders<OpenIddictMongoDbToken>.Filter.Exists(token => token.ReferenceId),
-                Unique = true
-            }),
+        Unique = true
+    }));
 
-        new CreateIndexModel<OpenIddictMongoDbToken>(
-            Builders<OpenIddictMongoDbToken>.IndexKeys
-                .Ascending(token => token.ApplicationId)
-                .Ascending(token => token.Status)
-                .Ascending(token => token.Subject)
-                .Ascending(token => token.Type),
-            new CreateIndexOptions
-            {
-                Background = true
-            })
-    });
+var tokens = database.GetCollection<OpenIddictMongoDbToken>(options.TokensCollectionName);
 
+await tokens.Indexes.CreateManyAsync(new[]
+{
+    new CreateIndexModel<OpenIddictMongoDbToken>(
+        Builders<OpenIddictMongoDbToken>.IndexKeys.Ascending(token => token.ReferenceId),
+        new CreateIndexOptions<OpenIddictMongoDbToken>
+        {
+            // Note: partial filter expressions are not supported on Azure Cosmos DB.
+            // As a workaround, the expression and the unique constraint can be removed.
+            PartialFilterExpression = Builders<OpenIddictMongoDbToken>.Filter.Exists(token => token.ReferenceId),
+            Unique = true
+        }),
 
-
-
-
+    new CreateIndexModel<OpenIddictMongoDbToken>(
+        Builders<OpenIddictMongoDbToken>.IndexKeys
+            .Ascending(token => token.ApplicationId)
+            .Ascending(token => token.Status)
+            .Ascending(token => token.Subject)
+            .Ascending(token => token.Type),
+        new CreateIndexOptions
+        {
+            Background = true
+        })
+});
 
 
 //Logging

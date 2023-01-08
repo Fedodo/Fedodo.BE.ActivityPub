@@ -13,10 +13,10 @@ namespace ActivityPubServer.Controllers.ActivityPub;
 public class InboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;
-    private readonly IUserHandler _userHandler;
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IUserHandler _userHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
         IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler)

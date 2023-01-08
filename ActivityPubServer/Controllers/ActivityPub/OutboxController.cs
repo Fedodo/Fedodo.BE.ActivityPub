@@ -14,11 +14,12 @@ namespace ActivityPubServer.Controllers.ActivityPub;
 public class OutboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;
-    private readonly IUserHandler _userHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IUserHandler _userHandler;
 
-    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler)
+    public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
+        IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _repository = repository;

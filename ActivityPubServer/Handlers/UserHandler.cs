@@ -1,7 +1,6 @@
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Model.Authentication;
 using CommonExtensions;
-using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 
 namespace ActivityPubServer.Handlers;
@@ -16,7 +15,7 @@ public class UserHandler : IUserHandler
         _logger = logger;
         _repository = repository;
     }
-    
+
     public async Task<User> GetUser(Guid userId)
     {
         var filterUserDefinitionBuilder = Builders<User>.Filter;
@@ -24,7 +23,7 @@ public class UserHandler : IUserHandler
         var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
         return user;
     }
-    
+
     public bool VerifyUser(Guid userId, HttpContext context)
     {
         var activeUserClaims = context.User.Claims.ToList();

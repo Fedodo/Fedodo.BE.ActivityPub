@@ -1,26 +1,14 @@
-
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using ActivityPubServer.Extensions;
 using ActivityPubServer.Interfaces;
-using ActivityPubServer.Model.Authentication;
-using ActivityPubServer.Model.OAuth;
 using CommonExtensions;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+
 namespace ActivityPubServer.Controllers.OAuth;
 
 public class AuthorizationController : Controller
@@ -42,8 +30,9 @@ public class AuthorizationController : Controller
     }
 
 
-
-    [HttpPost("~/oauth/token"), IgnoreAntiforgeryToken, Produces("application/json")]
+    [HttpPost("~/oauth/token")]
+    [IgnoreAntiforgeryToken]
+    [Produces("application/json")]
     public async Task<IActionResult> Exchange()
     {
         var request = HttpContext.GetOpenIddictServerRequest() ??
@@ -56,16 +45,12 @@ public class AuthorizationController : Controller
 
             var userId = result.Principal?.Claims.FirstOrDefault(i => i.Type == "sub")?.Value;
 
-            if (userId.IsNull())
-            {
-                return BadRequest("Sid is null");
-            }
+            if (userId.IsNull()) return BadRequest("Sid is null");
 
             // Retrieve the user profile corresponding to the authorization code/refresh token.
             var user = await _userHandler.GetUser(new Guid(userId));
 
             if (user.IsNull())
-            {
                 return Forbid(
                     authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
                     properties: new AuthenticationProperties(new Dictionary<string, string>
@@ -74,12 +59,11 @@ public class AuthorizationController : Controller
                         [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
                             "The token is no longer valid."
                     }));
-            }
-            
+
             var identity = new ClaimsIdentity(result?.Principal?.Claims,
-                authenticationType: TokenValidationParameters.DefaultAuthenticationType,
-                nameType: Claims.Name,
-                roleType: Claims.Role);
+                TokenValidationParameters.DefaultAuthenticationType,
+                Claims.Name,
+                Claims.Role);
 
             // Override the user claims present in the principal in case they
             // changed since the authorization code/refresh token was issued.
@@ -92,10 +76,10 @@ public class AuthorizationController : Controller
             // Returning a SignInResult will ask OpenIddict to issue the appropriate access/identity tokens.
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
-        
+
         throw new InvalidOperationException("The specified grant type is not supported.");
     }
-    
+
     private static IEnumerable<string> GetDestinations(Claim claim)
     {
         // Note: by default, claims are NOT automatically included in the access and identity tokens.
@@ -136,15 +120,15 @@ public class AuthorizationController : Controller
                 yield break;
         }
     }
-    
+
     [HttpGet("~/oauth/authorize")]
     [HttpPost("~/oauth/authorize")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
         var request = HttpContext.GetOpenIddictServerRequest() ??
-            throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
-        
+                      throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+
 
         // Create a new ClaimsPrincipal containing the claims that
         // will be used to create an id_token, a token or a code.
@@ -157,11 +141,10 @@ public class AuthorizationController : Controller
 
         // Create a new authentication ticket holding the user identity.
         var ticket = new AuthenticationTicket(principal,
-            new AuthenticationProperties(), 
+            new AuthenticationProperties(),
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
         // Returning a SignInResult will ask OpenIddict to issue the appropriate access/identity tokens.
         return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
-    
     }
 }

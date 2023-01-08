@@ -12,19 +12,18 @@ public class ApplicationController : ControllerBase
     {
         _serviceProvider = serviceProvider;
     }
-    
+
     [HttpPost]
     [Route("apps")]
     public async Task<ActionResult<object>> RegisterClient(string clientName, Uri redirectUri)
     {
         object obj = null;
-        
+
         await using var scope = _serviceProvider.CreateAsyncScope();
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
         if (await manager.FindByClientIdAsync(clientName) is null)
-        {
             obj = await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = clientName,
@@ -33,9 +32,10 @@ public class ApplicationController : ControllerBase
                 Type = OpenIddictConstants.ClientTypes.Public,
                 PostLogoutRedirectUris =
                 {
-                    new Uri("https://localhost:44310/authentication/logout-callback") //                     new Uri("http://localhost/swagger/index.html")
+                    new Uri(
+                        "https://localhost:44310/authentication/logout-callback") //                     new Uri("http://localhost/swagger/index.html")
                 },
-                RedirectUris = 
+                RedirectUris =
                 {
                     redirectUri
                 },
@@ -56,7 +56,6 @@ public class ApplicationController : ControllerBase
                     OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange
                 }
             });
-        }
 
         return Ok(obj);
     }
