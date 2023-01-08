@@ -11,6 +11,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace ActivityPubServer.Controllers.OAuth;
 
+[Route("oauth")]
 public class AuthorizationController : Controller
 {
     private readonly IOpenIddictApplicationManager _applicationManager;
@@ -30,7 +31,7 @@ public class AuthorizationController : Controller
     }
 
 
-    [HttpPost("~/oauth/token")]
+    [HttpPost("token")]
     [IgnoreAntiforgeryToken]
     [Produces("application/json")]
     public async Task<IActionResult> Exchange()
@@ -121,8 +122,8 @@ public class AuthorizationController : Controller
         }
     }
 
-    [HttpGet("~/oauth/authorize")]
-    [HttpPost("~/oauth/authorize")]
+    [HttpGet("authorize")]
+    [HttpPost("authorize")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
@@ -134,7 +135,7 @@ public class AuthorizationController : Controller
         // will be used to create an id_token, a token or a code.
         var claims = new List<Claim>
         {
-            new(Claims.Subject, "user-0001")
+            new(Claims.Subject, "64148cd8-f948-488e-b90a-797f3a6d3587")
         };
         var identity = new ClaimsIdentity(claims, "OpenIddict");
         var principal = new ClaimsPrincipal(identity);
