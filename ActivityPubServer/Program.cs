@@ -2,6 +2,7 @@ using System.Text;
 using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
 using ActivityPubServer.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -14,7 +15,6 @@ using OpenIddict.Abstractions;
 using OpenIddict.MongoDb;
 using OpenIddict.MongoDb.Models;
 using Serilog;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var connectionString =
     $"mongodb+srv://{Environment.GetEnvironmentVariable("MONGO_USERNAME")}:{Environment.GetEnvironmentVariable("MONGO_PASSWORD")}@{Environment.GetEnvironmentVariable("MONGO_HOSTNAME")}/?retryWrites=true&w=majority";
@@ -33,10 +33,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-    {
-        options.LoginPath = "/account/login";
-    });
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => { options.LoginPath = "/account/login"; });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(
@@ -260,7 +257,7 @@ app.UseEndpoints(options =>
     options.MapRazorPages();
     options.MapControllers();
     options.MapFallbackToFile("index.html");
-});// app.UseHttpLogging();
+}); // app.UseHttpLogging();
 
 Log.Information("Starting api");
 

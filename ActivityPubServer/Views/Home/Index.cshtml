@@ -1,5 +1,4 @@
 @using Microsoft.AspNetCore.Authentication
-
 @if (User.Identity.IsAuthenticated)
 {
     var authenticationResult = await Context.AuthenticateAsync();
@@ -16,7 +15,9 @@
             <dd>@expires</dd>
         </dl>
         <hr/>
-        <p><a class="btn btn-dark" asp-controller="Account" asp-action="Logout">Sign out</a></p>
+        <p>
+            <a class="btn btn-dark" asp-controller="Account" asp-action="Logout">Sign out</a>
+        </p>
     </div>
 }
 
@@ -24,6 +25,8 @@
 {
     <div>
         <p>You are not signed in</p>
-        <p><a class="btn btn-sm btn-dark" asp-controller="Account" asp-action="Login">Sign in</a></p>
+        <p>
+            <a class="btn btn-sm btn-dark" asp-controller="Account" asp-action="Login">Sign in</a>
+        </p>
     </div>
 }

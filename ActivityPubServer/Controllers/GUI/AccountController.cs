@@ -20,7 +20,7 @@ public class AccountController : Controller
         _authenticationHandler = authenticationHandler;
         _userHandler = userHandler;
     }
-    
+
     [HttpGet]
     [AllowAnonymous]
     [Route("~/account/login")]
@@ -42,29 +42,21 @@ public class AccountController : Controller
         {
             var user = await _userHandler.GetUser(model.Username);
 
-            if (user.IsNull())
-            {
-                return BadRequest("UserName or Password are not correct!");
-            }
-            
+            if (user.IsNull()) return BadRequest("UserName or Password are not correct!");
+
             if (!_authenticationHandler.VerifyPasswordHash(model.Password, user.PasswordHash, user.PasswordSalt))
-            {
                 return BadRequest("UserName or Password are not correct!");
-            }
-            
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, model.Username)
+                new(ClaimTypes.Name, model.Username)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
 
-            if (Url.IsLocalUrl(model.ReturnUrl))
-            {
-                return Redirect(model.ReturnUrl);
-            }
+            if (Url.IsLocalUrl(model.ReturnUrl)) return Redirect(model.ReturnUrl);
 
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
