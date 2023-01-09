@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: ap
-          image: lnadev/activity-pub-server:83
+          image: lnadev/activity-pub-server:84
           imagePullPolicy: Always
           resources:
             limits:
@@ -34,11 +34,16 @@ spec:
                 secretKeyRef:
                   name: activity-pub-server-secrets
                   key: mongodb-password
-            - name: API_SECURITY_KEY
+            - name: API_ENCRYPTION_CERT
               valueFrom:
                 secretKeyRef:
-                  name: activity-pub-server-secrets
-                  key: activity-pub-server-token
+                  name: activity-pub-server-certs
+                  key: activity-pub-server-encryption
+            - name: API_SIGNING_CERT
+              valueFrom:
+                secretKeyRef:
+                   name: activity-pub-server-certs
+                   key: actvity-pub-server-signing
 
 ---
 apiVersion: v1
