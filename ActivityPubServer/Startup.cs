@@ -115,7 +115,7 @@ public class Startup
             });
     }
 
-    public void AddApp(WebApplication app)
+    public void AddApp(WebApplication app, bool httpLogging = false)
     {
         app.UseSwagger();
         app.UseSwaggerUI(c =>
@@ -144,10 +144,13 @@ public class Startup
             options.MapRazorPages();
             options.MapControllers();
             options.MapFallbackToFile("index.html");
-        }); // app.UseHttpLogging();
+        });
 
-        Log.Information("Starting api");
-
+        if (httpLogging)
+        {
+            app.UseHttpLogging();
+        }
+        
         app.Run();
     }
 
