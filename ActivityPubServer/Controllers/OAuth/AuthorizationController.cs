@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using ActivityPubServer.Interfaces;
 using CommonExtensions;
@@ -139,13 +140,12 @@ public class AuthorizationController : Controller
         //  - If the user principal can't be extracted or the cookie is too old.
         //  - If prompt=login was specified by the client application.
         //  - If a max_age parameter was provided and the authentication cookie is not considered "fresh" enough.
-        // var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         // TODO This block is next. It needs to somehow manage an webpage where the user authenticates
-        var result = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         if (result == null || !result.Succeeded || request.HasPrompt(Prompts.Login) ||
-           (request.MaxAge != null && result.Properties?.IssuedUtc != null &&
-            DateTimeOffset.UtcNow - result.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)))
+            (request.MaxAge != null && result.Properties?.IssuedUtc != null &&
+             DateTimeOffset.UtcNow - result.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)))
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -171,7 +171,7 @@ public class AuthorizationController : Controller
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
             return Challenge(
-                authenticationSchemes: IdentityConstants.ApplicationScheme,
+                authenticationSchemes: CookieAuthenticationDefaults.AuthenticationScheme,
                 properties: new AuthenticationProperties
                 {
                     RedirectUri = Request.PathBase + Request.Path + QueryString.Create(parameters)
