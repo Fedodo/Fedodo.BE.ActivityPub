@@ -5,6 +5,7 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using OpenIddict.Validation.AspNetCore;
 
 namespace ActivityPubServer.Controllers.ActivityPub;
 
@@ -15,24 +16,23 @@ public class InboxController : ControllerBase
     private readonly IHttpSignatureHandler _httpSignatureHandler;
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IUserVerificationHandler _userVerificationHandler;
+    private readonly IUserHandler _userHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
-        IMongoDbRepository repository, IUserVerificationHandler userVerificationHandler,
-        IActivityHandler activityHandler)
+        IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
-        _userVerificationHandler = userVerificationHandler;
         _activityHandler = activityHandler;
+        _userHandler = userHandler;
     }
 
     [HttpGet("{userId:guid}")]
-    [Authorize(Roles = "User")]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
     {
-        if (!_userVerificationHandler.VerifyUser(userId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
         var posts = await _repository.GetAll<Post>("Inbox", userId.ToString().ToLower());
 
@@ -115,7 +115,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(followObject, "Followers", userId.ToString());
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
-                var user = await _activityHandler.GetUser(userId);
+                var user = await _userHandler.GetUser(userId);
                 var actor = await _activityHandler.GetActor(userId);
 
                 var acceptActivity = new Activity

@@ -6,6 +6,7 @@ using CommonExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using OpenIddict.Validation.AspNetCore;
 
 namespace ActivityPubServer.Controllers.ActivityPub;
 
@@ -15,15 +16,15 @@ public class OutboxController : ControllerBase
     private readonly IActivityHandler _activityHandler;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IUserVerificationHandler _userVerification;
+    private readonly IUserHandler _userHandler;
 
     public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
-        IUserVerificationHandler userVerification, IActivityHandler activityHandler)
+        IActivityHandler activityHandler, IUserHandler userHandler)
     {
         _logger = logger;
         _repository = repository;
-        _userVerification = userVerification;
         _activityHandler = activityHandler;
+        _userHandler = userHandler;
     }
 
     [HttpGet("{userId:guid}")]
@@ -43,13 +44,13 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{userId}")]
-    [Authorize(Roles = "User")]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
-        if (!_userVerification.VerifyUser(userId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
-        var user = await _activityHandler.GetUser(userId);
+        var user = await _userHandler.GetUser(userId);
         var actor = await _activityHandler.GetActor(userId);
         var activity = await CreateActivity(userId, activityDto);
 
