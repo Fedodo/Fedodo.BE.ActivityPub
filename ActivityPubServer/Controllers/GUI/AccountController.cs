@@ -14,11 +14,13 @@ public class AccountController : Controller
 {
     private readonly IAuthenticationHandler _authenticationHandler;
     private readonly IUserHandler _userHandler;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler)
+    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler, ILogger<AccountController> logger)
     {
         _authenticationHandler = authenticationHandler;
         _userHandler = userHandler;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -58,16 +60,17 @@ public class AccountController : Controller
 
             if (Url.IsLocalUrl(model.ReturnUrl)) return Redirect(model.ReturnUrl);
 
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            _logger.LogWarning("Redirecting to ~");
+            return Redirect("~");
         }
 
         return View(model);
     }
 
-    public async Task<IActionResult> Logout()
-    {
-        await HttpContext.SignOutAsync();
-
-        return RedirectToAction(nameof(HomeController.Index), "Home");
-    }
+    // public async Task<IActionResult> Logout()
+    // {
+    //     await HttpContext.SignOutAsync();
+    //
+    //     return RedirectToAction(nameof(HomeController.Index), "Home");
+    // }
 }
