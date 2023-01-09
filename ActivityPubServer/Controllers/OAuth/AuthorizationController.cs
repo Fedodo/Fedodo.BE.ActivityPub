@@ -141,7 +141,6 @@ public class AuthorizationController : Controller
         //  - If prompt=login was specified by the client application.
         //  - If a max_age parameter was provided and the authentication cookie is not considered "fresh" enough.
 
-        // TODO This block is next. It needs to somehow manage an webpage where the user authenticates
         var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         if (result == null || !result.Succeeded || request.HasPrompt(Prompts.Login) ||
             (request.MaxAge != null && result.Properties?.IssuedUtc != null &&
@@ -180,9 +179,18 @@ public class AuthorizationController : Controller
 
         // Create a new ClaimsPrincipal containing the claims that
         // will be used to create an id_token, a token or a code.
+        var userName = result.Principal.Claims
+            .First(i => i.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value.ToString();
+        var user = await _userHandler.GetUser(userName);
+
+        if (user.IsNull())
+        {
+            return BadRequest("User not found");
+        }
+        
         var claims = new List<Claim>
         {
-            new(Claims.Subject, "64148cd8-f948-488e-b90a-797f3a6d3587")
+            new(Claims.Subject, user.Id.ToString())
         };
         var identity = new ClaimsIdentity(claims, "OpenIddict");
         var principal = new ClaimsPrincipal(identity);

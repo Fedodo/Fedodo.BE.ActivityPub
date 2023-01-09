@@ -23,6 +23,14 @@ public class UserHandler : IUserHandler
         var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
         return user;
     }
+    
+    public async Task<User> GetUser(string userName)
+    {
+        var filterUserDefinitionBuilder = Builders<User>.Filter;
+        var filterUser = filterUserDefinitionBuilder.Eq(i => i.UserName, userName);
+        var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
+        return user;
+    }
 
     public bool VerifyUser(Guid userId, HttpContext context)
     {
