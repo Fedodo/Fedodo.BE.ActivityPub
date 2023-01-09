@@ -39,8 +39,8 @@ public class Startup
                                     ["profile"] = "api scope description",
                                     ["roles"] = "api scope description"
                                 },
-                                TokenUrl = new Uri("oauth/token"),
-                                AuthorizationUrl = new Uri("oauth/authorize")
+                                TokenUrl = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token"),
+                                AuthorizationUrl = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize")
                             }
                         },
                         In = ParameterLocation.Header,
