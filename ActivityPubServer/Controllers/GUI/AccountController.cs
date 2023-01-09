@@ -13,10 +13,11 @@ namespace ActivityPubServer.Controllers.GUI;
 public class AccountController : Controller
 {
     private readonly IAuthenticationHandler _authenticationHandler;
-    private readonly IUserHandler _userHandler;
     private readonly ILogger<AccountController> _logger;
+    private readonly IUserHandler _userHandler;
 
-    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler, ILogger<AccountController> logger)
+    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler,
+        ILogger<AccountController> logger)
     {
         _authenticationHandler = authenticationHandler;
         _userHandler = userHandler;
