@@ -1,3 +1,5 @@
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography;
 using System.Text;
 using ActivityPubServer.Handlers;
 using ActivityPubServer.Interfaces;
@@ -91,13 +93,17 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        options.AddEncryptionKey(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("API_SECURITY_KEY"))));
+        var encryptionCert = RSA.Create();
+        var encryptionCertString = Environment.GetEnvironmentVariable("API_ENCRYPTION_CERT");
+            encryptionCert.ImportFromPem(encryptionCertString.ToCharArray());
+        var signingCert = RSA.Create();
+            signingCert.ImportFromPem(Environment.GetEnvironmentVariable("API_SIGNING_CERT"));
+
+        options.AddEncryptionKey(new RsaSecurityKey(encryptionCert));
+        options.AddSigningKey(new RsaSecurityKey(signingCert));
 
         options.UseAspNetCore().DisableTransportSecurityRequirement();
-
-        options.AddDevelopmentSigningCertificate(); // TODO
-
+        
         options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
             .EnableLogoutEndpointPassthrough()
