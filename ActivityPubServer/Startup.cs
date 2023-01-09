@@ -39,8 +39,8 @@ public class Startup
                                     ["profile"] = "api scope description",
                                     ["roles"] = "api scope description"
                                 },
-                                TokenUrl = new Uri("http://localhost/oauth/token"),
-                                AuthorizationUrl = new Uri("http://localhost/oauth/authorize")
+                                TokenUrl = new Uri("oauth/token"),
+                                AuthorizationUrl = new Uri("oauth/authorize")
                             }
                         },
                         In = ParameterLocation.Header,
