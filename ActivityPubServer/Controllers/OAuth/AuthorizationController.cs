@@ -1,11 +1,9 @@
-using System.Net;
 using System.Security.Claims;
 using ActivityPubServer.Interfaces;
 using CommonExtensions;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
@@ -131,8 +129,8 @@ public class AuthorizationController : Controller
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
- var request = HttpContext.GetOpenIddictServerRequest() ??
-            throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+        var request = HttpContext.GetOpenIddictServerRequest() ??
+                      throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         // Try to retrieve the user principal stored in the authentication cookie and redirect
         // the user agent to the login page (or to an external provider) in the following cases:
@@ -149,7 +147,6 @@ public class AuthorizationController : Controller
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
             if (request.HasPrompt(Prompts.None))
-            {
                 return Forbid(
                     authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
                     properties: new AuthenticationProperties(new Dictionary<string, string>
@@ -157,15 +154,14 @@ public class AuthorizationController : Controller
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.LoginRequired,
                         [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is not logged in."
                     }));
-            }
 
             // To avoid endless login -> authorization redirects, the prompt=login flag
             // is removed from the authorization request payload before redirecting the user.
             var prompt = string.Join(" ", request.GetPrompts().Remove(Prompts.Login));
 
-            var parameters = Request.HasFormContentType ?
-                Request.Form.Where(parameter => parameter.Key != Parameters.Prompt).ToList() :
-                Request.Query.Where(parameter => parameter.Key != Parameters.Prompt).ToList();
+            var parameters = Request.HasFormContentType
+                ? Request.Form.Where(parameter => parameter.Key != Parameters.Prompt).ToList()
+                : Request.Query.Where(parameter => parameter.Key != Parameters.Prompt).ToList();
 
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
@@ -183,11 +179,8 @@ public class AuthorizationController : Controller
             .First(i => i.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value.ToString();
         var user = await _userHandler.GetUser(userName);
 
-        if (user.IsNull())
-        {
-            return BadRequest("User not found");
-        }
-        
+        if (user.IsNull()) return BadRequest("User not found");
+
         var claims = new List<Claim>
         {
             new(Claims.Subject, user.Id.ToString())

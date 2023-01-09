@@ -14,13 +14,15 @@ public class AccountController : Controller
 {
     private readonly IAuthenticationHandler _authenticationHandler;
     private readonly IUserHandler _userHandler;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler)
+    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler, ILogger<AccountController> logger)
     {
         _authenticationHandler = authenticationHandler;
         _userHandler = userHandler;
+        _logger = logger;
     }
-    
+
     [HttpGet]
     [AllowAnonymous]
     [Route("~/account/login")]
@@ -42,40 +44,33 @@ public class AccountController : Controller
         {
             var user = await _userHandler.GetUser(model.Username);
 
-            if (user.IsNull())
-            {
-                return BadRequest("UserName or Password are not correct!");
-            }
-            
+            if (user.IsNull()) return BadRequest("UserName or Password are not correct!");
+
             if (!_authenticationHandler.VerifyPasswordHash(model.Password, user.PasswordHash, user.PasswordSalt))
-            {
                 return BadRequest("UserName or Password are not correct!");
-            }
-            
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, model.Username)
+                new(ClaimTypes.Name, model.Username)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
 
-            if (Url.IsLocalUrl(model.ReturnUrl))
-            {
-                return Redirect(model.ReturnUrl);
-            }
+            if (Url.IsLocalUrl(model.ReturnUrl)) return Redirect(model.ReturnUrl);
 
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            _logger.LogWarning("Redirecting to ~");
+            return Redirect("~");
         }
 
         return View(model);
     }
 
-    public async Task<IActionResult> Logout()
-    {
-        await HttpContext.SignOutAsync();
-
-        return RedirectToAction(nameof(HomeController.Index), "Home");
-    }
+    // public async Task<IActionResult> Logout()
+    // {
+    //     await HttpContext.SignOutAsync();
+    //
+    //     return RedirectToAction(nameof(HomeController.Index), "Home");
+    // }
 }

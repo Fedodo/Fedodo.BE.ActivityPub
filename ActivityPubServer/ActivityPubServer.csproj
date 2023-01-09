@@ -34,7 +34,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="wwwroot\css\site.css" />
+        <None Include="wwwroot\css\site.css" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
     </ItemGroup>
 
 </Project>
