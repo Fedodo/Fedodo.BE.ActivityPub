@@ -22,14 +22,13 @@ public class ApplicationController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(RegisterClient)} in {nameof(ApplicationController)}");
 
-        object? obj = null;
-
         await using var scope = _serviceProvider.CreateAsyncScope();
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
         if (await manager.FindByClientIdAsync(clientDto.ClientName) is null)
-            obj = await manager.CreateAsync(new OpenIddictApplicationDescriptor
+        {
+            var obj = await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = clientDto.ClientName,
                 ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
@@ -62,6 +61,9 @@ public class ApplicationController : ControllerBase
                 }
             });
 
-        return Ok(obj);
+            return Ok(obj);
+        }
+
+        return BadRequest("Client already exists");
     }
 }
