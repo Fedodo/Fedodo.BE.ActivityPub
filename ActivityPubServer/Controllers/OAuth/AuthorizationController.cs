@@ -16,19 +16,10 @@ namespace ActivityPubServer.Controllers.OAuth;
 [Route("oauth")]
 public class AuthorizationController : Controller
 {
-    private readonly IOpenIddictApplicationManager _applicationManager;
-    private readonly IOpenIddictAuthorizationManager _authorizationManager;
-    private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IUserHandler _userHandler;
 
-    public AuthorizationController(
-        IOpenIddictApplicationManager applicationManager,
-        IOpenIddictAuthorizationManager authorizationManager,
-        IOpenIddictScopeManager scopeManager, IUserHandler userHandler)
+    public AuthorizationController(IUserHandler userHandler)
     {
-        _applicationManager = applicationManager;
-        _authorizationManager = authorizationManager;
-        _scopeManager = scopeManager;
         _userHandler = userHandler;
     }
 
@@ -131,7 +122,7 @@ public class AuthorizationController : Controller
     {
         var request = HttpContext.GetOpenIddictServerRequest() ??
                       throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
-
+        
         // Try to retrieve the user principal stored in the authentication cookie and redirect
         // the user agent to the login page (or to an external provider) in the following cases:
         //
