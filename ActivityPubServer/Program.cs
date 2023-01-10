@@ -13,13 +13,11 @@ var mongoClient = new MongoClient(connectionString);
 var builder = WebApplication.CreateBuilder(args);
 
 if (useHttpLogging)
-{
     builder.Services.AddHttpLogging(options =>
     {
         options.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
                                 HttpLoggingFields.RequestBody;
     });
-}
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -44,4 +42,4 @@ startup.AddCustomServices(builder, mongoClient);
 
 builder.WebHost.UseUrls("http://*:");
 
-startup.AddApp(builder.Build(), httpLogging: useHttpLogging);
+startup.AddApp(builder.Build(), useHttpLogging);

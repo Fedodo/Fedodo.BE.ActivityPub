@@ -13,7 +13,6 @@ using MongoDB.Driver;
 using OpenIddict.Abstractions;
 using OpenIddict.MongoDb;
 using OpenIddict.MongoDb.Models;
-using Serilog;
 
 namespace ActivityPubServer;
 
@@ -39,8 +38,11 @@ public class Startup
                                     ["profile"] = "api scope description",
                                     ["roles"] = "api scope description"
                                 },
-                                TokenUrl = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token"),
-                                AuthorizationUrl = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize")
+                                TokenUrl = new Uri(
+                                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token"),
+                                AuthorizationUrl =
+                                    new Uri(
+                                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize")
                             }
                         },
                         In = ParameterLocation.Header,
@@ -146,11 +148,8 @@ public class Startup
             options.MapFallbackToFile("index.html");
         });
 
-        if (httpLogging)
-        {
-            app.UseHttpLogging();
-        }
-        
+        if (httpLogging) app.UseHttpLogging();
+
         app.Run();
     }
 

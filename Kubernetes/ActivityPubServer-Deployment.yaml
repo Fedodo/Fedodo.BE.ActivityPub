@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: ap
-          image: lnadev/activity-pub-server:90
+          image: lnadev/activity-pub-server:91
           imagePullPolicy: Always
           resources:
             limits:
@@ -42,8 +42,8 @@ spec:
             - name: API_SIGNING_CERT
               valueFrom:
                 secretKeyRef:
-                   name: activity-pub-server-certs
-                   key: actvity-pub-server-signing
+                  name: activity-pub-server-certs
+                  key: actvity-pub-server-signing
 
 ---
 apiVersion: v1
