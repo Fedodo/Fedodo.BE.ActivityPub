@@ -119,6 +119,8 @@ public class Startup
 
     public void AddApp(WebApplication app, bool httpLogging = false)
     {
+        if (httpLogging) app.UseHttpLogging();
+
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
@@ -147,9 +149,7 @@ public class Startup
             options.MapControllers();
             options.MapFallbackToFile("index.html");
         });
-
-        if (httpLogging) app.UseHttpLogging();
-
+        
         app.Run();
     }
 
