@@ -39,10 +39,10 @@ public class Startup
                                     ["roles"] = "api scope description"
                                 },
                                 TokenUrl = new Uri(
-                                    $"http://localhost/oauth/token"),
+                                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token"),
                                 AuthorizationUrl =
                                     new Uri(
-                                        $"http://localhost/oauth/authorize")
+                                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize")
                             }
                         },
                         In = ParameterLocation.Header,
@@ -125,13 +125,9 @@ public class Startup
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
-            // // c.SwaggerEndpoint("/swagger/v1/swagger.json", "Versioned API v1.0");
-            // c.DocumentTitle = "Title Documentation";
-            // c.DocExpansion(DocExpansion.None);
-            // c.RoutePrefix = string.Empty;
             c.OAuthClientId("swagger2");
-            c.OAuthClientSecret("");
-            c.OAuthAppName("Combitime API");
+            c.OAuthClientSecret("test");
+            c.OAuthAppName("Swagger API");
             c.OAuthScopeSeparator(",");
             c.OAuthUsePkce();
         });
@@ -139,7 +135,6 @@ public class Startup
             .AllowAnyMethod()
             .WithOrigins("*"));
 
-        // app.UseBlazorFrameworkFiles();
         app.UseStaticFiles();
 
         app.UseRouting();
