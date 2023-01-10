@@ -1,3 +1,4 @@
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 
@@ -17,6 +18,11 @@ public class ApplicationController : ControllerBase
     [Route("apps")]
     public async Task<ActionResult<object>> RegisterClient(string clientName, Uri redirectUri)
     {
+        if (clientName.IsNullOrEmpty())
+        {
+            return BadRequest($"Parameter {nameof(clientName)} is required!");
+        }
+        
         object obj = null;
 
         await using var scope = _serviceProvider.CreateAsyncScope();
