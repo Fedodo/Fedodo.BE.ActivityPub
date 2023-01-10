@@ -8,18 +8,25 @@ namespace ActivityPubServer.Controllers.OAuth;
 public class ApplicationController : ControllerBase
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<ApplicationController> _logger;
 
-    public ApplicationController(IServiceProvider serviceProvider)
+    public ApplicationController(IServiceProvider serviceProvider, ILogger<ApplicationController> logger)
     {
         _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     [HttpPost]
     [Route("apps")]
     public async Task<ActionResult<object>> RegisterClient(Uri redirectUri, string? client_name = null, string? clientName = null)
     {
+        _logger.LogTrace($"Entered {nameof(RegisterClient)} in {nameof(ApplicationController)} with {nameof(redirectUri)}=\"{redirectUri}\", " +
+                         $"{nameof(client_name)}=\"{client_name}\" and {nameof(clientName)}=\"{clientName}\"");
+        
         if (client_name.IsNullOrEmpty() && clientName.IsNullOrEmpty())
         {
+            _logger.LogWarning($"Parameter {nameof(clientName)} is null or empty!");
+            
             return BadRequest($"Parameter {nameof(clientName)} is null or empty!");
         }
 
