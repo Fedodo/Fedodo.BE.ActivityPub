@@ -16,25 +16,27 @@ public class ApplicationController : ControllerBase
 
     [HttpPost]
     [Route("apps")]
-    public async Task<ActionResult<object>> RegisterClient(string clientName, Uri redirectUri)
+    public async Task<ActionResult<object>> RegisterClient(Uri redirectUri, string? client_name = null, string? clientName = null)
     {
-        if (clientName.IsNullOrEmpty())
+        if (client_name.IsNullOrEmpty() && clientName.IsNullOrEmpty())
         {
-            return BadRequest($"Parameter {nameof(clientName)} is required!");
+            return BadRequest($"Parameter {nameof(clientName)} is null or empty!");
         }
-        
-        object obj = null;
+
+        var clientId = clientName.IsNotNull() ? clientName : client_name;
+
+        object? obj = null;
 
         await using var scope = _serviceProvider.CreateAsyncScope();
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        if (await manager.FindByClientIdAsync(clientName) is null)
+        if (await manager.FindByClientIdAsync(clientId) is null)
             obj = await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = clientName,
+                ClientId = clientId,
                 ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
-                DisplayName = $"{clientName} client application",
+                DisplayName = $"{clientId} client application",
                 Type = OpenIddictConstants.ClientTypes.Public,
                 PostLogoutRedirectUris =
                 {
