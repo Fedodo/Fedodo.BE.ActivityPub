@@ -149,7 +149,7 @@ public class Startup
             options.MapControllers();
             options.MapFallbackToFile("index.html");
         });
-        
+
         app.Run();
     }
 
