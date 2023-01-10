@@ -1,4 +1,5 @@
 using ActivityPubServer.Model.DTOs;
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 
@@ -26,6 +27,11 @@ public class ApplicationController : ControllerBase
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
+        if (clientDto.ClientName.IsNull())
+        {
+            return BadRequest($"{nameof(clientDto.ClientName)} can not be null");
+        }
+        
         if (await manager.FindByClientIdAsync(clientDto.ClientName) is null)
         {
             var obj = await manager.CreateAsync(new OpenIddictApplicationDescriptor
