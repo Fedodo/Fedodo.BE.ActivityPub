@@ -39,10 +39,10 @@ public class Startup
                                     ["roles"] = "api scope description"
                                 },
                                 TokenUrl = new Uri(
-                                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token"),
+                                    $"http://localhost/oauth/token"),
                                 AuthorizationUrl =
                                     new Uri(
-                                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize")
+                                        $"http://localhost/oauth/authorize")
                             }
                         },
                         In = ParameterLocation.Header,
@@ -50,6 +50,7 @@ public class Startup
                         Type = SecuritySchemeType.OAuth2
                     }
                 );
+
                 c.AddSecurityRequirement(
                     new OpenApiSecurityRequirement
                     {
@@ -129,6 +130,7 @@ public class Startup
             // c.DocExpansion(DocExpansion.None);
             // c.RoutePrefix = string.Empty;
             c.OAuthClientId("swagger2");
+            c.OAuthClientSecret("");
             c.OAuthAppName("Combitime API");
             c.OAuthScopeSeparator(",");
             c.OAuthUsePkce();

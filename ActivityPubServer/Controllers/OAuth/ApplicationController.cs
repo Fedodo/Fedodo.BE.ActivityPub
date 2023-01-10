@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using ActivityPubServer.Model.DTOs;
 using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +40,8 @@ public class ApplicationController : ControllerBase
                 ClientId = clientDto.ClientName,
                 ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
                 DisplayName = $"{clientDto.ClientName} client application",
-                Type = OpenIddictConstants.ClientTypes.Public,
+                Type = OpenIddictConstants.ClientTypes.Confidential,
+                ClientSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
                 PostLogoutRedirectUris =
                 {
                     new Uri(
