@@ -23,7 +23,6 @@ public class AuthorizationController : Controller
         _userHandler = userHandler;
     }
 
-
     [HttpPost("token")]
     [IgnoreAntiforgeryToken]
     [Produces("application/json")]
@@ -122,7 +121,7 @@ public class AuthorizationController : Controller
     {
         var request = HttpContext.GetOpenIddictServerRequest() ??
                       throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
-        
+
         // Try to retrieve the user principal stored in the authentication cookie and redirect
         // the user agent to the login page (or to an external provider) in the following cases:
         //
