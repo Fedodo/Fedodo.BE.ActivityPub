@@ -29,7 +29,6 @@ public class Startup
         var authUrl = new Uri(
             $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize");
 #endif
-
         
         webApplicationBuilder.Services.AddSwaggerGen(
             c =>
@@ -50,7 +49,7 @@ public class Startup
                                     ["roles"] = "api scope description"
                                 },
                                 TokenUrl = tokenUrl,
-                                AuthorizationUrl = authUrl 
+                                AuthorizationUrl = authUrl
                             }
                         },
                         In = ParameterLocation.Header,
@@ -137,7 +136,7 @@ public class Startup
             c.OAuthClientSecret("test");
             c.OAuthAppName("Swagger API");
             c.OAuthScopeSeparator(",");
-            c.OAuthUsePkce();
+            // c.OAuthUsePkce();
         });
         app.UseCors(x => x.AllowAnyHeader()
             .AllowAnyMethod()
