@@ -106,7 +106,7 @@ public class Startup
 
                 // Mark the "email", "profile" and "roles" scopes as supported scopes.
                 options.RegisterScopes(OpenIddictConstants.Scopes.Email, OpenIddictConstants.Scopes.Profile,
-                    OpenIddictConstants.Scopes.Roles);
+                    OpenIddictConstants.Scopes.Roles, "read", "write", "follow");
 
                 options.SetTokenEndpointUris("oauth/token");
                 options.SetAuthorizationEndpointUris("oauth/authorize");
