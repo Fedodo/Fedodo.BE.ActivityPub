@@ -16,7 +16,7 @@ public class UserHandler : IUserHandler
         _repository = repository;
     }
 
-    public async Task<User> GetUser(Guid userId)
+    public async Task<User> GetUserById(Guid userId)
     {
         var filterUserDefinitionBuilder = Builders<User>.Filter;
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
@@ -24,7 +24,7 @@ public class UserHandler : IUserHandler
         return user;
     }
 
-    public async Task<User> GetUser(string userName)
+    public async Task<User> GetUserByName(string userName)
     {
         var filterUserDefinitionBuilder = Builders<User>.Filter;
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.UserName, userName);

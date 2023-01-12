@@ -41,7 +41,7 @@ public class AuthorizationController : Controller
             if (userId.IsNull()) return BadRequest("Sid is null");
 
             // Retrieve the user profile corresponding to the authorization code/refresh token.
-            var user = await _userHandler.GetUser(new Guid(userId));
+            var user = await _userHandler.GetUserById(new Guid(userId));
 
             if (user.IsNull())
                 return Forbid(
@@ -167,7 +167,7 @@ public class AuthorizationController : Controller
         // will be used to create an id_token, a token or a code.
         var userName = result.Principal.Claims
             .First(i => i.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value.ToString();
-        var user = await _userHandler.GetUser(userName);
+        var user = await _userHandler.GetUserByName(userName);
 
         if (user.IsNull()) return BadRequest("User not found");
 

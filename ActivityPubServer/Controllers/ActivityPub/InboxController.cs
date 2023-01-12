@@ -115,7 +115,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(followObject, "Followers", userId.ToString());
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
-                var user = await _userHandler.GetUser(userId);
+                var user = await _userHandler.GetUserById(userId);
                 var actor = await _activityHandler.GetActor(userId);
 
                 var acceptActivity = new Activity

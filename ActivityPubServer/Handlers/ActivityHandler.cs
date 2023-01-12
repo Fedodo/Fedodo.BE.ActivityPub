@@ -16,15 +16,13 @@ public class ActivityHandler : IActivityHandler
     private readonly IKnownServersHandler _knownServersHandler;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IUserHandler _userHandler;
 
     public ActivityHandler(ILogger<ActivityHandler> logger, IKnownServersHandler knownServersHandler,
-        IMongoDbRepository repository, IUserHandler userHandler)
+        IMongoDbRepository repository)
     {
         _logger = logger;
         _knownServersHandler = knownServersHandler;
         _repository = repository;
-        _userHandler = userHandler;
     }
 
     public async Task<Actor> GetActor(Guid userId)
