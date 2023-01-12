@@ -66,8 +66,8 @@ public class ApplicationController : ControllerBase
                         OpenIddictConstants.Permissions.Scopes.Email,
                         OpenIddictConstants.Permissions.Scopes.Profile,
                         OpenIddictConstants.Permissions.Scopes.Roles,
-                        "scp:read", 
-                        "scp:write", 
+                        "scp:read",
+                        "scp:write",
                         "scp:follow"
                     },
                     Requirements =

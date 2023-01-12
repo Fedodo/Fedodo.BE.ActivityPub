@@ -29,7 +29,7 @@ public class Startup
         var authUrl = new Uri(
             $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize");
 #endif
-        
+
         webApplicationBuilder.Services.AddSwaggerGen(
             c =>
             {

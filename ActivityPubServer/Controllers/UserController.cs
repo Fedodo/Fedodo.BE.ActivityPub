@@ -12,17 +12,18 @@ namespace ActivityPubServer.Controllers;
 [Route("User")]
 public class UserController : ControllerBase
 {
+    private readonly IAuthenticationHandler _authenticationHandler;
     private readonly ILogger<UserController> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IAuthenticationHandler _authenticationHandler;
 
-    public UserController(ILogger<UserController> logger, IMongoDbRepository repository, IAuthenticationHandler authenticationHandler)
+    public UserController(ILogger<UserController> logger, IMongoDbRepository repository,
+        IAuthenticationHandler authenticationHandler)
     {
         _logger = logger;
         _repository = repository;
         _authenticationHandler = authenticationHandler;
     }
-    
+
     [HttpPost]
     public async Task<ActionResult<Actor>> CreateUser(CreateActorDto actorDto)
     {
@@ -108,7 +109,7 @@ public class UserController : ControllerBase
 
         return Ok();
     }
-    
+
     private string ExtractPrivateKey(RSA rsa)
     {
         const string beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
