@@ -2,7 +2,7 @@ using Fedido.Server.Extensions;
 using Shouldly;
 using Xunit;
 
-namespace ActivityPubServer.Test.Extensions;
+namespace Fedido.Server.Test.Extensions;
 
 public class ActivityPubExtensionsShould
 {

@@ -2,7 +2,7 @@ using Fedido.Server.Model.ActivityPub;
 using Shouldly;
 using Xunit;
 
-namespace ActivityPubServer.Test.Model.ActivityPub;
+namespace Fedido.Server.Test.Model.ActivityPub;
 
 public class ActivityShould
 {
