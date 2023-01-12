@@ -117,7 +117,7 @@ public class AuthorizationController : Controller
     [HttpGet("authorize")]
     [HttpPost("authorize")]
     [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Authorize()
+    public async Task<ActionResult> Authorize()
     {
         var request = HttpContext.GetOpenIddictServerRequest() ??
                       throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
@@ -155,9 +155,6 @@ public class AuthorizationController : Controller
 
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
-            // The AndStatus-Client needs the status code 200. In the future this line might be removed to use status code 302 => Permanent Redirect!
-            HttpContext.Response.StatusCode = 200;
-            
             return Challenge(
                 authenticationSchemes: CookieAuthenticationDefaults.AuthenticationScheme,
                 properties: new AuthenticationProperties
