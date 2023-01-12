@@ -1,4 +1,4 @@
-using ActivityPubServer.Model.ActivityPub;
+using Fedido.Server.Model.ActivityPub;
 using Shouldly;
 using Xunit;
 

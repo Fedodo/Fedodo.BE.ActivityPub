@@ -1,4 +1,4 @@
-using ActivityPubServer.Extensions;
+using Fedido.Server.Extensions;
 using Shouldly;
 using Xunit;
 
