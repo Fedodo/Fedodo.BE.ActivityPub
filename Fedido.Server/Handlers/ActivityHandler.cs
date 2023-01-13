@@ -47,6 +47,8 @@ public class ActivityHandler : IActivityHandler
         {
             foreach (var item in receivers)
             {
+                // Check if item is a public string than skip
+                
                 var serverNameInboxPair = GetServerNameInboxPair(item);
                 targets.Add(serverNameInboxPair);
             }
