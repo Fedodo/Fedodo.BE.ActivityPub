@@ -38,6 +38,11 @@ public class ActivityHandler : IActivityHandler
     {
         var targets = new List<ServerNameInboxPair>();
 
+        if (activity.IsActivityPublic())
+        {
+            
+        }
+
         if (activity.IsActivityPublic() && activity.Type == "Create")
         {
             var post = activity.ExtractItemFromObject<Post>();
