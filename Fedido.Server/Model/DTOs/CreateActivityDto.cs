@@ -19,7 +19,11 @@ public class CreateActivityDto
     public object Object { get; set; }
 
     [JsonPropertyName("to")] public IEnumerable<string>? To { get; set; }
-
+    [JsonPropertyName("bto")] public IEnumerable<string>? Bto { get; set; }
+    [JsonPropertyName("cc")] public IEnumerable<string>? Cc { get; set; }
+    [JsonPropertyName("bcc")] public IEnumerable<string>? Bcc { get; set; }
+    [JsonPropertyName("audience")] public IEnumerable<string>? Audience { get; set; }
+    
     public CreatePostDto ExtractCreatePostDtoFromObject()
     {
         var jsonElement = (JsonElement)Object;

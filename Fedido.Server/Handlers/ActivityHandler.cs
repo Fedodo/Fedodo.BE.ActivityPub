@@ -13,15 +13,12 @@ namespace Fedido.Server.Handlers;
 
 public class ActivityHandler : IActivityHandler
 {
-    private readonly IKnownServersHandler _knownServersHandler;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
 
-    public ActivityHandler(ILogger<ActivityHandler> logger, IKnownServersHandler knownServersHandler,
-        IMongoDbRepository repository)
+    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository)
     {
         _logger = logger;
-        _knownServersHandler = knownServersHandler;
         _repository = repository;
     }
 
@@ -38,54 +35,46 @@ public class ActivityHandler : IActivityHandler
     {
         var targets = new List<ServerNameInboxPair>();
 
-        if (activity.IsActivityPublic())
+        var receivers = new List<string>();
+        
+        receivers.AddRange(activity.To);
+        receivers.AddRange(activity.Bcc);
+        receivers.AddRange(activity.Audience);
+        receivers.AddRange(activity.Bto);
+        receivers.AddRange(activity.Bcc);
+
+        if (activity.IsActivityPublic()) // Public Post
         {
-            
-        }
-
-        if (activity.IsActivityPublic() && activity.Type == "Create")
-        {
-            var post = activity.ExtractItemFromObject<Post>();
-
-            if (post.InReplyTo.IsNotNull()) await _knownServersHandler.Add(post?.InReplyTo?.ToString());
-
-            var servers = await _knownServersHandler.GetAll();
-
-            foreach (var item in servers)
-                targets.Add(new ServerNameInboxPair
-                {
-                    ServerName = item.ServerDomainName,
-                    Inbox = item.DefaultInbox
-                });
-        }
-        else if (activity.IsActivityPublic())
-        {
-            var servers = await _knownServersHandler.GetAll();
-
-            foreach (var item in servers)
-                targets.Add(new ServerNameInboxPair
-                {
-                    ServerName = item.ServerDomainName,
-                    Inbox = item.DefaultInbox
-                });
-        }
-        else
-        {
-            foreach (var item in activity.To)
+            foreach (var item in receivers)
             {
-                var serverNameInboxPair = new ServerNameInboxPair
-                {
-                    ServerName = item.ExtractServerName(),
-                    Inbox = new Uri(item)
-                };
-
+                var serverNameInboxPair = GetServerNameInboxPair(item);
                 targets.Add(serverNameInboxPair);
-
-                await _knownServersHandler.Add(item);
+            }
+            
+            // TODO Deliver to all known SharedInboxes
+        }
+        else // Private Post
+        {
+            foreach (var item in receivers)
+            {
+                var serverNameInboxPair = GetServerNameInboxPair(item);
+                targets.Add(serverNameInboxPair);
             }
         }
 
+        // TODO Remove duplicates from targets
+
         foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
+    }
+
+    private ServerNameInboxPair GetServerNameInboxPair(string item)
+    {
+        
+        // Try to combine all actors to shared inboxes
+
+        // TODO
+        
+        throw new NotImplementedException();
     }
 
     private async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair,

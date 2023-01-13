@@ -247,7 +247,6 @@ public class Startup
     public void AddCustomServices(WebApplicationBuilder builder, MongoClient mongoClient1)
     {
         builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
-        builder.Services.AddSingleton<IKnownServersHandler, KnownServersHandler>();
         builder.Services.AddSingleton<IHttpSignatureHandler, HttpSignatureHandler>();
         builder.Services.AddSingleton<IActivityHandler, ActivityHandler>();
         builder.Services.AddSingleton<IUserHandler, UserHandler>();
