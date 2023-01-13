@@ -1,5 +1,4 @@
 using CommonExtensions;
-using Fedido.Server.Extensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
 using Fedido.Server.Model.DTOs;
@@ -30,8 +29,11 @@ public class OutboxController : ControllerBase
     [HttpGet("{userId:guid}")]
     public async Task<ActionResult<OrderedCollection<Post>>> GetAllPublicPosts(Guid userId)
     {
+        // This filter can not use the extensions method IsPostPublic
         var filterDefinitionBuilder = Builders<Post>.Filter;
-        var filter = filterDefinitionBuilder.Where(i => i.IsPostPublic()); //TODO
+        var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
+            item == "https://www.w3.org/ns/activitystreams#Public"
+            || item == "as:Public" || item == "public"));
         var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
 
         var orderedCollection = new OrderedCollection<Post>
@@ -43,7 +45,7 @@ public class OutboxController : ControllerBase
         return Ok(orderedCollection);
     }
 
-    [HttpPost("{userId}")]
+    [HttpPost("{userId:guid}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
