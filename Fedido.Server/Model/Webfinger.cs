@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using MongoDB.Bson;
 
-namespace Fedido.Server.Model.ActivityPub;
+namespace Fedido.Server.Model;
 
 public class Webfinger
 {

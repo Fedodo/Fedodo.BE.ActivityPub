@@ -1,6 +1,6 @@
 using CommonExtensions;
 using Fedido.Server.Interfaces;
-using Fedido.Server.Model.ActivityPub;
+using Fedido.Server.Model;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 

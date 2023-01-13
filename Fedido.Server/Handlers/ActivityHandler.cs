@@ -42,7 +42,7 @@ public class ActivityHandler : IActivityHandler
         {
             var post = activity.ExtractItemFromObject<Post>();
 
-            if (post.InReplyTo.IsNotNull()) await _knownServersHandler.Add(post.InReplyTo.ToString());
+            if (post.InReplyTo.IsNotNull()) await _knownServersHandler.Add(post?.InReplyTo?.ToString());
 
             var servers = await _knownServersHandler.GetAll();
 

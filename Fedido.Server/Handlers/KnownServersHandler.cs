@@ -1,3 +1,4 @@
+using CommonExtensions;
 using Fedido.Server.Extensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model;
@@ -14,8 +15,10 @@ public class KnownServersHandler : IKnownServersHandler
         _repository = repository;
     }
 
-    public async Task Add(string postTo)
+    public async Task Add(string? postTo)
     {
+        if (postTo.IsNullOrEmpty()) return;
+
         ActivityPubServer server = new()
         {
             ServerDomainName = postTo.ExtractServerName()

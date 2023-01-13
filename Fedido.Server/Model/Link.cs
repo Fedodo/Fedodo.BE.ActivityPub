@@ -1,4 +1,4 @@
-namespace Fedido.Server.Model.ActivityPub;
+namespace Fedido.Server.Model;
 
 public class Link
 {
