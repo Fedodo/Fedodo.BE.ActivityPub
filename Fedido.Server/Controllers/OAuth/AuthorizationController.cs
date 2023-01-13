@@ -61,7 +61,7 @@ public class AuthorizationController : Controller
             // Override the user claims present in the principal in case they
             // changed since the authorization code/refresh token was issued.
             identity.SetClaim(Claims.Subject, user.Id.ToString())
-                .SetClaim(Claims.Email, "user Mail") // TODO
+                .SetClaim(Claims.Email, "user Mail")
                 .SetClaim(Claims.Name, user.UserName);
 
             identity.SetDestinations(GetDestinations);

@@ -58,7 +58,7 @@ public class UserController : ControllerBase
 
         actor.PublicKey = new PublicKeyAP
         {
-            Id = new Uri($"{actor.Id}#main-key"), // TODO
+            Id = new Uri($"{actor.Id}#main-key"),
             Owner = actor.Id,
             PublicKeyPem = ExtractPublicKey(rsa)
         };
