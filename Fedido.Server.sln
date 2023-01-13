@@ -7,11 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", 
 		Kubernetes\ActivityPubServer-Deployment.yaml = Kubernetes\ActivityPubServer-Deployment.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{90FB9E93-A793-40EC-9DA1-3069C055FDD4}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\Build.yaml = .github\workflows\Build.yaml
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fedido.Server.Test", "Fedido.Server.Test\Fedido.Server.Test.csproj", "{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{759CC4EE-4384-4C77-A7AE-9F41AD012364}"
@@ -25,6 +20,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Git", "Git", "{E6433802-F823-4047-84AF-12E700BC1270}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{A33F6CE1-C60A-49CF-8BA0-7285440552DC}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\Build.yaml = .github\workflows\Build.yaml
 	EndProjectSection
 EndProject
 Global
@@ -41,5 +41,8 @@ Global
 		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A33F6CE1-C60A-49CF-8BA0-7285440552DC} = {759CC4EE-4384-4C77-A7AE-9F41AD012364}
 	EndGlobalSection
 EndGlobal
