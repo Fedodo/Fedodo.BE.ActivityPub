@@ -12,10 +12,10 @@ public class ActivityHandler : IActivityHandler
 {
     private readonly IActivityAPI _activityApi;
     private readonly IActorAPI _actorApi;
+    private readonly ICollectionApi _collectionApi;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IKnownSharedInboxHandler _sharedInboxHandler;
-    private readonly ICollectionApi _collectionApi;
 
     public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi,
         IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler, ICollectionApi collectionApi)
@@ -65,10 +65,7 @@ public class ActivityHandler : IActivityHandler
                 else
                 {
                     var serverNameInboxPairs = await GetServerNameInboxPairs(new Uri(item), true);
-                    foreach (var inboxPair in serverNameInboxPairs)
-                    {
-                        targets.Add(inboxPair);
-                    }
+                    foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
 
@@ -93,10 +90,7 @@ public class ActivityHandler : IActivityHandler
                 else
                 {
                     var serverNameInboxPairs = await GetServerNameInboxPairs(new Uri(item), false);
-                    foreach (var inboxPair in serverNameInboxPairs)
-                    {
-                        targets.Add(inboxPair);
-                    }
+                    foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
         }
@@ -128,7 +122,7 @@ public class ActivityHandler : IActivityHandler
     private async Task<IEnumerable<ServerNameInboxPair>> GetServerNameInboxPairs(Uri target, bool isPublic)
     {
         var serverNameInboxPairs = new List<ServerNameInboxPair>();
-        
+
         var orderedCollection = await _collectionApi.GetOrderedCollection<Uri>(target);
 
         if (orderedCollection.IsNull())
@@ -136,29 +130,20 @@ public class ActivityHandler : IActivityHandler
             var collection = await _collectionApi.GetCollection<Uri>(target);
 
             if (collection.IsNull())
-            {
                 _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairs)} -> " +
                                    $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
-            }
             else
-            {
                 foreach (var item in collection.Items)
                 {
                     var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
 
                     if (serverNameInboxPair.IsNotNull())
-                    {
                         serverNameInboxPairs.Add(serverNameInboxPair);
-                    }
                     else
-                    {
-                        _logger.LogWarning($"Someone hit second layer of collections");
-                        
-                        // Here would start another layer of unwrapping collections
-                        // This can be made but is not necessary
-                    }
+                        _logger.LogWarning("Someone hit second layer of collections");
+                    // Here would start another layer of unwrapping collections
+                    // This can be made but is not necessary
                 }
-            }
         }
         else
         {
@@ -167,16 +152,11 @@ public class ActivityHandler : IActivityHandler
                 var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
 
                 if (serverNameInboxPair.IsNotNull())
-                {
                     serverNameInboxPairs.Add(serverNameInboxPair);
-                }
                 else
-                {
-                    _logger.LogWarning($"Someone hit second layer of collections");
-
-                    // Here would start another layer of unwrapping collections
-                    // This can be made but is not necessary
-                }
+                    _logger.LogWarning("Someone hit second layer of collections");
+                // Here would start another layer of unwrapping collections
+                // This can be made but is not necessary
             }
         }
 
@@ -187,10 +167,7 @@ public class ActivityHandler : IActivityHandler
     {
         var actor = await _actorApi.GetActor(actorUri);
 
-        if (actor.IsNull())
-        {
-            return null;
-        }
+        if (actor.IsNull()) return null;
 
         if (isPublic) // Public Activity
         {

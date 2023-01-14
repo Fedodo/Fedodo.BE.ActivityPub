@@ -1,4 +1,3 @@
-using CommonExtensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
 
@@ -11,8 +10,8 @@ public class CollectionApi : ICollectionApi
     public CollectionApi(ILogger<CollectionApi> logger)
     {
         _logger = logger;
-    }   
-    
+    }
+
     public async Task<OrderedCollection<T>> GetOrderedCollection<T>(Uri orderedCollectionUri)
     {
         HttpClient http = new();
@@ -33,7 +32,7 @@ public class CollectionApi : ICollectionApi
 
         return null;
     }
-    
+
     public async Task<Collection<T>> GetCollection<T>(Uri collectionUri)
     {
         HttpClient http = new();
