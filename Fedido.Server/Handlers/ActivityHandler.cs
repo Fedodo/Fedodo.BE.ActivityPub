@@ -12,18 +12,20 @@ public class ActivityHandler : IActivityHandler
 {
     private readonly IActivityAPI _activityApi;
     private readonly IActorAPI _actorApi;
+    private readonly ICollectionApi _collectionApi;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IKnownSharedInboxHandler _sharedInboxHandler;
 
     public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi,
-        IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler)
+        IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler, ICollectionApi collectionApi)
     {
         _logger = logger;
         _repository = repository;
         _actorApi = actorApi;
         _activityApi = activityApi;
         _sharedInboxHandler = sharedInboxHandler;
+        _collectionApi = collectionApi;
     }
 
     public async Task<Actor> GetActor(Guid userId)
@@ -56,7 +58,15 @@ public class ActivityHandler : IActivityHandler
                 if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
 
                 var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
-                targets.Add(serverNameInboxPair);
+                if (serverNameInboxPair.IsNotNull())
+                {
+                    targets.Add(serverNameInboxPair);
+                }
+                else
+                {
+                    var serverNameInboxPairs = await GetServerNameInboxPairs(new Uri(item), true);
+                    foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
+                }
             }
 
             foreach (var item in await _sharedInboxHandler.GetSharedInboxes())
@@ -73,7 +83,15 @@ public class ActivityHandler : IActivityHandler
             foreach (var item in receivers)
             {
                 var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), false);
-                targets.Add(serverNameInboxPair);
+                if (serverNameInboxPair.IsNotNull())
+                {
+                    targets.Add(serverNameInboxPair);
+                }
+                else
+                {
+                    var serverNameInboxPairs = await GetServerNameInboxPairs(new Uri(item), false);
+                    foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
+                }
             }
         }
 
@@ -101,9 +119,55 @@ public class ActivityHandler : IActivityHandler
         }
     }
 
+    private async Task<IEnumerable<ServerNameInboxPair>> GetServerNameInboxPairs(Uri target, bool isPublic)
+    {
+        var serverNameInboxPairs = new List<ServerNameInboxPair>();
+
+        var orderedCollection = await _collectionApi.GetOrderedCollection<Uri>(target);
+
+        if (orderedCollection.IsNull())
+        {
+            var collection = await _collectionApi.GetCollection<Uri>(target);
+
+            if (collection.IsNull())
+                _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairs)} -> " +
+                                   $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
+            else
+                foreach (var item in collection.Items)
+                {
+                    var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+
+                    if (serverNameInboxPair.IsNotNull())
+                        serverNameInboxPairs.Add(serverNameInboxPair);
+                    else
+                        _logger.LogWarning("Someone hit second layer of collections");
+                    // Here would start another layer of unwrapping collections
+                    // This can be made but is not necessary
+                }
+        }
+        else
+        {
+            foreach (var item in orderedCollection.OrderedItems)
+            {
+                var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+
+                if (serverNameInboxPair.IsNotNull())
+                    serverNameInboxPairs.Add(serverNameInboxPair);
+                else
+                    _logger.LogWarning("Someone hit second layer of collections");
+                // Here would start another layer of unwrapping collections
+                // This can be made but is not necessary
+            }
+        }
+
+        return serverNameInboxPairs;
+    }
+
     private async Task<ServerNameInboxPair?> GetServerNameInboxPair(Uri actorUri, bool isPublic)
     {
         var actor = await _actorApi.GetActor(actorUri);
+
+        if (actor.IsNull()) return null;
 
         if (isPublic) // Public Activity
         {

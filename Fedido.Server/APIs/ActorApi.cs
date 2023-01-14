@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CommonExtensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
@@ -21,11 +22,18 @@ public class ActorApi : IActorAPI
         var httpResponse = await http.GetAsync(actorId);
 
         if (httpResponse.IsSuccessStatusCode)
-        {
-            var actor = await httpResponse.Content.ReadFromJsonAsync<Actor>();
+            try
+            {
+                var actor = await httpResponse.Content.ReadFromJsonAsync<Actor>();
 
-            return actor.IsNotNull() ? actor : null;
-        }
+                return actor.IsNotNull() ? actor : null;
+            }
+            catch (JsonException e)
+            {
+                _logger.LogWarning("Parsing to actor failed");
+
+                return null;
+            }
 
         var responseText = await httpResponse.Content.ReadAsStringAsync();
 
