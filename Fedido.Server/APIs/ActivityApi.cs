@@ -16,7 +16,7 @@ public class ActivityAPI : IActivityAPI
     {
         _logger = logger;
     }
-    
+
     public async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor)
     {
         // Set Http Signature
@@ -54,7 +54,7 @@ public class ActivityAPI : IActivityAPI
 
         return false;
     }
-    
+
     public string ComputeHash(string jsonData)
     {
         var sha = SHA256.Create(); // Create a SHA256 hash from string   

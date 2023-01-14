@@ -12,11 +12,11 @@ public class ActorApi : IActorAPI
     {
         _logger = logger;
     }
-    
+
     public async Task<Actor?> GetActor(Uri actorId)
     {
         HttpClient http = new();
-        
+
         var httpResponse = await http.GetAsync(actorId);
 
         if (httpResponse.IsSuccessStatusCode)

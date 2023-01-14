@@ -20,12 +20,9 @@ public class KnownSharedInboxHandler : IKnownSharedInboxHandler
         var filter = filterDefinitionBuilder.Where(i => i == sharedInbox);
         var items = await _repository.GetSpecificItems(filter, "ForeignData", "SharedInboxes");
 
-        if (!items.Any())
-        {
-            await _repository.Create(sharedInbox, "ForeignData", "SharedInboxes");
-        }
+        if (!items.Any()) await _repository.Create(sharedInbox, "ForeignData", "SharedInboxes");
     }
-    
+
     public async Task<IEnumerable<Uri>> GetSharedInboxes()
     {
         return await _repository.GetAll<Uri>("ForeignData", "SharedInboxes");

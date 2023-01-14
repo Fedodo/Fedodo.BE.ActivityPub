@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using CommonExtensions;
 using Fedido.Server.Extensions;
 using Fedido.Server.Interfaces;
@@ -13,13 +10,13 @@ namespace Fedido.Server.Handlers;
 
 public class ActivityHandler : IActivityHandler
 {
+    private readonly IActivityAPI _activityApi;
+    private readonly IActorAPI _actorApi;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IActorAPI _actorApi;
-    private readonly IActivityAPI _activityApi;
     private readonly IKnownSharedInboxHandler _sharedInboxHandler;
 
-    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi, 
+    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi,
         IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler)
     {
         _logger = logger;
@@ -43,7 +40,7 @@ public class ActivityHandler : IActivityHandler
         var targets = new HashSet<ServerNameInboxPair>();
 
         var receivers = new List<string>();
-        
+
         receivers.AddRange(activity.To);
         receivers.AddRange(activity.Bcc);
         receivers.AddRange(activity.Audience);
@@ -53,34 +50,29 @@ public class ActivityHandler : IActivityHandler
         if (activity.IsActivityPublic()) // Public Post
         {
             // Sent to all receivers and to all known SharedInboxes
-            
+
             foreach (var item in receivers)
             {
-                if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public")
-                {
-                    continue;
-                }
-                
-                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic: true);
+                if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
+
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
                 targets.Add(serverNameInboxPair);
             }
 
             foreach (var item in await _sharedInboxHandler.GetSharedInboxes())
-            {
-                targets.Add(new ServerNameInboxPair()
+                targets.Add(new ServerNameInboxPair
                 {
                     Inbox = item,
                     ServerName = item.Host
                 });
-            }
         }
         else // Private Post
         {
             // Send to all receivers
-            
+
             foreach (var item in receivers)
             {
-                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic: false);
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), false);
                 targets.Add(serverNameInboxPair);
             }
         }
@@ -94,19 +86,16 @@ public class ActivityHandler : IActivityHandler
             if (inboxes.Contains(target.Inbox))
             {
                 _logger.LogWarning($"Duplicate found in {nameof(inboxes)} / {nameof(targets)}");
-                
+
                 continue;
             }
-            
+
             inboxes.Add(target.Inbox);
 
             for (var i = 0; i < 5; i++)
             {
-                if (await _activityApi.SendActivity(activity, user, target, actor))
-                {
-                    break;
-                }
-                
+                if (await _activityApi.SendActivity(activity, user, target, actor)) break;
+
                 Thread.Sleep(10000);
             }
         }
@@ -122,35 +111,29 @@ public class ActivityHandler : IActivityHandler
 
             if (sharedInbox.IsNull())
             {
-                if (actor.Inbox.IsNull())
-                {
-                    return null;
-                }
-                
-                return new ServerNameInboxPair()
+                if (actor.Inbox.IsNull()) return null;
+
+                return new ServerNameInboxPair
                 {
                     Inbox = actor?.Inbox,
                     ServerName = actor?.Inbox?.Host
                 };
             }
-            else
+
+            await _sharedInboxHandler.AddSharedInbox(sharedInbox);
+
+            return new ServerNameInboxPair
             {
-                await _sharedInboxHandler.AddSharedInbox(sharedInbox);
-                
-                return new ServerNameInboxPair()
-                {
-                    Inbox = sharedInbox,
-                    ServerName = sharedInbox?.Host
-                };
-            }
-        }
-        else // Private Activity
-        {
-            return new ServerNameInboxPair()
-            {
-                Inbox = actor?.Inbox,
-                ServerName = actor?.Inbox?.Host
+                Inbox = sharedInbox,
+                ServerName = sharedInbox?.Host
             };
         }
+
+        // Private Activity
+        return new ServerNameInboxPair
+        {
+            Inbox = actor?.Inbox,
+            ServerName = actor?.Inbox?.Host
+        };
     }
 }
