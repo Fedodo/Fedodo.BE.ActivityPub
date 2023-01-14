@@ -17,4 +17,5 @@ public class Actor
     public Uri? Following { get; set; }
     public object? Icon { get; set; }
     public PublicKeyAP? PublicKey { get; set; }
+    public Endpoints? Endpoints { get; set; }
 }

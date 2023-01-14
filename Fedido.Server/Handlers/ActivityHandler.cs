@@ -15,11 +15,18 @@ public class ActivityHandler : IActivityHandler
 {
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IActorAPI _actorApi;
+    private readonly IActivityAPI _activityApi;
+    private readonly IKnownSharedInboxHandler _sharedInboxHandler;
 
-    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository)
+    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi, 
+        IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler)
     {
         _logger = logger;
         _repository = repository;
+        _actorApi = actorApi;
+        _activityApi = activityApi;
+        _sharedInboxHandler = sharedInboxHandler;
     }
 
     public async Task<Actor> GetActor(Guid userId)
@@ -33,7 +40,7 @@ public class ActivityHandler : IActivityHandler
 
     public async Task SendActivities(Activity activity, User user, Actor actor)
     {
-        var targets = new List<ServerNameInboxPair>();
+        var targets = new HashSet<ServerNameInboxPair>();
 
         var receivers = new List<string>();
         
@@ -45,88 +52,105 @@ public class ActivityHandler : IActivityHandler
 
         if (activity.IsActivityPublic()) // Public Post
         {
+            // Sent to all receivers and to all known SharedInboxes
+            
             foreach (var item in receivers)
             {
-                // Check if item is a public string than skip
+                if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public")
+                {
+                    continue;
+                }
                 
-                var serverNameInboxPair = GetServerNameInboxPair(item);
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic: true);
                 targets.Add(serverNameInboxPair);
             }
-            
-            // TODO Deliver to all known SharedInboxes
+
+            foreach (var item in await _sharedInboxHandler.GetSharedInboxes())
+            {
+                targets.Add(new ServerNameInboxPair()
+                {
+                    Inbox = item,
+                    ServerName = item.Host
+                });
+            }
         }
         else // Private Post
         {
+            // Send to all receivers
+            
             foreach (var item in receivers)
             {
-                var serverNameInboxPair = GetServerNameInboxPair(item);
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic: false);
                 targets.Add(serverNameInboxPair);
             }
         }
 
-        // TODO Remove duplicates from targets
+        // This List is only needed to make sure the HasSet works as expected
+        // If you are sure it works you can remove it
+        var inboxes = new List<Uri>();
 
-        foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
+        foreach (var target in targets)
+        {
+            if (inboxes.Contains(target.Inbox))
+            {
+                _logger.LogWarning($"Duplicate found in {nameof(inboxes)} / {nameof(targets)}");
+                
+                continue;
+            }
+            
+            inboxes.Add(target.Inbox);
+
+            for (var i = 0; i < 5; i++)
+            {
+                if (await _activityApi.SendActivity(activity, user, target, actor))
+                {
+                    break;
+                }
+                
+                Thread.Sleep(10000);
+            }
+        }
     }
 
-    private ServerNameInboxPair GetServerNameInboxPair(string item)
+    private async Task<ServerNameInboxPair?> GetServerNameInboxPair(Uri actorUri, bool isPublic)
     {
-        
-        // Try to combine all actors to shared inboxes
+        var actor = await _actorApi.GetActor(actorUri);
 
-        // TODO
-        
-        throw new NotImplementedException();
-    }
+        if (isPublic) // Public Activity
+        {
+            var sharedInbox = actor?.Endpoints?.SharedInbox;
 
-    private async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair,
-        Actor actor)
-    {
-        // Set Http Signature
-        var jsonData = JsonSerializer.Serialize(activity);
-        var digest = ComputeHash(jsonData);
-
-        var rsa = RSA.Create();
-        rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
-
-        var date = DateTime.UtcNow.ToString("R");
-        var signedString =
-            $"(request-target): post {serverInboxPair.Inbox.AbsolutePath}\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
-        var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pkcs1);
-        var signatureString = Convert.ToBase64String(signature);
-
-        // Create HTTP request
-        HttpClient http = new();
-        http.DefaultRequestHeaders.Add("Host", serverInboxPair.ServerName);
-        http.DefaultRequestHeaders.Add("Date", date);
-        http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
-        http.DefaultRequestHeaders.Add("Signature",
-            $"keyId=\"{actor.PublicKey.Id}\",headers=\"(request-target) " +
-            $"host date digest\",signature=\"{signatureString}\"");
-
-        var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
-
-        var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
-
-        if (httpResponse.IsSuccessStatusCode) return true;
-
-        var responseText = await httpResponse.Content.ReadAsStringAsync();
-
-        _logger.LogWarning($"An error occured sending an activity: {responseText}");
-
-        return false;
-    }
-
-    private string ComputeHash(string jsonData)
-    {
-        var sha = SHA256.Create(); // Create a SHA256 hash from string   
-        using var sha256Hash = SHA256.Create();
-        // Computing Hash - returns here byte array
-        var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
-
-        var hashedString = Convert.ToBase64String(bytes);
-
-        return hashedString;
+            if (sharedInbox.IsNull())
+            {
+                if (actor.Inbox.IsNull())
+                {
+                    return null;
+                }
+                
+                return new ServerNameInboxPair()
+                {
+                    Inbox = actor?.Inbox,
+                    ServerName = actor?.Inbox?.Host
+                };
+            }
+            else
+            {
+                await _sharedInboxHandler.AddSharedInbox(sharedInbox);
+                
+                return new ServerNameInboxPair()
+                {
+                    Inbox = sharedInbox,
+                    ServerName = sharedInbox?.Host
+                };
+            }
+        }
+        else // Private Activity
+        {
+            return new ServerNameInboxPair()
+            {
+                Inbox = actor?.Inbox,
+                ServerName = actor?.Inbox?.Host
+            };
+        }
     }
 }
