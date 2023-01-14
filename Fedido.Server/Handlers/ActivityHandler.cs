@@ -41,11 +41,11 @@ public class ActivityHandler : IActivityHandler
 
         var receivers = new List<string>();
 
-        receivers.AddRange(activity.To);
-        receivers.AddRange(activity.Bcc);
-        receivers.AddRange(activity.Audience);
-        receivers.AddRange(activity.Bto);
-        receivers.AddRange(activity.Bcc);
+        if (activity.To.IsNotNullOrEmpty()) receivers.AddRange(activity.To);
+        if (activity.Bcc.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc);
+        if (activity.Audience.IsNotNullOrEmpty()) receivers.AddRange(activity.Audience);
+        if (activity.Bto.IsNotNullOrEmpty()) receivers.AddRange(activity.Bto);
+        if (activity.Bcc.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc);
 
         if (activity.IsActivityPublic()) // Public Post
         {
