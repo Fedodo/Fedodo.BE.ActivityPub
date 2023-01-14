@@ -1,4 +1,5 @@
 using Fedido.Server.Interfaces;
+using Fedido.Server.Model.Helpers;
 using MongoDB.Driver;
 
 namespace Fedido.Server.Handlers;
@@ -16,15 +17,17 @@ public class KnownSharedInboxHandler : IKnownSharedInboxHandler
 
     public async Task AddSharedInbox(Uri sharedInbox)
     {
-        var filterDefinitionBuilder = Builders<Uri>.Filter;
-        var filter = filterDefinitionBuilder.Where(i => i == sharedInbox);
+        var filterDefinitionBuilder = Builders<SharedInbox>.Filter;
+        var filter = filterDefinitionBuilder.Where(i => i.SharedInboxUri == sharedInbox);
         var items = await _repository.GetSpecificItems(filter, "ForeignData", "SharedInboxes");
 
-        if (!items.Any()) await _repository.Create(sharedInbox, "ForeignData", "SharedInboxes");
+        if (!items.Any())
+            await _repository.Create(new SharedInbox { SharedInboxUri = sharedInbox }, "ForeignData", "SharedInboxes");
     }
 
     public async Task<IEnumerable<Uri>> GetSharedInboxes()
     {
-        return await _repository.GetAll<Uri>("ForeignData", "SharedInboxes");
+        var sharedInbox = await _repository.GetAll<SharedInbox>("ForeignData", "SharedInboxes");
+        return sharedInbox.Select(i => i.SharedInboxUri);
     }
 }

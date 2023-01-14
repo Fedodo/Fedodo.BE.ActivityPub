@@ -16,6 +16,7 @@ public class ActorApi : IActorAPI
     public async Task<Actor?> GetActor(Uri actorId)
     {
         HttpClient http = new();
+        http.DefaultRequestHeaders.Add("Accept", "application/ld+json");
 
         var httpResponse = await http.GetAsync(actorId);
 
