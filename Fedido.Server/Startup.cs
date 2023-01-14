@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Fedido.Server.APIs;
 using Fedido.Server.Handlers;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Repositories;
@@ -247,12 +248,14 @@ public class Startup
     public void AddCustomServices(WebApplicationBuilder builder, MongoClient mongoClient1)
     {
         builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
-        builder.Services.AddSingleton<IKnownServersHandler, KnownServersHandler>();
         builder.Services.AddSingleton<IHttpSignatureHandler, HttpSignatureHandler>();
         builder.Services.AddSingleton<IActivityHandler, ActivityHandler>();
         builder.Services.AddSingleton<IUserHandler, UserHandler>();
         builder.Services.AddSingleton<IMongoClient>(mongoClient1);
         builder.Services.AddSingleton<IAuthenticationHandler, AuthenticationHandler>();
+        builder.Services.AddSingleton<IActorAPI, ActorApi>();
+        builder.Services.AddSingleton<IActivityAPI, ActivityAPI>();
+        builder.Services.AddSingleton<IKnownSharedInboxHandler, KnownSharedInboxHandler>();
     }
 
     public void SetupMongoDb()

@@ -1,5 +1,5 @@
 using Fedido.Server.Interfaces;
-using Fedido.Server.Model.ActivityPub;
+using Fedido.Server.Model;
 using Fedido.Server.Model.NodeInfo;
 using Microsoft.AspNetCore.Mvc;
 

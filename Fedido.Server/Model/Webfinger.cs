@@ -3,9 +3,10 @@ using MongoDB.Bson;
 
 namespace Fedido.Server.Model;
 
-public class ActivityPubServer
+public class Webfinger
 {
     [JsonIgnore] public ObjectId Id { get; set; } // Needed for storing in MongoDB
-    public string ServerDomainName { get; set; }
-    public Uri DefaultInbox { get; set; }
+
+    public string? Subject { get; set; }
+    public IEnumerable<Link>? Links { get; set; }
 }

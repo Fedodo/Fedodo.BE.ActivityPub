@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using CommonExtensions;
 using Fedido.Server.Extensions;
 using Fedido.Server.Interfaces;
@@ -13,16 +10,20 @@ namespace Fedido.Server.Handlers;
 
 public class ActivityHandler : IActivityHandler
 {
-    private readonly IKnownServersHandler _knownServersHandler;
+    private readonly IActivityAPI _activityApi;
+    private readonly IActorAPI _actorApi;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IKnownSharedInboxHandler _sharedInboxHandler;
 
-    public ActivityHandler(ILogger<ActivityHandler> logger, IKnownServersHandler knownServersHandler,
-        IMongoDbRepository repository)
+    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi,
+        IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler)
     {
         _logger = logger;
-        _knownServersHandler = knownServersHandler;
         _repository = repository;
+        _actorApi = actorApi;
+        _activityApi = activityApi;
+        _sharedInboxHandler = sharedInboxHandler;
     }
 
     public async Task<Actor> GetActor(Guid userId)
@@ -36,101 +37,103 @@ public class ActivityHandler : IActivityHandler
 
     public async Task SendActivities(Activity activity, User user, Actor actor)
     {
-        var targets = new List<ServerNameInboxPair>();
+        var targets = new HashSet<ServerNameInboxPair>();
 
-        if (activity.IsActivityPublic() && activity.Type == "Create")
+        var receivers = new List<string>();
+
+        receivers.AddRange(activity.To);
+        receivers.AddRange(activity.Bcc);
+        receivers.AddRange(activity.Audience);
+        receivers.AddRange(activity.Bto);
+        receivers.AddRange(activity.Bcc);
+
+        if (activity.IsActivityPublic()) // Public Post
         {
-            var post = activity.ExtractItemFromObject<Post>();
+            // Send to all receivers and to all known SharedInboxes
 
-            if (post.InReplyTo.IsNotNull()) await _knownServersHandler.Add(post.InReplyTo.ToString());
-
-            var servers = await _knownServersHandler.GetAll();
-
-            foreach (var item in servers)
-                targets.Add(new ServerNameInboxPair
-                {
-                    ServerName = item.ServerDomainName,
-                    Inbox = item.DefaultInbox
-                });
-        }
-        else if (activity.IsActivityPublic())
-        {
-            var servers = await _knownServersHandler.GetAll();
-
-            foreach (var item in servers)
-                targets.Add(new ServerNameInboxPair
-                {
-                    ServerName = item.ServerDomainName,
-                    Inbox = item.DefaultInbox
-                });
-        }
-        else
-        {
-            foreach (var item in activity.To)
+            foreach (var item in receivers)
             {
-                var serverNameInboxPair = new ServerNameInboxPair
-                {
-                    ServerName = item.ExtractServerName(),
-                    Inbox = new Uri(item)
-                };
+                if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
 
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
                 targets.Add(serverNameInboxPair);
+            }
 
-                await _knownServersHandler.Add(item);
+            foreach (var item in await _sharedInboxHandler.GetSharedInboxes())
+                targets.Add(new ServerNameInboxPair
+                {
+                    Inbox = item,
+                    ServerName = item.Host
+                });
+        }
+        else // Private Post
+        {
+            // Send to all receivers
+
+            foreach (var item in receivers)
+            {
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), false);
+                targets.Add(serverNameInboxPair);
             }
         }
 
-        foreach (var target in targets) await SendActivity(activity, user, target, actor); // TODO Error Handling
+        // This List is only needed to make sure the HasSet works as expected
+        // If you are sure it works you can remove it
+        var inboxes = new List<Uri>();
+
+        foreach (var target in targets)
+        {
+            if (inboxes.Contains(target.Inbox))
+            {
+                _logger.LogWarning($"Duplicate found in {nameof(inboxes)} / {nameof(targets)}");
+
+                continue;
+            }
+
+            inboxes.Add(target.Inbox);
+
+            for (var i = 0; i < 5; i++)
+            {
+                if (await _activityApi.SendActivity(activity, user, target, actor)) break;
+
+                Thread.Sleep(10000);
+            }
+        }
     }
 
-    private async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair,
-        Actor actor)
+    private async Task<ServerNameInboxPair?> GetServerNameInboxPair(Uri actorUri, bool isPublic)
     {
-        // Set Http Signature
-        var jsonData = JsonSerializer.Serialize(activity);
-        var digest = ComputeHash(jsonData);
+        var actor = await _actorApi.GetActor(actorUri);
 
-        var rsa = RSA.Create();
-        rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
+        if (isPublic) // Public Activity
+        {
+            var sharedInbox = actor?.Endpoints?.SharedInbox;
 
-        var date = DateTime.UtcNow.ToString("R");
-        var signedString =
-            $"(request-target): post {serverInboxPair.Inbox.AbsolutePath}\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
-        var signature = rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pkcs1);
-        var signatureString = Convert.ToBase64String(signature);
+            if (sharedInbox.IsNull())
+            {
+                if (actor.Inbox.IsNull()) return null;
 
-        // Create HTTP request
-        HttpClient http = new();
-        http.DefaultRequestHeaders.Add("Host", serverInboxPair.ServerName);
-        http.DefaultRequestHeaders.Add("Date", date);
-        http.DefaultRequestHeaders.Add("Digest", $"sha-256={digest}");
-        http.DefaultRequestHeaders.Add("Signature",
-            $"keyId=\"{actor.PublicKey.Id}\",headers=\"(request-target) " +
-            $"host date digest\",signature=\"{signatureString}\"");
+                return new ServerNameInboxPair
+                {
+                    Inbox = actor?.Inbox,
+                    ServerName = actor?.Inbox?.Host
+                };
+            }
 
-        var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
+            await _sharedInboxHandler.AddSharedInbox(sharedInbox);
 
-        var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
+            return new ServerNameInboxPair
+            {
+                Inbox = sharedInbox,
+                ServerName = sharedInbox?.Host
+            };
+        }
 
-        if (httpResponse.IsSuccessStatusCode) return true;
-
-        var responseText = await httpResponse.Content.ReadAsStringAsync();
-
-        _logger.LogWarning($"An error occured sending an activity: {responseText}");
-
-        return false;
-    }
-
-    private string ComputeHash(string jsonData)
-    {
-        var sha = SHA256.Create(); // Create a SHA256 hash from string   
-        using var sha256Hash = SHA256.Create();
-        // Computing Hash - returns here byte array
-        var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(jsonData));
-
-        var hashedString = Convert.ToBase64String(bytes);
-
-        return hashedString;
+        // Private Activity
+        return new ServerNameInboxPair
+        {
+            Inbox = actor?.Inbox,
+            ServerName = actor?.Inbox?.Host
+        };
     }
 }

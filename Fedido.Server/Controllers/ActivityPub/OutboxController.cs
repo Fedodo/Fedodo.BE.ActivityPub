@@ -95,8 +95,8 @@ public class OutboxController : ControllerBase
             case "Like" or "Follow":
             {
                 obj = activityDto.ExtractStringFromObject();
-            }
                 break;
+            }
         }
 
         var activity = new Activity
@@ -105,6 +105,10 @@ public class OutboxController : ControllerBase
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activitys/{postId}"),
             Type = activityDto.Type,
             To = activityDto.To,
+            Bto = activityDto.Bto,
+            Cc = activityDto.Cc,
+            Bcc = activityDto.Bcc,
+            Audience = activityDto.Audience,
             Object = obj
         };
 

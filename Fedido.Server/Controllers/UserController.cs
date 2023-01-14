@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using CommonExtensions;
 using Fedido.Server.Interfaces;
+using Fedido.Server.Model;
 using Fedido.Server.Model.ActivityPub;
 using Fedido.Server.Model.Authentication;
 using Fedido.Server.Model.DTOs;
