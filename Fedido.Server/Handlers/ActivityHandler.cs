@@ -49,7 +49,7 @@ public class ActivityHandler : IActivityHandler
 
         if (activity.IsActivityPublic()) // Public Post
         {
-            // Sent to all receivers and to all known SharedInboxes
+            // Send to all receivers and to all known SharedInboxes
 
             foreach (var item in receivers)
             {
