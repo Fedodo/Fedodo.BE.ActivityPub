@@ -256,6 +256,7 @@ public class Startup
         builder.Services.AddSingleton<IActorAPI, ActorApi>();
         builder.Services.AddSingleton<IActivityAPI, ActivityAPI>();
         builder.Services.AddSingleton<IKnownSharedInboxHandler, KnownSharedInboxHandler>();
+        builder.Services.AddSingleton<ICollectionApi, CollectionApi>();
     }
 
     public void SetupMongoDb()
