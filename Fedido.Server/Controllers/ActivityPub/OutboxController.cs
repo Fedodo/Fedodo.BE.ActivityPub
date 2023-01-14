@@ -71,7 +71,7 @@ public class OutboxController : ControllerBase
         {
             case "Create":
             {
-                var createPostDto = activityDto.ExtractCreatePostDtoFromObject();
+                var createPostDto = activityDto.TrySystemJsonDeserialization<Post>();
 
                 var post = new Post
                 {
@@ -94,7 +94,7 @@ public class OutboxController : ControllerBase
             }
             case "Like" or "Follow":
             {
-                obj = activityDto.ExtractStringFromObject();
+                obj = activityDto.TrySystemJsonDeserialization<string>();
                 break;
             }
         }
