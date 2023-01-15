@@ -71,7 +71,7 @@ public class OutboxController : ControllerBase
         {
             case "Create":
             {
-                var createPostDto = activityDto.ExtractCreatePostDtoFromObject();
+                var createPostDto = activityDto.TrySystemJsonDeserialization<Post>();
 
                 var post = new Post
                 {
@@ -84,7 +84,9 @@ public class OutboxController : ControllerBase
                     Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
                     Type = createPostDto.Type,
                     Published = createPostDto.Published,
-                    AttributedTo = actorId
+                    AttributedTo = actorId,
+                    Shares = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}"),
+                    Likes = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
                 };
 
                 await _repository.Create(post, "Posts", userId.ToString());
@@ -94,7 +96,7 @@ public class OutboxController : ControllerBase
             }
             case "Like" or "Follow":
             {
-                obj = activityDto.ExtractStringFromObject();
+                obj = activityDto.TrySystemJsonDeserialization<string>();
                 break;
             }
         }

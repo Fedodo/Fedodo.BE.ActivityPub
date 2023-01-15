@@ -82,7 +82,7 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
-                var post = activity.ExtractItemFromObject<Post>();
+                var post = activity.TrySystemJsonDeserialization<Post>();
 
                 _logger.LogDebug("Successfully extracted post from Object");
 
@@ -99,7 +99,8 @@ public class InboxController : ControllerBase
             }
             case "Follow":
             {
-                _logger.LogDebug($"Got follow for \"{activity.ExtractStringFromObject()}\" from \"{activity.Actor}\"");
+                _logger.LogDebug(
+                    $"Got follow for \"{activity.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
 
                 var followObject = new FollowingHelper
                 {
@@ -139,7 +140,7 @@ public class InboxController : ControllerBase
             {
                 _logger.LogTrace("Got an Accept activity");
 
-                var acceptedActivity = activity.ExtractItemFromObject<Activity>();
+                var acceptedActivity = activity.TrySystemJsonDeserialization<Activity>();
 
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
@@ -168,6 +169,60 @@ public class InboxController : ControllerBase
                     _logger.LogWarning("Not found activity which was accepted");
                 }
 
+                break;
+            }
+            case "Announce":
+            {
+                _logger.LogTrace("Got an Announce Activity");
+
+                var share = new ShareHelper()
+                {
+                    Share = activity.Actor
+                };
+
+                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
+                    .Replace("shares", "").Replace("/", "");
+                
+                var definitionBuilder = Builders<ShareHelper>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
+                var fItem = await _repository.GetSpecificItems(filter, "Shares", postId);
+
+                if (fItem.IsNullOrEmpty())
+                {
+                    await _repository.Create(share, "Shares", postId);
+                }
+                else
+                {
+                    _logger.LogWarning("Got another share of the same actor.");
+                }
+                
+                break;
+            }
+            case "Like":
+            {
+                _logger.LogTrace("Got an Like Activity");
+
+                var like = new LikeHelper()
+                {
+                    Like = activity.Actor
+                };
+
+                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
+                    .Replace("likes", "").Replace("/", "");
+                
+                var definitionBuilder = Builders<LikeHelper>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
+                var fItem = await _repository.GetSpecificItems(filter, "Likes", postId);
+
+                if (fItem.IsNullOrEmpty())
+                {
+                    await _repository.Create(like, "Likes", postId);
+                }
+                else
+                {
+                    _logger.LogWarning("Got another like of the same actor.");
+                }
+                
                 break;
             }
         }
