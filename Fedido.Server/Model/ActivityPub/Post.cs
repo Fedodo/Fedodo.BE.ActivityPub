@@ -14,7 +14,7 @@ public class Post
     [JsonPropertyName("type")] public string Type { get; set; }
     [JsonPropertyName("published")] public DateTime Published { get; set; }
     [JsonPropertyName("attributedTo")] public Uri AttributedTo { get; set; }
-    
+
     // Likes and Shares are not used like this by Mastodon and Pixelfed...
     // Keep this in mind.
     [JsonPropertyName("likes")] public Uri? Likes { get; set; }
