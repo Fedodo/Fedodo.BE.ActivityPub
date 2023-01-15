@@ -84,7 +84,9 @@ public class OutboxController : ControllerBase
                     Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
                     Type = createPostDto.Type,
                     Published = createPostDto.Published,
-                    AttributedTo = actorId
+                    AttributedTo = actorId,
+                    Shares = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}"),
+                    Likes = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
                 };
 
                 await _repository.Create(post, "Posts", userId.ToString());
