@@ -181,7 +181,7 @@ public class InboxController : ControllerBase
                 };
 
                 var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
-                    .Replace("shares", "").Replace("/", "");
+                    .Replace("posts", "").Replace("/", "");
                 
                 var definitionBuilder = Builders<ShareHelper>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
@@ -208,7 +208,7 @@ public class InboxController : ControllerBase
                 };
 
                 var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
-                    .Replace("likes", "").Replace("/", "");
+                    .Replace("posts", "").Replace("/", "");
                 
                 var definitionBuilder = Builders<LikeHelper>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
