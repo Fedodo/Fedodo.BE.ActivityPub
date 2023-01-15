@@ -217,6 +217,19 @@ public class InboxController : ControllerBase
 
                 break;
             }
+            case "Update":
+            {
+                var post = activity.TrySystemJsonDeserialization<Post>();
+
+                _logger.LogDebug("Successfully extracted post from Object");
+
+                var postDefinitionBuilder = Builders<Post>.Filter;
+                var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
+
+                await _repository.Update(post, postFilter, "Inbox", userId.ToString().ToLower());
+                
+                break;
+            }
         }
 
         return Ok();

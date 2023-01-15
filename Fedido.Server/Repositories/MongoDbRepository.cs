@@ -84,17 +84,15 @@ public class MongoDbRepository : IMongoDbRepository
         return result;
     }
 
-    // public async Task Update<T>(T item, string databaseName, string collectionName) where T : IStandardItem
-    //     {
-    //         _logger.LogInformation($"Updateing item of type: {typeof(T)}");
-    //
-    //         var database = _client.GetDatabase(databaseName);
-    //         IMongoCollection<T> collection = database.GetCollection<T>(collectionName);
-    //         
-    //         FilterDefinitionBuilder<T> filterDefinitionBuilder = Builders<T>.Filter;
-    //         var filter = filterDefinitionBuilder.Eq(i => i.Id, item.Id);
-    //         await collection.ReplaceOneAsync(filter, item);
-    //
-    //         _logger.LogInformation($"Finished updateing item of type: {typeof(T)}");
-    //     }
+    public async Task Update<T>(T item, FilterDefinition<T> filter, string databaseName, string collectionName)
+    {
+        _logger.LogInformation($"Updating item of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+        
+        await collection.ReplaceOneAsync(filter, item);
+
+        _logger.LogInformation($"Finished updating item of type: {typeof(T)}");
+    }
 }
