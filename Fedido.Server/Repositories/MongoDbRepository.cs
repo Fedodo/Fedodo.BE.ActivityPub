@@ -90,7 +90,7 @@ public class MongoDbRepository : IMongoDbRepository
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
-        
+
         await collection.ReplaceOneAsync(filter, item);
 
         _logger.LogInformation($"Finished updating item of type: {typeof(T)}");

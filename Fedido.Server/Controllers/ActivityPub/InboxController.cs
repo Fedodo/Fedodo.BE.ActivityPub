@@ -227,7 +227,7 @@ public class InboxController : ControllerBase
                 var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
 
                 await _repository.Update(post, postFilter, "Inbox", userId.ToString().ToLower());
-                
+
                 break;
             }
         }
