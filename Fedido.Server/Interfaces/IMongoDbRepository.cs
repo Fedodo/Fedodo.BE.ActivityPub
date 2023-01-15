@@ -10,4 +10,6 @@ public interface IMongoDbRepository
 
     public Task<IEnumerable<T>> GetSpecificItems<T>(FilterDefinition<T> filter, string databaseName,
         string collectionName);
+
+    public Task Update<T>(T item, FilterDefinition<T> filter, string databaseName, string collectionName);
 }

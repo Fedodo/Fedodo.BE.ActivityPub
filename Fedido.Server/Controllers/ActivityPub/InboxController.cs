@@ -175,54 +175,59 @@ public class InboxController : ControllerBase
             {
                 _logger.LogTrace("Got an Announce Activity");
 
-                var share = new ShareHelper()
+                var share = new ShareHelper
                 {
                     Share = activity.Actor
                 };
 
                 var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
                     .Replace("posts", "").Replace("/", "");
-                
+
                 var definitionBuilder = Builders<ShareHelper>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
                 var fItem = await _repository.GetSpecificItems(filter, "Shares", postId);
 
                 if (fItem.IsNullOrEmpty())
-                {
                     await _repository.Create(share, "Shares", postId);
-                }
                 else
-                {
                     _logger.LogWarning("Got another share of the same actor.");
-                }
-                
+
                 break;
             }
             case "Like":
             {
                 _logger.LogTrace("Got an Like Activity");
 
-                var like = new LikeHelper()
+                var like = new LikeHelper
                 {
                     Like = activity.Actor
                 };
 
                 var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
                     .Replace("posts", "").Replace("/", "");
-                
+
                 var definitionBuilder = Builders<LikeHelper>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
                 var fItem = await _repository.GetSpecificItems(filter, "Likes", postId);
 
                 if (fItem.IsNullOrEmpty())
-                {
                     await _repository.Create(like, "Likes", postId);
-                }
                 else
-                {
                     _logger.LogWarning("Got another like of the same actor.");
-                }
-                
+
+                break;
+            }
+            case "Update":
+            {
+                var post = activity.TrySystemJsonDeserialization<Post>();
+
+                _logger.LogDebug("Successfully extracted post from Object");
+
+                var postDefinitionBuilder = Builders<Post>.Filter;
+                var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
+
+                await _repository.Update(post, postFilter, "Inbox", userId.ToString().ToLower());
+
                 break;
             }
         }
