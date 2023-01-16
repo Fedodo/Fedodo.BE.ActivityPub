@@ -29,19 +29,17 @@ public class MongoDbRepository : IMongoDbRepository
         _logger.LogTrace($"Finished creating item with type: {typeof(T)}");
     }
 
-    // public async Task Delete<T>(string id, string databaseName, string collectionName) where T : IStandardItem
-    //     {
-    //         _logger.LogInformation($"Deleting item with type: {typeof(T)} and id: {id}");
-    //
-    //         var database = _client.GetDatabase(databaseName);
-    //         IMongoCollection<T> collection = database.GetCollection<T>(collectionName);
-    //         
-    //         FilterDefinitionBuilder<T> filterDefinitionBuilder = Builders<T>.Filter;
-    //         var filter = filterDefinitionBuilder.Eq(item => item.Id, id);
-    //         await collection.DeleteOneAsync(filter);
-    //
-    //         _logger.LogInformation($"Finished deleting item with type: {typeof(T)} and id: {id}");
-    //     }
+    public async Task Delete<T>(FilterDefinition<T> filter, string databaseName, string collectionName)
+    {
+        _logger.LogTrace($"Deleting item with type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+        
+        await collection.DeleteOneAsync(filter);
+
+        _logger.LogTrace($"Finished deleting item with type: {typeof(T)}");
+    }
 
     public async Task<IEnumerable<T>> GetAll<T>(string databaseName, string collectionName)
     {
