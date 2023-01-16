@@ -14,17 +14,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.3"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12"/>
-        <PackageReference Include="MongoDB.Driver" Version="2.18.0"/>
-        <PackageReference Include="OpenIddict" Version="4.0.0"/>
-        <PackageReference Include="OpenIddict.AspNetCore" Version="4.0.0"/>
-        <PackageReference Include="OpenIddict.MongoDb" Version="4.0.0"/>
-        <PackageReference Include="OpenIddict.Server" Version="4.0.0"/>
-        <PackageReference Include="Serilog" Version="2.12.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6"/>
+        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12" />
+        <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
+        <PackageReference Include="OpenIddict" Version="4.0.0" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="4.0.0" />
+        <PackageReference Include="OpenIddict.MongoDb" Version="4.0.0" />
+        <PackageReference Include="OpenIddict.Server" Version="4.0.0" />
+        <PackageReference Include="Serilog" Version="2.12.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
     </ItemGroup>
 
     <ItemGroup>
@@ -34,11 +34,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="wwwroot\css\site.css"/>
+        <None Include="wwwroot\css\site.css" />
     </ItemGroup>
 
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
     </ItemGroup>
 
 </Project>
