@@ -257,6 +257,19 @@ public class InboxController : ControllerBase
                     }
                     case "Announce":
                     {
+                        _logger.LogTrace("Got an Undo Announce Activity");
+
+                        var postId = undoActivityObject.AbsolutePath
+                            .Replace("posts", "").Replace("/", "");
+
+                        var definitionBuilder = Builders<ShareHelper>.Filter;
+                        var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
+                        var fItem = await _repository.GetSpecificItems(filter, "Shares", postId);
+
+                        if (fItem.IsNotNullOrEmpty())
+                            await _repository.Delete(filter, "Shares", postId);
+                        else
+                            _logger.LogWarning("Found no share of this actor to undo.");
                         
                         break;
                     }
