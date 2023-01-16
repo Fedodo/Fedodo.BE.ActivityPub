@@ -277,6 +277,11 @@ public class InboxController : ControllerBase
 
                 break;
             }
+            case "Delete":
+            {
+                
+                break;
+            }
         }
 
         return Ok();
