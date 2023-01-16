@@ -240,7 +240,7 @@ public class InboxController : ControllerBase
                     case "Like":
                     {
                         _logger.LogTrace("Got undoActivity of type Like");
-                        
+
                         var postId = undoActivityObject.AbsolutePath
                             .Replace("posts", "").Replace("/", "");
 
@@ -252,7 +252,7 @@ public class InboxController : ControllerBase
                             await _repository.Delete(filter, "Likes", postId);
                         else
                             _logger.LogWarning("Got no like of the same actor.");
-                        
+
                         break;
                     }
                     case "Announce":
@@ -270,11 +270,11 @@ public class InboxController : ControllerBase
                             await _repository.Delete(filter, "Shares", postId);
                         else
                             _logger.LogWarning("Found no share of this actor to undo.");
-                        
+
                         break;
                     }
                 }
-                
+
                 break;
             }
         }

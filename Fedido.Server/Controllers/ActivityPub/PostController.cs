@@ -1,7 +1,5 @@
 using Fedido.Server.Interfaces;
-using Fedido.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 
 namespace Fedido.Server.Controllers.ActivityPub;
 
@@ -16,7 +14,7 @@ public class PostController : ControllerBase
         _logger = logger;
         _repository = repository;
     }
-    
+
     // [HttpGet("{postId:guid}")]
     // public async Task<ActionResult> GetPost(Guid postId)
     // {
