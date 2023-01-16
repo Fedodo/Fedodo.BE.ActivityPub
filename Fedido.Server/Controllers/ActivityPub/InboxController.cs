@@ -230,6 +230,40 @@ public class InboxController : ControllerBase
 
                 break;
             }
+            case "Undo":
+            {
+                var undoActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
+                var undoActivityObject = new Uri(undoActivity.Object.TrySystemJsonDeserialization<string>());
+
+                switch (undoActivity.Type)
+                {
+                    case "Like":
+                    {
+                        _logger.LogTrace("Got undoActivity of type Like");
+                        
+                        var postId = undoActivityObject.AbsolutePath
+                            .Replace("posts", "").Replace("/", "");
+
+                        var definitionBuilder = Builders<LikeHelper>.Filter;
+                        var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
+                        var fItem = await _repository.GetSpecificItems(filter, "Likes", postId);
+
+                        if (fItem.IsNotNullOrEmpty())
+                            await _repository.Delete(filter, "Likes", postId);
+                        else
+                            _logger.LogWarning("Got no like of the same actor.");
+                        
+                        break;
+                    }
+                    case "Announce":
+                    {
+                        
+                        break;
+                    }
+                }
+                
+                break;
+            }
         }
 
         return Ok();
