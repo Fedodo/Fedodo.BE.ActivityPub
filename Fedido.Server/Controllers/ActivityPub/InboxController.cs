@@ -82,7 +82,18 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
-                var post = activity.TrySystemJsonDeserialization<Post>();
+                Post? post = null;
+                
+                try
+                {
+                    post = activity.TrySystemJsonDeserialization<Post>();
+                }
+                catch (ArgumentException ex)
+                {
+                    _logger.LogError(ex, "Could not extract Post from Object.");
+                    
+                    return BadRequest("Could not extract Post from Object.");
+                }
 
                 _logger.LogDebug("Successfully extracted post from Object");
 
@@ -279,7 +290,7 @@ public class InboxController : ControllerBase
             }
             case "Delete":
             {
-                
+                // activity.Object
                 
                 break;
             }
