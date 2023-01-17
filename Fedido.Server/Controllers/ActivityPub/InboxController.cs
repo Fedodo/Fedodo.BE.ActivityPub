@@ -280,6 +280,7 @@ public class InboxController : ControllerBase
             case "Delete":
             {
                 
+                
                 break;
             }
         }
