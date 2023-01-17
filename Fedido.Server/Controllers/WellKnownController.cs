@@ -28,7 +28,7 @@ public class WellKnownController : ControllerBase
         var filterDefinitionBuilder = Builders<Webfinger>.Filter;
         var filter = filterDefinitionBuilder.Eq(i => i.Subject, resource);
 
-        var finger = await _repository.GetSpecificItem(filter, "ActivityPub", "Webfingers");
+        var finger = await _repository.GetSpecificItem(filter, DatabaseLocations.Webfinger.Database, DatabaseLocations.Webfinger.Collection);
 
         if (finger.IsNull())
         {

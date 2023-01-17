@@ -23,7 +23,7 @@ public class FollowersController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
-        var followers = await _repository.GetAll<FollowingHelper>("Followers", userId.ToString());
+        var followers = await _repository.GetAll<FollowingHelper>(DatabaseLocations.Followers.Database, userId.ToString());
 
         var orderedCollection = new OrderedCollection<string>
         {

@@ -23,7 +23,7 @@ public class SharesController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
 
-        var shares = await _repository.GetAll<ShareHelper>("Shares", postId.ToString());
+        var shares = await _repository.GetAll<ShareHelper>(DatabaseLocations.Shares.Database, postId.ToString());
 
         var orderedCollection = new OrderedCollection<string>
         {

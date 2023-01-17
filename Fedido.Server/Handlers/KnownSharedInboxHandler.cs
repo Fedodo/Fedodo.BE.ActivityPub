@@ -19,15 +19,15 @@ public class KnownSharedInboxHandler : IKnownSharedInboxHandler
     {
         var filterDefinitionBuilder = Builders<SharedInbox>.Filter;
         var filter = filterDefinitionBuilder.Where(i => i.SharedInboxUri == sharedInbox);
-        var items = await _repository.GetSpecificItems(filter, "ForeignData", "SharedInboxes");
+        var items = await _repository.GetSpecificItems(filter, DatabaseLocations.KnownSharedInbox.Database, DatabaseLocations.KnownSharedInbox.Collection);
 
         if (!items.Any())
-            await _repository.Create(new SharedInbox { SharedInboxUri = sharedInbox }, "ForeignData", "SharedInboxes");
+            await _repository.Create(new SharedInbox { SharedInboxUri = sharedInbox }, DatabaseLocations.KnownSharedInbox.Database, DatabaseLocations.KnownSharedInbox.Collection);
     }
 
     public async Task<IEnumerable<Uri>> GetSharedInboxes()
     {
-        var sharedInbox = await _repository.GetAll<SharedInbox>("ForeignData", "SharedInboxes");
+        var sharedInbox = await _repository.GetAll<SharedInbox>(DatabaseLocations.KnownSharedInbox.Database, DatabaseLocations.KnownSharedInbox.Collection);
         return sharedInbox.Select(i => i.SharedInboxUri);
     }
 }

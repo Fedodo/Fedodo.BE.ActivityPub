@@ -27,7 +27,7 @@ public class ActorController : ControllerBase
         var filter = filterDefinitionBuilder.Eq(i => i.Id,
             new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}"));
 
-        var actor = await _repository.GetSpecificItem(filter, "ActivityPub", "Actors");
+        var actor = await _repository.GetSpecificItem(filter, DatabaseLocations.Actors.Database, DatabaseLocations.Actors.Collection);
 
         if (actor.IsNull())
         {

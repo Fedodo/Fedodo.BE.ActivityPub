@@ -22,7 +22,7 @@ public class LikesController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
-        var shares = await _repository.GetAll<LikeHelper>("Likes", postId.ToString());
+        var shares = await _repository.GetAll<LikeHelper>(DatabaseLocations.Likes.Database, postId.ToString());
 
         var orderedCollection = new OrderedCollection<string>
         {

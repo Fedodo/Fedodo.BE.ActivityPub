@@ -34,7 +34,7 @@ public class OutboxController : ControllerBase
         var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
             item == "https://www.w3.org/ns/activitystreams#Public"
             || item == "as:Public" || item == "public"));
-        var posts = await _repository.GetSpecificItems(filter, "Posts", userId.ToString());
+        var posts = await _repository.GetSpecificItems(filter, DatabaseLocations.Posts.Database, userId.ToString());
 
         var orderedCollection = new OrderedCollection<Post>
         {
@@ -89,7 +89,7 @@ public class OutboxController : ControllerBase
                     Likes = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
                 };
 
-                await _repository.Create(post, "Posts", userId.ToString());
+                await _repository.Create(post, DatabaseLocations.Posts.Database, userId.ToString());
 
                 obj = post;
                 break;
