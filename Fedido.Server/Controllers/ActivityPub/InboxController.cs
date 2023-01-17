@@ -63,23 +63,6 @@ public class InboxController : ControllerBase
 
         return Ok();
     }
-    
-    public T TrySystemJsonDeserialization<T>(object obj)
-    {
-        if (obj.GetType() == typeof(T)) return (T)obj;
-
-        if (obj.GetType() == typeof(string)) return JsonSerializer.Deserialize<T>((string)obj);
-
-        if (obj.GetType() == typeof(JsonElement))
-        {
-            var element = (JsonElement)obj;
-            return element.Deserialize<T>();
-        }
-        else
-        { 
-            throw new ArgumentException($"Object was not of type {typeof(T)} or {nameof(JsonElement)}");
-        }
-    }
 
     [HttpPost("{userId:guid}")]
     public async Task<ActionResult> Inbox(Guid userId, [FromBody] Activity activity)
@@ -105,7 +88,7 @@ public class InboxController : ControllerBase
                 try
                 {
                     _logger.LogDebug($"Create object type is {activity.Object.GetType()}");
-                    post = TrySystemJsonDeserialization<Post>(activity);
+                    post = activity.Object.TrySystemJsonDeserialization<Post>();
                 }
                 catch (ArgumentException ex)
                 {
