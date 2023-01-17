@@ -66,25 +66,18 @@ public class InboxController : ControllerBase
     
     public T TrySystemJsonDeserialization<T>(object obj)
     {
-        switch (obj)
+        if (obj.GetType() == typeof(T)) return (T)obj;
+
+        if (obj.GetType() == typeof(string)) return JsonSerializer.Deserialize<T>((string)obj);
+
+        if (obj.GetType() == typeof(JsonElement))
         {
-            case T t:
-            {
-                return t;
-            }
-            case string s:
-            {
-                return JsonSerializer.Deserialize<T>(s);
-            }
-            case JsonElement jsonElement:
-            {
-                var item = jsonElement.Deserialize<T>();
-                return item;
-            }
-            default:
-            {
-                throw new ArgumentException($"Object was not of type {typeof(T)} or {nameof(JsonElement)}");
-            }
+            var element = (JsonElement)obj;
+            return element.Deserialize<T>();
+        }
+        else
+        { 
+            throw new ArgumentException($"Object was not of type {typeof(T)} or {nameof(JsonElement)}");
         }
     }
 
