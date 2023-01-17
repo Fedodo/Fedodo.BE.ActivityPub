@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CommonExtensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
@@ -62,6 +63,30 @@ public class InboxController : ControllerBase
 
         return Ok();
     }
+    
+    public T TrySystemJsonDeserialization<T>(object obj)
+    {
+        switch (obj)
+        {
+            case T t:
+            {
+                return t;
+            }
+            case string s:
+            {
+                return JsonSerializer.Deserialize<T>(s);
+            }
+            case JsonElement jsonElement:
+            {
+                var item = jsonElement.Deserialize<T>();
+                return item;
+            }
+            default:
+            {
+                throw new ArgumentException($"Object was not of type {typeof(T)} or {nameof(JsonElement)}");
+            }
+        }
+    }
 
     [HttpPost("{userId:guid}")]
     public async Task<ActionResult> Inbox(Guid userId, [FromBody] Activity activity)
@@ -87,7 +112,7 @@ public class InboxController : ControllerBase
                 try
                 {
                     _logger.LogDebug($"Create object type is {activity.Object.GetType()}");
-                    post = activity.TrySystemJsonDeserialization<Post>();
+                    post = TrySystemJsonDeserialization<Post>(activity);
                 }
                 catch (ArgumentException ex)
                 {
