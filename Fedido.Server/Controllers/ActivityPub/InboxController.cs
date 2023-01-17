@@ -86,6 +86,7 @@ public class InboxController : ControllerBase
                 
                 try
                 {
+                    _logger.LogDebug($"Create object type is {activity.Object.GetType()}");
                     post = activity.TrySystemJsonDeserialization<Post>();
                 }
                 catch (ArgumentException ex)
