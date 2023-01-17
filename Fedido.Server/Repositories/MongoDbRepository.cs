@@ -35,7 +35,7 @@ public class MongoDbRepository : IMongoDbRepository
 
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
-        
+
         await collection.DeleteOneAsync(filter);
 
         _logger.LogTrace($"Finished deleting item with type: {typeof(T)}");
