@@ -98,7 +98,7 @@ public class OutboxController : ControllerBase
             }
             case "Like" or "Follow":
             {
-                obj = activityDto.TrySystemJsonDeserialization<string>();
+                obj = activityDto.Object.TrySystemJsonDeserialization<string>();
                 break;
             }
         }
