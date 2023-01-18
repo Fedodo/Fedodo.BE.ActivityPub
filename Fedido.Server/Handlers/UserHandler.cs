@@ -20,7 +20,8 @@ public class UserHandler : IUserHandler
     {
         var filterUserDefinitionBuilder = Builders<User>.Filter;
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.Id, userId);
-        var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
+        var user = await _repository.GetSpecificItem(filterUser, DatabaseLocations.Users.Database,
+            DatabaseLocations.Users.Collection);
         return user;
     }
 
@@ -28,7 +29,8 @@ public class UserHandler : IUserHandler
     {
         var filterUserDefinitionBuilder = Builders<User>.Filter;
         var filterUser = filterUserDefinitionBuilder.Eq(i => i.UserName, userName);
-        var user = await _repository.GetSpecificItem(filterUser, "Authentication", "Users");
+        var user = await _repository.GetSpecificItem(filterUser, DatabaseLocations.Users.Database,
+            DatabaseLocations.Users.Collection);
         return user;
     }
 
