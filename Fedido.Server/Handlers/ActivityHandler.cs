@@ -33,7 +33,8 @@ public class ActivityHandler : IActivityHandler
         var filterActorDefinitionBuilder = Builders<Actor>.Filter;
         var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id,
             new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}"));
-        var actor = await _repository.GetSpecificItem(filterActor, DatabaseLocations.Actors.Database, DatabaseLocations.Actors.Collection);
+        var actor = await _repository.GetSpecificItem(filterActor, DatabaseLocations.Actors.Database,
+            DatabaseLocations.Actors.Collection);
         return actor;
     }
 

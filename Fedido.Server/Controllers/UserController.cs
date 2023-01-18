@@ -67,7 +67,8 @@ public class UserController : ControllerBase
         // Add Actor if it is not exiting
         var filterDefinitionBuilder = Builders<Actor>.Filter;
         var filter = filterDefinitionBuilder.Where(i => i.PreferredUsername == actor.PreferredUsername);
-        var exitingActor = await _repository.GetSpecificItem(filter, DatabaseLocations.Actors.Database, DatabaseLocations.Actors.Collection);
+        var exitingActor = await _repository.GetSpecificItem(filter, DatabaseLocations.Actors.Database,
+            DatabaseLocations.Actors.Collection);
         if (exitingActor.IsNull())
         {
             await _repository.Create(actor, DatabaseLocations.Actors.Database, DatabaseLocations.Actors.Collection);
@@ -94,7 +95,8 @@ public class UserController : ControllerBase
             }
         };
 
-        await _repository.Create(webfinger, DatabaseLocations.Webfinger.Database, DatabaseLocations.Webfinger.Collection);
+        await _repository.Create(webfinger, DatabaseLocations.Webfinger.Database,
+            DatabaseLocations.Webfinger.Collection);
 
         // Create User
         User user = new();
