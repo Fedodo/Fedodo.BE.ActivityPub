@@ -115,7 +115,7 @@ public class InboxController : ControllerBase
             case "Follow":
             {
                 _logger.LogDebug(
-                    $"Got follow for \"{activity.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
+                    $"Got follow for \"{activity.Object.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
 
                 var followObject = new FollowingHelper
                 {
@@ -156,7 +156,7 @@ public class InboxController : ControllerBase
             {
                 _logger.LogTrace("Got an Accept activity");
 
-                var acceptedActivity = activity.TrySystemJsonDeserialization<Activity>();
+                var acceptedActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
 
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
@@ -238,7 +238,7 @@ public class InboxController : ControllerBase
             }
             case "Update":
             {
-                var post = activity.TrySystemJsonDeserialization<Post>();
+                var post = activity.Object.TrySystemJsonDeserialization<Post>();
 
                 _logger.LogDebug("Successfully extracted post from Object");
 
