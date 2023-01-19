@@ -301,7 +301,18 @@ public class InboxController : ControllerBase
             }
             case "Delete":
             {
-                // activity.Object
+                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>());
+
+                var definitionBuilder = Builders<Post>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Id, postId);
+                
+                var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxNotes.Database, 
+                    DatabaseLocations.InboxNotes.Collection);
+                //
+                // if (post.)
+                // {
+                //     
+                // }
 
                 break;
             }
