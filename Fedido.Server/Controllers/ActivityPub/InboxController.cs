@@ -305,15 +305,13 @@ public class InboxController : ControllerBase
 
                 var definitionBuilder = Builders<Post>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Id, postId);
-                
-                var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxNotes.Database, 
+
+                var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxNotes.Database,
                     DatabaseLocations.InboxNotes.Collection);
-                
+
                 if (post.AttributedTo == activity.Actor)
-                {
-                    await _repository.Delete(filter: filter, DatabaseLocations.InboxNotes.Database, 
+                    await _repository.Delete(filter, DatabaseLocations.InboxNotes.Database,
                         DatabaseLocations.InboxNotes.Collection);
-                }
 
                 break;
             }

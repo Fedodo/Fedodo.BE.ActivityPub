@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using System.Security.Claims;
 using Fedido.Server.Handlers;
 using Fedido.Server.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -35,9 +33,7 @@ public class UserHandlerShould
         // Arrange
         var httpContext = new DefaultHttpContext().HttpContext;
         if (setClaim)
-        {
             httpContext.User.SetClaim(OpenIddictConstants.Claims.Subject, "BA913A66-2B6A-4236-9854-9477906DA12D");
-        }
 
         // Act
         var result = _userHandler.VerifyUser(new Guid(id), httpContext);

@@ -22,17 +22,14 @@ public class PostController : ControllerBase
     public async Task<ActionResult<Post>> GetPost(Guid postId)
     {
         var postDefinitionBuilder = Builders<Post>.Filter;
-        var postFilter = postDefinitionBuilder.Eq(i => i.Id, new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"));
-        
-        var post = await _repository.GetSpecificItem(postFilter, DatabaseLocations.OutboxNotes.Database, DatabaseLocations.OutboxNotes.Collection);
-    
+        var postFilter = postDefinitionBuilder.Eq(i => i.Id,
+            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"));
+
+        var post = await _repository.GetSpecificItem(postFilter, DatabaseLocations.OutboxNotes.Database,
+            DatabaseLocations.OutboxNotes.Collection);
+
         if (post.IsPostPublic())
-        {
             return Ok(post);
-        }
-        else
-        {
-            return Forbid("Not a public post");
-        }
+        return Forbid("Not a public post");
     }
 }
