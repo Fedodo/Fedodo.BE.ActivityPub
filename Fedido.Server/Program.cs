@@ -2,7 +2,6 @@ using Fedido.Server;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpLogging;
 using MongoDB.Driver;
-using Serilog;
 
 var startup = new Startup();
 const bool useHttpLogging = true; // Only for debug purposes
@@ -30,11 +29,6 @@ startup.AddSwagger(builder);
 startup.AddOpenIdDict(builder, mongoClient);
 
 await startup.CreateMongoDbIndexes(builder);
-
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .WriteTo.Console()
-    .CreateLogger();
 
 startup.SetupMongoDb();
 

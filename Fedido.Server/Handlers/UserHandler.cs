@@ -45,7 +45,7 @@ public class UserHandler : IUserHandler
             return false;
         }
 
-        if (tokenUserId.Value == userId.ToString()) return true;
+        if (tokenUserId.Value.ToLower() == userId.ToString()) return true;
 
         _logger.LogWarning($"Someone tried to post as {userId} but was authorized as {tokenUserId}");
         return false;
