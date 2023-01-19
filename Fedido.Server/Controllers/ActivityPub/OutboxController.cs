@@ -72,7 +72,7 @@ public class OutboxController : ControllerBase
         {
             case "Create":
             {
-                var createPostDto = activityDto.TrySystemJsonDeserialization<Post>();
+                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Post>();
 
                 var post = new Post
                 {
