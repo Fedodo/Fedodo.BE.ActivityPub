@@ -308,11 +308,12 @@ public class InboxController : ControllerBase
                 
                 var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxNotes.Database, 
                     DatabaseLocations.InboxNotes.Collection);
-                //
-                // if (post.)
-                // {
-                //     
-                // }
+                
+                if (post.AttributedTo == activity.Actor)
+                {
+                    await _repository.Delete(filter: filter, DatabaseLocations.InboxNotes.Database, 
+                        DatabaseLocations.InboxNotes.Collection);
+                }
 
                 break;
             }
