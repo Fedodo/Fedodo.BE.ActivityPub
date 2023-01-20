@@ -112,26 +112,4 @@ public class UserController : ControllerBase
 
         return Ok();
     }
-
-    // TODO Export this to standalone class
-    public string ExtractPrivateKey(RSA rsa)
-    {
-        const string beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
-        const string endRsaPrivateKey = "-----END RSA PRIVATE KEY-----";
-        var keyPrv = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
-        var extractPrivateKey = $"{beginRsaPrivateKey}\n{keyPrv}\n{endRsaPrivateKey}";
-
-        return extractPrivateKey;
-    }
-    
-    // TODO Export this to standalone class
-    public string ExtractPublicKey(RSA rsa)
-    {
-        // Public key export
-        const string beginRsaPublicKey = "-----BEGIN RSA PUBLIC KEY-----";
-        const string endRsaPublicKey = "-----END RSA PUBLIC KEY-----";
-        var base64PublicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
-        var publicKey = $"{beginRsaPublicKey}\n{base64PublicKey}\n{endRsaPublicKey}";
-        return publicKey;
-    }
 }
