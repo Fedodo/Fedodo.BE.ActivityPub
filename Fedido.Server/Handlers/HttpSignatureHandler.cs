@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using CommonExtensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
 
@@ -8,37 +9,51 @@ namespace Fedido.Server.Handlers;
 public class HttpSignatureHandler : IHttpSignatureHandler
 {
     private readonly ILogger<HttpSignatureHandler> _logger;
+    private readonly IActorAPI _actorApi;
 
-    public HttpSignatureHandler(ILogger<HttpSignatureHandler> logger)
+    public HttpSignatureHandler(ILogger<HttpSignatureHandler> logger, IActorAPI actorApi)
     {
         _logger = logger;
+        _actorApi = actorApi;
     }
 
     public async Task<bool> VerifySignature(IHeaderDictionary requestHeaders, string currentPath)
     {
         _logger.LogTrace("Verifying Signature");
 
+        if (requestHeaders["Signature"].IsNullOrEmpty())
+        {
+            _logger.LogWarning($"Signature Header is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
+            
+            return false;
+        }
+
         var signatureHeader = requestHeaders["Signature"].First().Split(",").ToList();
 
         foreach (var item in signatureHeader) _logger.LogDebug($"Signature Header Part=\"{item}\"");
 
-        var keyId = new Uri(signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
-            .Replace("\"", "").Replace("#main-key", "") ?? string.Empty);
+        var keyIdString = signatureHeader.FirstOrDefault(i => i.StartsWith("keyId"))?.Replace("keyId=", "")
+            .Replace("\"", "").Replace("#main-key", "");
+
+        if (keyIdString.IsNullOrEmpty())
+        {
+            _logger.LogWarning($"{nameof(keyIdString)} is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
+
+            return false;
+        }
+        
+        var keyId = new Uri(keyIdString);
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", "");
         var headers = signatureHeader.FirstOrDefault(i => i.StartsWith("headers"))?.Replace("headers=", "")
             .Replace("\"", "");
         _logger.LogDebug($"KeyId=\"{keyId}\"");
 
-        var http = new HttpClient();
-        http.DefaultRequestHeaders.Add("Accept", "application/ld+json");
-        var response = await http.GetAsync(keyId);
-        if (response.IsSuccessStatusCode)
+        var response = await _actorApi.GetActor(keyId);
+        if (response.IsNotNull())
         {
-            var resultActor = await response.Content.ReadFromJsonAsync<Actor>();
-
             var rsa = RSA.Create();
-            rsa.ImportFromPem(resultActor.PublicKey.PublicKeyPem.ToCharArray());
+            rsa.ImportFromPem(response.PublicKey?.PublicKeyPem?.ToCharArray());
 
             string? comparisionString = null;
 

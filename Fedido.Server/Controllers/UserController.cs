@@ -113,7 +113,8 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    private string ExtractPrivateKey(RSA rsa)
+    // TODO Export this to standalone class
+    public string ExtractPrivateKey(RSA rsa)
     {
         const string beginRsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----";
         const string endRsaPrivateKey = "-----END RSA PRIVATE KEY-----";
@@ -122,8 +123,9 @@ public class UserController : ControllerBase
 
         return extractPrivateKey;
     }
-
-    private string ExtractPublicKey(RSA rsa)
+    
+    // TODO Export this to standalone class
+    public string ExtractPublicKey(RSA rsa)
     {
         // Public key export
         const string beginRsaPublicKey = "-----BEGIN RSA PUBLIC KEY-----";
