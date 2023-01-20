@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using CommonExtensions;
+using CommonExtensions.Cryptography;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model;
 using Fedido.Server.Model.ActivityPub;
@@ -61,7 +62,7 @@ public class UserController : ControllerBase
         {
             Id = new Uri($"{actor.Id}#main-key"),
             Owner = actor.Id,
-            PublicKeyPem = ExtractPublicKey(rsa)
+            PublicKeyPem = rsa.ExtractRsaPublicKeyPem()
         };
 
         // Add Actor if it is not exiting
@@ -106,7 +107,7 @@ public class UserController : ControllerBase
         user.PasswordSalt = passwordSalt;
         user.UserName = actorDto.PreferredUsername;
         user.Role = "User";
-        user.PrivateKeyActivityPub = ExtractPrivateKey(rsa);
+        user.PrivateKeyActivityPub = rsa.ExtractRsaPrivateKeyPem();
 
         await _repository.Create(user, DatabaseLocations.Users.Database, DatabaseLocations.Users.Collection);
 
