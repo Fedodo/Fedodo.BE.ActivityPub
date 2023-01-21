@@ -2,14 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using CommonExtensions;
 using Fedido.Server.Interfaces;
-using Fedido.Server.Model.ActivityPub;
 
 namespace Fedido.Server.Handlers;
 
 public class HttpSignatureHandler : IHttpSignatureHandler
 {
-    private readonly ILogger<HttpSignatureHandler> _logger;
     private readonly IActorAPI _actorApi;
+    private readonly ILogger<HttpSignatureHandler> _logger;
 
     public HttpSignatureHandler(ILogger<HttpSignatureHandler> logger, IActorAPI actorApi)
     {
@@ -23,8 +22,9 @@ public class HttpSignatureHandler : IHttpSignatureHandler
 
         if (requestHeaders["Signature"].IsNullOrEmpty())
         {
-            _logger.LogWarning($"Signature Header is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
-            
+            _logger.LogWarning(
+                $"Signature Header is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
+
             return false;
         }
 
@@ -37,11 +37,12 @@ public class HttpSignatureHandler : IHttpSignatureHandler
 
         if (keyIdString.IsNullOrEmpty())
         {
-            _logger.LogWarning($"{nameof(keyIdString)} is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
+            _logger.LogWarning(
+                $"{nameof(keyIdString)} is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
 
             return false;
         }
-        
+
         var keyId = new Uri(keyIdString);
         var signatureHash = signatureHeader.FirstOrDefault(i => i.StartsWith("signature"))?.Replace("signature=", "")
             .Replace("\"", "");
