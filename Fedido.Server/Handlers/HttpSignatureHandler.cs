@@ -75,6 +75,8 @@ public class HttpSignatureHandler : IHttpSignatureHandler
                 {
                     _logger.LogWarning($"No header configuration found for {headers}!");
 
+                    return false;
+
                     break;
                 }
             }

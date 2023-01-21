@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using CommonExtensions.Cryptography;
 using Fedido.Server.Handlers;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
@@ -16,7 +18,7 @@ namespace Fedido.Server.Test.Handlers;
 public class HttpSignatureHandlerShould
 {
     private readonly HttpSignatureHandler _signatureHandler;
-    private RSA Rsa = RSA.Create();
+    private readonly RSA _rsa = RSA.Create();
     
     public HttpSignatureHandlerShould()
     {
@@ -28,7 +30,7 @@ public class HttpSignatureHandlerShould
             {
                 Id = new Uri("https://example.com/id"),
                 Owner = new Uri("https://example.com/key"),
-                //PublicKeyPem = Rsa.Ex() // TODO Export this with standalone class
+                PublicKeyPem = _rsa.ExtractRsaPublicKeyPem()
             }
         };
 
@@ -39,24 +41,46 @@ public class HttpSignatureHandlerShould
     }
     
     [Theory]
-    [InlineData("", "", "", "", "", false)]
-    [InlineData("RandomString", "", "", "", "", false)]
-    [InlineData("RandomString%/&()", "", "", "", "", false)]
+    [InlineData("", "", "", "", "", false, false)]
+    [InlineData("RandomString", "", "", "", "", false, true)]
+    [InlineData("RandomString%/&()", "", "", "", "", false, true)]
+    [InlineData("/inbox/id", $"keyId=\"https://example.com/key9\",headers=\"(request-target) host date digest\"," +
+                             $"signature=\"ToBeReplaced\"", "string host", "digest", "date", false, true)]       
+    [InlineData("/inbox/id", $"keyId=\"https://example.com/key\",headers=\"(request-target) host date digest break\"," +
+                             $"signature=\"ToBeReplaced\"", "string host", "digest", "date", false, true)]        
     [InlineData("/inbox/id", $"keyId=\"https://example.com/key\",headers=\"(request-target) host date digest\"," +
-                             $"signature=\"test\"", "string host", "digest", "date", false)]    
+                             $"signature=\"YXNkZg==\"", "host", "digest", "date", false, true)]    
     [InlineData("/inbox/id", $"keyId=\"https://example.com/key\",headers=\"(request-target) host date digest\"," +
-                             $"signature=\"test\"", "string host", "digest", "date", true)]
-    public async Task VerifySignature(string currentPath, string signature, string host, string digest, string date, bool isSuccessful)
+                             $"signature=\"ToBeReplaced\"", "host", "digest", "date", true, true)]
+    [InlineData("/inbox/id", $"keyId=\"https://example.com/key\",headers=\"(request-target) host date digest content-type\"," +
+                             $"signature=\"ToBeReplaced\"", "host", "digest", "date", true, true)]
+    public async Task VerifySignature(string currentPath, string signatureHeader, string host, string digest, string date, 
+        bool isSuccessful, bool signatureEnabled)
     {
         // Arrange
-        // var signedString =
-        //     $"(request-target): post {serverInboxPair.Inbox.AbsolutePath}\nhost: {serverInboxPair.ServerName}\ndate: {date}\ndigest: sha-256={digest}";
+        string signedString;
         IHeaderDictionary headers = new HeaderDictionary();
         headers.Add("Host", host);
         headers.Add("Date", date);
         headers.Add("Digest", $"sha-256={digest}");
-        headers.Add("Signature", signature);
-        
+        if (signatureHeader.Contains("content-type"))
+        {
+            headers.ContentType = "json";
+            signedString = $"(request-target): post {currentPath}\nhost: {host}\ndate: {date}\ndigest: sha-256={digest}\ncontent-type: json";
+        }
+        else
+        {
+            signedString = $"(request-target): post {currentPath}\nhost: {host}\ndate: {date}\ndigest: sha-256={digest}";
+        }
+        if (signatureEnabled)
+        {
+            var signature = _rsa.SignData(Encoding.UTF8.GetBytes(signedString), HashAlgorithmName.SHA256,
+                RSASignaturePadding.Pkcs1);
+            
+            headers.Add("Signature", signatureHeader.Replace("signature=\"ToBeReplaced\"", 
+                $"signature=\"{Convert.ToBase64String(signature)}\""));
+        }
+
         // Act
         var result = await _signatureHandler.VerifySignature(headers, currentPath);
 
