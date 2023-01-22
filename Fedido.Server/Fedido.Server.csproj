@@ -14,15 +14,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.7"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12"/>
-        <PackageReference Include="MongoDB.Driver" Version="2.18.0"/>
-        <PackageReference Include="OpenIddict" Version="4.0.0"/>
-        <PackageReference Include="OpenIddict.AspNetCore" Version="4.0.0"/>
-        <PackageReference Include="OpenIddict.MongoDb" Version="4.0.0"/>
-        <PackageReference Include="OpenIddict.Server" Version="4.0.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6"/>
+        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.8" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12" />
+        <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
+        <PackageReference Include="OpenIddict" Version="4.0.0" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="4.0.0" />
+        <PackageReference Include="OpenIddict.MongoDb" Version="4.0.0" />
+        <PackageReference Include="OpenIddict.Server" Version="4.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
     </ItemGroup>
 
     <ItemGroup>
@@ -32,11 +32,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="wwwroot\css\site.css"/>
+        <None Include="wwwroot\css\site.css" />
     </ItemGroup>
 
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
     </ItemGroup>
 
 </Project>
