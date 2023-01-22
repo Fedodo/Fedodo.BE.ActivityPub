@@ -1,8 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Castle.Core;
+using CommonExtensions;
 using Fedido.Server.Handlers;
 using Fedido.Server.Interfaces;
+using Fedido.Server.Model.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Moq;
 using OpenIddict.Abstractions;
 using Shouldly;
@@ -13,11 +19,30 @@ namespace Fedido.Server.Test.Handlers;
 public class UserHandlerShould
 {
     private readonly UserHandler _userHandler;
+    private readonly User user;
 
     public UserHandlerShould()
     {
         var logger = new Mock<ILogger<UserHandler>>();
         var repository = new Mock<IMongoDbRepository>();
+
+        user = new User()
+        {
+            Id = new Guid("7D524FBC-9B45-417B-83A3-A67A1F5F595D"),
+            UserName = "userName",
+            Role = "TestUser"
+        };
+        
+        var filterIdDefinitionBuilder = Builders<User>.Filter;
+        var filterId = filterIdDefinitionBuilder.Eq(i => i.Id, 
+            new Guid("7D524FBC-9B45-417B-83A3-A67A1F5F595D"));
+        repository.Setup(i => i.GetSpecificItem(It.Is<FilterDefinition<User>>(item => item.IsSameAs(filterId)), DatabaseLocations.Users.Database, 
+            DatabaseLocations.Users.Collection)).ReturnsAsync(user);
+
+        var filterUserDefinitionBuilder = Builders<User>.Filter;
+        var filterUser = filterUserDefinitionBuilder.Eq(i => i.UserName, "userName");
+        repository.Setup(i => i.GetSpecificItem(It.Is<FilterDefinition<User>>(item => item.IsSameAs(filterUser)), DatabaseLocations.Users.Database, 
+            DatabaseLocations.Users.Collection)).ReturnsAsync(user);
 
         _userHandler = new UserHandler(logger.Object, repository.Object);
     }
@@ -40,5 +65,33 @@ public class UserHandlerShould
 
         // Assert
         result.ShouldBe(successful);
+    }
+
+    [Theory]
+    [InlineData("7D524FBC-9B45-417B-83A3-A67A1F5F595D")]
+    public async Task GetUserByIdAsync(Guid userId)
+    {
+        // Arrange
+        
+        // Act
+        var result = await _userHandler.GetUserByIdAsync(userId);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.ShouldBeEquivalentTo(user);
+    }
+    
+    [Theory]
+    [InlineData("userName")]
+    public async Task GetUserByNameAsync(string userName)
+    {
+        // Arrange
+        
+        // Act
+        var result = await _userHandler.GetUserByNameAsync(userName);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.ShouldBeEquivalentTo(user);
     }
 }

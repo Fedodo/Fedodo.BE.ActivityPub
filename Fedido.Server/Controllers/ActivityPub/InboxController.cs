@@ -132,7 +132,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(followObject, DatabaseLocations.Followers.Database, userId.ToString());
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
-                var user = await _userHandler.GetUserById(userId);
+                var user = await _userHandler.GetUserByIdAsync(userId);
                 var actor = await _activityHandler.GetActor(userId);
 
                 var acceptActivity = new Activity
