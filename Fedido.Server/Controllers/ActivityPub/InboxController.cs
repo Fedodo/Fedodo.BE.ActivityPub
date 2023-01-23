@@ -132,7 +132,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(followObject, DatabaseLocations.Followers.Database, userId.ToString());
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
-                var user = await _userHandler.GetUserById(userId);
+                var user = await _userHandler.GetUserByIdAsync(userId);
                 var actor = await _activityHandler.GetActor(userId);
 
                 var acceptActivity = new Activity
@@ -301,7 +301,17 @@ public class InboxController : ControllerBase
             }
             case "Delete":
             {
-                // activity.Object
+                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>());
+
+                var definitionBuilder = Builders<Post>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Id, postId);
+
+                var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxNotes.Database,
+                    DatabaseLocations.InboxNotes.Collection);
+
+                if (post.AttributedTo == activity.Actor)
+                    await _repository.Delete(filter, DatabaseLocations.InboxNotes.Database,
+                        DatabaseLocations.InboxNotes.Collection);
 
                 break;
             }

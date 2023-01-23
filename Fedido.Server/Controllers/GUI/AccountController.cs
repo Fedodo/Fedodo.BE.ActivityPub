@@ -43,7 +43,7 @@ public class AccountController : Controller
 
         if (ModelState.IsValid)
         {
-            var user = await _userHandler.GetUserByName(model.Username);
+            var user = await _userHandler.GetUserByNameAsync(model.Username);
 
             if (user.IsNull()) return BadRequest("UserName or Password are not correct!");
 
