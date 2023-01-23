@@ -15,7 +15,7 @@ public class KnownSharedInboxHandler : IKnownSharedInboxHandler
         _repository = repository;
     }
 
-    public async Task AddSharedInbox(Uri sharedInbox)
+    public async Task AddSharedInboxAsync(Uri sharedInbox)
     {
         var filterDefinitionBuilder = Builders<SharedInbox>.Filter;
         var filter = filterDefinitionBuilder.Where(i => i.SharedInboxUri == sharedInbox);
@@ -27,7 +27,7 @@ public class KnownSharedInboxHandler : IKnownSharedInboxHandler
                 DatabaseLocations.KnownSharedInbox.Database, DatabaseLocations.KnownSharedInbox.Collection);
     }
 
-    public async Task<IEnumerable<Uri>> GetSharedInboxes()
+    public async Task<IEnumerable<Uri>> GetSharedInboxesAsync()
     {
         var sharedInbox = await _repository.GetAll<SharedInbox>(DatabaseLocations.KnownSharedInbox.Database,
             DatabaseLocations.KnownSharedInbox.Collection);

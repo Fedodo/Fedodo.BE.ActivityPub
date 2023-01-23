@@ -1,10 +1,14 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Fedido.Server.Handlers;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Shouldly;
 using Xunit;
 
 namespace Fedido.Server.Test.Handlers;
@@ -12,13 +16,14 @@ namespace Fedido.Server.Test.Handlers;
 public class KnownSharedInboxHandlerShould
 {
     private readonly KnownSharedInboxHandler _handler;
+    private readonly List<SharedInbox> _sharedInboxes;
 
     public KnownSharedInboxHandlerShould()
     {
         var logger = new Mock<ILogger<KnownSharedInboxHandler>>();
         var repository = new Mock<IMongoDbRepository>();
 
-        var sharedInboxes = new List<SharedInbox>()
+        _sharedInboxes = new List<SharedInbox>()
         {
             new()
             {
@@ -28,25 +33,40 @@ public class KnownSharedInboxHandlerShould
             new()
             {
                 Id = new Guid("3EBBB5F7-E9F0-475A-87FA-D3EA93408345"),
-                SharedInboxUri = new Uri("https://example.com/inbox")
+                SharedInboxUri = new Uri("https://example.com/inbox2")
             }
         };
 
         // repository.Setup(i => i.GetSpecificItems())
 
         repository.Setup(i => i.GetAll<SharedInbox>(DatabaseLocations.KnownSharedInbox.Database,
-            DatabaseLocations.KnownSharedInbox.Collection)).ReturnsAsync(sharedInboxes);
+            DatabaseLocations.KnownSharedInbox.Collection)).ReturnsAsync(_sharedInboxes);
 
         _handler = new KnownSharedInboxHandler(logger.Object, repository.Object);
     }
 
-    [Fact]
-    public void AddSharedInbox()
+    [Theory]
+    [InlineData("https://lna-dev.net")]
+    public async Task AddSharedInbox(string sharedInbox)
     {
         // Arrange
 
         // Act
+        await _handler.AddSharedInboxAsync(new Uri(sharedInbox));
 
         // Assert
+    }
+
+    [Fact]
+    public async Task GetSharedInboxes()
+    {
+        // Arrange
+
+        // Act
+        var result = await _handler.GetSharedInboxesAsync();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.First().ShouldBe(new Uri("https://example.com/inbox"));
     }
 }

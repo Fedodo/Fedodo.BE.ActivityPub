@@ -70,7 +70,7 @@ public class ActivityHandler : IActivityHandler
                 }
             }
 
-            foreach (var item in await _sharedInboxHandler.GetSharedInboxes())
+            foreach (var item in await _sharedInboxHandler.GetSharedInboxesAsync())
                 targets.Add(new ServerNameInboxPair
                 {
                     Inbox = item,
@@ -185,7 +185,7 @@ public class ActivityHandler : IActivityHandler
                 };
             }
 
-            await _sharedInboxHandler.AddSharedInbox(sharedInbox);
+            await _sharedInboxHandler.AddSharedInboxAsync(sharedInbox);
 
             return new ServerNameInboxPair
             {
