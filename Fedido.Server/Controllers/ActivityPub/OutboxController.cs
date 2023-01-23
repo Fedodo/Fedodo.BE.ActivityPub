@@ -57,7 +57,7 @@ public class OutboxController : ControllerBase
         var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
         var activity = await CreateActivity(userId, activityDto);
 
-        await _activityHandler.SendActivities(activity, user, actor);
+        await _activityHandler.SendActivitiesAsync(activity, user, actor);
 
         return Ok(activity);
     }

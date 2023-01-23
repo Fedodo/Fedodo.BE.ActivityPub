@@ -148,7 +148,7 @@ public class InboxController : ControllerBase
                     }
                 };
 
-                await _activityHandler.SendActivities(acceptActivity, user, actor);
+                await _activityHandler.SendActivitiesAsync(acceptActivity, user, actor);
 
                 break;
             }
