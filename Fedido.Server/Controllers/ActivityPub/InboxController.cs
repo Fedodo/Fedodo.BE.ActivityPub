@@ -133,7 +133,7 @@ public class InboxController : ControllerBase
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
                 var user = await _userHandler.GetUserByIdAsync(userId);
-                var actor = await _activityHandler.GetActor(userId);
+                var actor = await _activityHandler.GetActorAsync(userId, domainName);
 
                 var acceptActivity = new Activity
                 {

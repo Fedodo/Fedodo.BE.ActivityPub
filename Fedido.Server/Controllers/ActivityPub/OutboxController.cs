@@ -54,7 +54,7 @@ public class OutboxController : ControllerBase
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
         var user = await _userHandler.GetUserByIdAsync(userId);
-        var actor = await _activityHandler.GetActor(userId);
+        var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
         var activity = await CreateActivity(userId, activityDto);
 
         await _activityHandler.SendActivities(activity, user, actor);
