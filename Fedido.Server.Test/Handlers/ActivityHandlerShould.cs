@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CommonExtensions;
 using Fedido.Server.APIs;
@@ -34,7 +35,12 @@ public class ActivityHandlerShould
         _actor = new Actor()
         {
             Name = "Lexa kom Trikru",
-            Id = new Uri("https://example.com/actor/00E90526-288D-41E2-9B21-39BAC05ED5B6")
+            Id = new Uri("https://example.com/actor/00E90526-288D-41E2-9B21-39BAC05ED5B6"),
+            Inbox = new Uri("https://example.com/inbox"),
+            Endpoints = new Endpoints()
+            {
+                SharedInbox = new Uri("https://example.com/sharedInbox")
+            }
         };
 
         var sharedInboxes = new List<Uri>()
@@ -75,7 +81,7 @@ public class ActivityHandlerShould
             }
         });
 
-        actorApi.Setup(i => i.GetActor(It.IsAny<Uri>())).ReturnsAsync(_actor);
+        actorApi.Setup(i => i.GetActor(It.Is<Uri>(i => i != new Uri("https://example.com/fail")))).ReturnsAsync(_actor);
         
         _handler = new ActivityHandler(logger: logger.Object, repository: repository.Object, actorApi: actorApi.Object, 
             activityApi: activityApi.Object, sharedInboxHandler: sharedInboxHandler.Object, collectionApi: collectionApi.Object);
@@ -99,6 +105,7 @@ public class ActivityHandlerShould
     [InlineData("Fail", "as:Public")]
     [InlineData("NotFail", "as:Public")]
     [InlineData("NotFail", "https://example.com/blub")]
+    [InlineData("Fail", "https://example.com/fail")]
     public async Task SendActivities(string userName, string to)
     {
         // Arrange
@@ -107,7 +114,8 @@ public class ActivityHandlerShould
             To = new []
             {
                 to,
-                "https://example.com/user/123"
+                "https://example.com/user/123",
+                "https://example.com/fail"
             },
             Bto = new []
             {
@@ -136,17 +144,18 @@ public class ActivityHandlerShould
         };
         
         // Act
-        await _handler.SendActivitiesAsync(activity, user, _actor);
+        var result = await _handler.SendActivitiesAsync(activity, user, _actor);
 
         // Assert
+        result.ShouldNotBe(userName == "Fail");
     }
 
     [Theory]
-    [InlineData("https://example.com/target", true)]
-    [InlineData("https://example.com/target", false)]
-    [InlineData("https://example.com/null", false)]
-    [InlineData("https://example.com/null", true)]
-    public async Task GetServerNameInboxPairs(string targetString, bool isPublic)
+    [InlineData("https://example.com/target", true, "https://example.com/sharedInbox")]
+    [InlineData("https://example.com/target", false, "https://example.com/inbox")]
+    [InlineData("https://example.com/null", false, "https://example.com/inbox")]
+    [InlineData("https://example.com/null", true, "https://example.com/sharedInbox")]
+    public async Task GetServerNameInboxPairs(string targetString, bool isPublic, string expectedResult)
     {
         // Arrange
         var target = new Uri(targetString);
@@ -156,5 +165,7 @@ public class ActivityHandlerShould
 
         // Assert
         result.ShouldNotBeNull();
+        result.First().Inbox.ShouldBe(new Uri(expectedResult));
+        result.First().ServerName.ShouldBe(new Uri(expectedResult).Host);
     }
 }

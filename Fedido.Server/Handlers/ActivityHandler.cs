@@ -38,8 +38,10 @@ public class ActivityHandler : IActivityHandler
         return actor;
     }
 
-    public async Task SendActivitiesAsync(Activity activity, User user, Actor actor)
+    public async Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor)
     {
+        var everythingSuccessful = true;
+        
         var targets = new HashSet<ServerNameInboxPair>();
 
         var receivers = new List<string>();
@@ -90,7 +92,8 @@ public class ActivityHandler : IActivityHandler
                 }
                 else
                 {
-                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(new Uri(item), false);
+                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(
+                        new Uri(item), false);
                     foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
@@ -115,9 +118,16 @@ public class ActivityHandler : IActivityHandler
             {
                 if (await _activityApi.SendActivity(activity, user, target, actor)) break;
 
+                if (i == 4)
+                {
+                    everythingSuccessful = false;
+                }
+                
                 Thread.Sleep(10000);
             }
         }
+
+        return everythingSuccessful;
     }
 
     public async Task<IEnumerable<ServerNameInboxPair>> GetServerNameInboxPairsAsync(Uri target, bool isPublic)
