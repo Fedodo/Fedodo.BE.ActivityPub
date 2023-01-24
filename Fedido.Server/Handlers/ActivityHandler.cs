@@ -28,18 +28,20 @@ public class ActivityHandler : IActivityHandler
         _collectionApi = collectionApi;
     }
 
-    public async Task<Actor> GetActor(Guid userId)
+    public async Task<Actor> GetActorAsync(Guid userId, string domainName)
     {
         var filterActorDefinitionBuilder = Builders<Actor>.Filter;
         var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id,
-            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}"));
+            new Uri($"https://{domainName}/actor/{userId}"));
         var actor = await _repository.GetSpecificItem(filterActor, DatabaseLocations.Actors.Database,
             DatabaseLocations.Actors.Collection);
         return actor;
     }
 
-    public async Task SendActivities(Activity activity, User user, Actor actor)
+    public async Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor)
     {
+        var everythingSuccessful = true;
+        
         var targets = new HashSet<ServerNameInboxPair>();
 
         var receivers = new List<string>();
@@ -48,7 +50,7 @@ public class ActivityHandler : IActivityHandler
         if (activity.Bcc.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc);
         if (activity.Audience.IsNotNullOrEmpty()) receivers.AddRange(activity.Audience);
         if (activity.Bto.IsNotNullOrEmpty()) receivers.AddRange(activity.Bto);
-        if (activity.Bcc.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc);
+        if (activity.Cc.IsNotNullOrEmpty()) receivers.AddRange(activity.Cc);
 
         if (activity.IsActivityPublic()) // Public Post
         {
@@ -65,7 +67,7 @@ public class ActivityHandler : IActivityHandler
                 }
                 else
                 {
-                    var serverNameInboxPairs = await GetServerNameInboxPairs(new Uri(item), true);
+                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(new Uri(item), true);
                     foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
@@ -90,7 +92,8 @@ public class ActivityHandler : IActivityHandler
                 }
                 else
                 {
-                    var serverNameInboxPairs = await GetServerNameInboxPairs(new Uri(item), false);
+                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(
+                        new Uri(item), false);
                     foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
@@ -115,12 +118,19 @@ public class ActivityHandler : IActivityHandler
             {
                 if (await _activityApi.SendActivity(activity, user, target, actor)) break;
 
+                if (i == 4)
+                {
+                    everythingSuccessful = false;
+                }
+                
                 Thread.Sleep(10000);
             }
         }
+
+        return everythingSuccessful;
     }
 
-    private async Task<IEnumerable<ServerNameInboxPair>> GetServerNameInboxPairs(Uri target, bool isPublic)
+    public async Task<IEnumerable<ServerNameInboxPair>> GetServerNameInboxPairsAsync(Uri target, bool isPublic)
     {
         var serverNameInboxPairs = new List<ServerNameInboxPair>();
 
@@ -131,7 +141,7 @@ public class ActivityHandler : IActivityHandler
             var collection = await _collectionApi.GetCollection<Uri>(target);
 
             if (collection.IsNull())
-                _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairs)} -> " +
+                _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
                                    $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
             else
                 foreach (var item in collection.Items)
@@ -164,7 +174,7 @@ public class ActivityHandler : IActivityHandler
         return serverNameInboxPairs;
     }
 
-    private async Task<ServerNameInboxPair?> GetServerNameInboxPair(Uri actorUri, bool isPublic)
+    public async Task<ServerNameInboxPair?> GetServerNameInboxPair(Uri actorUri, bool isPublic)
     {
         var actor = await _actorApi.GetActor(actorUri);
 

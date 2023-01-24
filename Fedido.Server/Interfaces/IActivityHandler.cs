@@ -5,6 +5,6 @@ namespace Fedido.Server.Interfaces;
 
 public interface IActivityHandler
 {
-    public Task SendActivities(Activity activity, User user, Actor actor);
-    public Task<Actor> GetActor(Guid userId);
+    public Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor);
+    public Task<Actor> GetActorAsync(Guid userId, string domainName);
 }
