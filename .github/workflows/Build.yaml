@@ -60,7 +60,7 @@ jobs:
 
       # Build
       - name: Build the Docker image
-        run: docker build . --file Fedido.Server/Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:latest
+        run: docker build . --file Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:latest
 
       # Publish
       - name: Login to Docker Hub
