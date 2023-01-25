@@ -1,5 +1,3 @@
-using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CommonExtensions;
 using Fedido.Server.Controllers;
@@ -16,8 +14,8 @@ namespace Fedido.Server.Test.Controllers;
 
 public class WellKnownControllerShould
 {
-    private readonly WellKnownController _wellKnownController;
     private readonly Webfinger _webfinger;
+    private readonly WellKnownController _wellKnownController;
 
     public WellKnownControllerShould()
     {
@@ -27,32 +25,29 @@ public class WellKnownControllerShould
         var filterDefinitionBuilder = Builders<Webfinger>.Filter;
         var filter = filterDefinitionBuilder.Eq(i => i.Subject, "resource");
 
-        _webfinger = new Webfinger()
+        _webfinger = new Webfinger
         {
             Subject = "resource",
-            Links = new []
+            Links = new[]
             {
                 new Link()
-                {
-                    
-                }
             }
         };
-        
-        repository.Setup(i => 
-            i.GetSpecificItem(It.Is<FilterDefinition<Webfinger>>(i => 
-                i.IsSameAs(filter)), DatabaseLocations.Webfinger.Database, DatabaseLocations.Webfinger.Collection))
+
+        repository.Setup(i =>
+                i.GetSpecificItem(It.Is<FilterDefinition<Webfinger>>(i =>
+                    i.IsSameAs(filter)), DatabaseLocations.Webfinger.Database, DatabaseLocations.Webfinger.Collection))
             .ReturnsAsync(_webfinger);
-        
+
         _wellKnownController = new WellKnownController(logger.Object, repository.Object);
     }
-    
+
     [Theory]
     [InlineData("resource")]
     public async Task GetWebfinger(string resource)
     {
         // Arrange
-        
+
         // Act
         var result = await _wellKnownController.GetWebfingerAsync(resource);
 

@@ -13,16 +13,18 @@ public class AuthenticationHandlerShould
     {
         _authenticationHandler = new AuthenticationHandler();
     }
-    
+
     [Theory]
-    [InlineData("test", "fuHWfSRTAsrBcqb/seUxJAdubbsKWZs/kWEIG7m0TZiJVWdSiB/PpzHeqtfxzQkUecdnwjkJGj+WAP5rxBSDlw==", "h4UzHhoXPbf+qDDCeBR+X9a9Ss4Z/r/ZM1/RNX9n90emzl3NSRDrtIHV2koF6E8CwxblcpKayOKT5TEhOjDy3Amqp/tjppSKVzXnDeWmcFz6/Wqx6GJU9VIpnD8kdLkjBEgLD+2YxMA84u4nY53s0br5CsV7Jn4nT5B969xfgc8=", true)]
+    [InlineData("test", "fuHWfSRTAsrBcqb/seUxJAdubbsKWZs/kWEIG7m0TZiJVWdSiB/PpzHeqtfxzQkUecdnwjkJGj+WAP5rxBSDlw==",
+        "h4UzHhoXPbf+qDDCeBR+X9a9Ss4Z/r/ZM1/RNX9n90emzl3NSRDrtIHV2koF6E8CwxblcpKayOKT5TEhOjDy3Amqp/tjppSKVzXnDeWmcFz6/Wqx6GJU9VIpnD8kdLkjBEgLD+2YxMA84u4nY53s0br5CsV7Jn4nT5B969xfgc8=",
+        true)]
     [InlineData("", "", "", false)]
     public void VerifyPasswordHash(string password, string passwordHash, string passwordSalt, bool success)
     {
         // Arrange
-        
+
         // Act
-        var result = _authenticationHandler.VerifyPasswordHash(password, Convert.FromBase64String(passwordHash), 
+        var result = _authenticationHandler.VerifyPasswordHash(password, Convert.FromBase64String(passwordHash),
             Convert.FromBase64String(passwordSalt));
 
         // Assert
