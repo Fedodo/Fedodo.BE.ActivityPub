@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build the Docker image
-        run: docker build . --file Fedido.Server/Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:${{ github.run_number }}
+        run: docker build . --file Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:${{ github.run_number }}
 
       - name: Push the image to dockerhub
         run: docker push ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:${{ github.run_number }}
