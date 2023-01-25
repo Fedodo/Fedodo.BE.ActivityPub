@@ -6,41 +6,68 @@ on:
 
 env:
   DOCKERHUB_USERNAME: "lnadev"
+  PROJECT_PATH: "Fedido.Server.Test/Fedido.Server.Test.csproj"
 
 jobs:
+  RunTests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout
+      - uses: actions/checkout@v3
+
+      # Test
+      - name: "Install .net"
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "6.x"
+
+      - name: "Restore packages"
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: "Test"
+        run: dotnet test ${{ env.PROJECT_PATH }} --no-restore --configuration Release
 
   ReleaseVersion:
     runs-on: ubuntu-latest
+    needs: ["RunTests"] 
 
     steps:
+      # Checkout
       - uses: actions/checkout@v3
 
+      # Build
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:${{ github.run_number }}
+
+      # Publish
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build the Docker image
-        run: docker build . --file Fedido.Server/Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:${{ github.run_number }}
 
       - name: Push the image to dockerhub
         run: docker push ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:${{ github.run_number }}
   
   ReleaseLatest:
     runs-on: ubuntu-latest
-
+    needs: ["RunTests"]    
+    
     steps:
+      # Checkout
       - uses: actions/checkout@v3
 
+      # Build
+      - name: Build the Docker image
+        run: docker build . --file Fedido.Server/Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:latest
+
+      # Publish
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build the Docker image
-        run: docker build . --file Fedido.Server/Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:latest
 
       - name: Push the image to dockerhub
         run: docker push ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:latest

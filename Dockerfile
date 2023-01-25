@@ -3,6 +3,14 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+#FROM mcr.microsoft.com/dotnet/sdk:6.0 AS test
+#WORKDIR /src
+#COPY ["Fedido.Server.Test/Fedido.Server.Test.csproj", "Fedido.Server.Test/"]
+#RUN dotnet restore "Fedido.Server.Test/Fedido.Server.Test.csproj"
+#COPY . .
+#WORKDIR "/src/Fedido.Server.Test"
+#RUN dotnet test "Fedido.Server.Test.csproj" -c Release -o /app/test
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Fedido.Server/Fedido.Server.csproj", "Fedido.Server/"]

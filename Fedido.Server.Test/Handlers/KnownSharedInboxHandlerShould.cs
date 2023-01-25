@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +22,7 @@ public class KnownSharedInboxHandlerShould
         var logger = new Mock<ILogger<KnownSharedInboxHandler>>();
         var repository = new Mock<IMongoDbRepository>();
 
-        _sharedInboxes = new List<SharedInbox>()
+        _sharedInboxes = new List<SharedInbox>
         {
             new()
             {

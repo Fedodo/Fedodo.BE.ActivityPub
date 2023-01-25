@@ -41,7 +41,7 @@ public class ActivityHandler : IActivityHandler
     public async Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor)
     {
         var everythingSuccessful = true;
-        
+
         var targets = new HashSet<ServerNameInboxPair>();
 
         var receivers = new List<string>();
@@ -118,11 +118,8 @@ public class ActivityHandler : IActivityHandler
             {
                 if (await _activityApi.SendActivity(activity, user, target, actor)) break;
 
-                if (i == 4)
-                {
-                    everythingSuccessful = false;
-                }
-                
+                if (i == 4) everythingSuccessful = false;
+
                 Thread.Sleep(10000);
             }
         }
