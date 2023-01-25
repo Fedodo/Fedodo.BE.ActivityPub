@@ -9,10 +9,10 @@ namespace Fedido.Server.Controllers;
 [Route(".well-known")]
 public class WellKnownController : ControllerBase
 {
-    private readonly ILogger<Webfinger> _logger;
+    private readonly ILogger<WellKnownController> _logger;
     private readonly IMongoDbRepository _repository;
 
-    public WellKnownController(ILogger<Webfinger> logger, IMongoDbRepository repository)
+    public WellKnownController(ILogger<WellKnownController> logger, IMongoDbRepository repository)
     {
         _logger = logger;
         _repository = repository;
@@ -20,10 +20,10 @@ public class WellKnownController : ControllerBase
 
     [HttpGet]
     [Route("webfinger")]
-    public async Task<ActionResult<Webfinger>> GetWebfinger(string resource)
+    public async Task<ActionResult<Webfinger>> GetWebfingerAsync(string resource)
     {
         _logger.LogTrace(
-            $"Entered {nameof(GetWebfinger)} in {nameof(WellKnownController)} with {nameof(resource)} = {resource}");
+            $"Entered {nameof(GetWebfingerAsync)} in {nameof(WellKnownController)} with {nameof(resource)} = {resource}");
 
         var filterDefinitionBuilder = Builders<Webfinger>.Filter;
         var filter = filterDefinitionBuilder.Eq(i => i.Subject, resource);
