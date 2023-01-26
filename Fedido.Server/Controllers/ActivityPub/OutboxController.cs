@@ -63,6 +63,6 @@ public class OutboxController : ControllerBase
 
         await _activityHandler.SendActivitiesAsync(activity, user, actor);
 
-        return Ok(activity);
+        return Created(activity.Id, activity);
     }
 }
