@@ -7,6 +7,7 @@ using Fedido.Server.Handlers;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
 using Fedido.Server.Model.Authentication;
+using Fedido.Server.Model.DTOs;
 using Fedido.Server.Model.Helpers;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -84,6 +85,39 @@ public class ActivityHandlerShould
 
         _handler = new ActivityHandler(logger.Object, repository.Object, actorApi.Object,
             activityApi.Object, sharedInboxHandler.Object, collectionApi.Object);
+    }
+
+    [Theory]
+    [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Create")]
+    [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Like")]
+    [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Share")]
+    public async Task CreateActivity(string userId, string type)
+    {
+        // Arrange
+        object obj;
+
+        if (type == "Create")
+            obj = new Post();
+        else
+            obj = "https://example.com/resource";
+
+        var dto = new CreateActivityDto
+        {
+            Object = obj,
+            Type = type
+        };
+
+        // Act
+        var result = await _handler.CreateActivity(new Guid(userId), dto, "example.com");
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.Actor.ShouldBe(new Uri("https://example.com/actor/eab26e2c-48be-45f6-bb17-fb35bb7f889f"));
+        result.Type.ShouldBe(type);
+        if (type != "Create")
+            result.Object.ShouldBe(obj);
+        else
+            result.Object.ShouldBeOfType<Post>();
     }
 
     [Theory]

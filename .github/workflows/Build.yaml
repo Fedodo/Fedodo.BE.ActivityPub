@@ -30,8 +30,8 @@ jobs:
 
   ReleaseVersion:
     runs-on: ubuntu-latest
-    needs: ["RunTests"] 
-
+    needs: [ "RunTests" ]
+    
     steps:
       # Checkout
       - uses: actions/checkout@v3
@@ -52,7 +52,7 @@ jobs:
   
   ReleaseLatest:
     runs-on: ubuntu-latest
-    needs: ["RunTests"]    
+    needs: [ "RunTests" ]
     
     steps:
       # Checkout
