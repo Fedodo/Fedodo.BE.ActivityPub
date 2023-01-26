@@ -6,7 +6,7 @@ on:
 
 env:
   DOCKERHUB_USERNAME: "lnadev"
-  PROJECT_PATH: "Fedido.Server.Test/Fedido.Server.Test.csproj"
+  PROJECT_PATH: "Fedodo.Server.Test/Fedodo.Server.Test.csproj"
 
 jobs:
   RunTests:

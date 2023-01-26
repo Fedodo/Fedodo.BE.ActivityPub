@@ -3,34 +3,34 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![wakatime](https://wakatime.com/badge/github/LNA-DEV/Fedido.Server.svg?style=for-the-badge&logo=appveyor)](https://wakatime.com/badge/github/LNA-DEV/Fedido.Server.svg?style=for-the-badge&logo=appveyor)
-[![HugoBuildAndDeploy](https://img.shields.io/github/actions/workflow/status/LNA-DEV/Fedido.Server/Build.yaml?style=for-the-badge)](https://github.com/LNA-DEV/Fedido.Server/actions/workflows/Build.yaml)
+[![wakatime](https://wakatime.com/badge/github/Fedodo/Fedodo.Server.svg?style=for-the-badge&logo=appveyor)](https://wakatime.com/badge/github/Fedodo/Fedodo.Server.svg?style=for-the-badge&logo=appveyor)
+[![HugoBuildAndDeploy](https://img.shields.io/github/actions/workflow/status/Fedodo/Fedodo.Server/Build.yaml?style=for-the-badge)](https://github.com/Fedodo/Fedodo.Server/actions/workflows/Build.yaml)
 
 <!-- PROJECT LOGO -->
 <br/>
 <div align="center">
-  <a href="https://github.com/lna-dev/Fedido.Server">
+  <a href="https://github.com/Fedodo/Fedodo.Server">
     <img src="https://fachinformatikerpruefungsvorbereitung.de/Assets/Images/Pingüino-Square.png" alt="Logo" width="80" height="80">
   </a>
 
 <!-- TODO Change the project name -->
 
-### Fedido.Server
+### Fedodo.Server
 
 <!-- TODO Change the description -->
-In this repository I have created a Fedido.Server based on Best-Fedido.Server
+In this repository I have created a Fedodo.Server based on Best-Fedodo.Server
 
 <p align="center">
 
 <br />
 
 <!-- TODO Change the Link for Project, Bug and Feature -->
-<a href="https://lna-dev.com"><strong>Explore the Project »</strong></a>
+<a href="https://Fedodo.com"><strong>Explore the Project »</strong></a>
 <br />
 <br />
-<a href="https://github.com/lna-dev/Fedido.Server/issues">Report Bug</a>
+<a href="https://github.com/Fedodo/Fedodo.Server/issues">Report Bug</a>
 ·
-<a href="https://github.com/lna-dev/Fedido.Server/issues">Request Feature</a>
+<a href="https://github.com/Fedodo/Fedodo.Server/issues">Request Feature</a>
   </p>
 </div>
 
@@ -79,22 +79,22 @@ The code is distributed under the AGPL-3.0 License. See `LICENSE` for more infor
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/lna-dev/Fedido.Server.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/Fedodo/Fedodo.Server.svg?style=for-the-badge
 
-[contributors-url]: https://github.com/lna-dev/Fedido.Server/graphs/contributors
+[contributors-url]: https://github.com/Fedodo/Fedodo.Server/graphs/contributors
 
-[forks-shield]: https://img.shields.io/github/forks/lna-dev/Fedido.Server.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/Fedodo/Fedodo.Server.svg?style=for-the-badge
 
-[forks-url]: https://github.com/lna-dev/Fedido.Server/network/members
+[forks-url]: https://github.com/Fedodo/Fedodo.Server/network/members
 
-[stars-shield]: https://img.shields.io/github/stars/lna-dev/Fedido.Server.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/Fedodo/Fedodo.Server.svg?style=for-the-badge
 
-[stars-url]: https://github.com/lna-dev/Fedido.Server/stargazers
+[stars-url]: https://github.com/Fedodo/Fedodo.Server/stargazers
 
-[issues-shield]: https://img.shields.io/github/issues/lna-dev/Fedido.Server.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/github/issues/Fedodo/Fedodo.Server.svg?style=for-the-badge
 
-[issues-url]: https://github.com/lna-dev/Fedido.Server/issues
+[issues-url]: https://github.com/Fedodo/Fedodo.Server/issues
 
-[license-shield]: https://img.shields.io/github/license/lna-dev/Fedido.Server.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/Fedodo/Fedodo.Server.svg?style=for-the-badge
 
-[license-url]: https://github.com/lna-dev/Fedido.Server/blob/master/LICENSE
+[license-url]: https://github.com/Fedodo/Fedodo.Server/blob/master/LICENSE
