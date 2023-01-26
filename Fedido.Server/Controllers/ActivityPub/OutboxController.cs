@@ -2,7 +2,6 @@ using CommonExtensions;
 using Fedido.Server.Interfaces;
 using Fedido.Server.Model.ActivityPub;
 using Fedido.Server.Model.DTOs;
-using Fedido.Server.Model.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -56,108 +55,12 @@ public class OutboxController : ControllerBase
 
         var user = await _userHandler.GetUserByIdAsync(userId);
         var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
-        var activity = await CreateActivity(userId, activityDto);
+        var activity = await _activityHandler.CreateActivity(userId, activityDto);
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 
         await _activityHandler.SendActivitiesAsync(activity, user, actor);
 
         return Ok(activity);
-    }
-
-    // TODO Might be seperated into Handler
-    private async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto)
-    {
-        var postId = Guid.NewGuid();
-        var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
-        object? obj;
-
-        switch (activityDto.Type)
-        {
-            case "Create":
-            {
-                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Post>();
-
-                var post = new Post
-                {
-                    To = createPostDto.To,
-                    Name = createPostDto.Name,
-                    Summary = createPostDto.Summary,
-                    Sensitive = createPostDto.Sensitive,
-                    InReplyTo = createPostDto.InReplyTo,
-                    Content = createPostDto.Content,
-                    Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
-                    Type = createPostDto.Type,
-                    Published = createPostDto.Published,
-                    AttributedTo = actorId,
-                    Shares = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}"),
-                    Likes = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
-                };
-
-                await _repository.Create(post, DatabaseLocations.OutboxNotes.Database,
-                    DatabaseLocations.OutboxNotes.Collection);
-
-                obj = post;
-                break;
-            }
-            case "Like":
-            {
-                var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
-
-                obj = uriString;
-
-                var likeHelper = new LikeHelper
-                {
-                    Like = new Uri(uriString)
-                };
-
-                await _repository.Create(likeHelper, DatabaseLocations.Likings.Database, userId.ToString());
-
-                break;
-            }
-            case "Follow":
-            {
-                // Follow does not need to be stored in the database. This happens only if the sever gets an accept.
-                obj = activityDto.Object.TrySystemJsonDeserialization<string>();
-                break;
-            }
-            case "Share":
-            {
-                var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
-                obj = uriString;
-
-                var shareHelper = new ShareHelper
-                {
-                    Share = new Uri(uriString)
-                };
-
-                await _repository.Create(shareHelper, DatabaseLocations.Shareings.Database, userId.ToString());
-
-                break;
-            }
-            default:
-            {
-                _logger.LogWarning($"Entered default case in {nameof(CreatePost)} in {nameof(OutboxController)}");
-
-                return null;
-            }
-        }
-
-        var activity = new Activity
-        {
-            Actor = actorId,
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activitys/{postId}"),
-            Type = activityDto.Type,
-            To = activityDto.To,
-            Bto = activityDto.Bto,
-            Cc = activityDto.Cc,
-            Bcc = activityDto.Bcc,
-            Audience = activityDto.Audience,
-            Object = obj
-        };
-
-        await _repository.Create(activity, DatabaseLocations.Activities.Database, userId.ToString());
-
-        return activity;
     }
 }
