@@ -55,7 +55,9 @@ public class OutboxController : ControllerBase
 
         var user = await _userHandler.GetUserByIdAsync(userId);
         var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
-        var activity = await _activityHandler.CreateActivity(userId, activityDto);
+        var activity =
+            await _activityHandler.CreateActivity(userId, activityDto,
+                Environment.GetEnvironmentVariable("DOMAINNAME"));
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 

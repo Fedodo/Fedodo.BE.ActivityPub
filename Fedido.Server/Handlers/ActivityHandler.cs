@@ -39,10 +39,10 @@ public class ActivityHandler : IActivityHandler
         return actor;
     }
 
-    public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto)
+    public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName)
     {
         var postId = Guid.NewGuid();
-        var actorId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
+        var actorId = new Uri($"https://{domainName}/actor/{userId}");
         object? obj;
 
         switch (activityDto.Type)
@@ -59,12 +59,12 @@ public class ActivityHandler : IActivityHandler
                     Sensitive = createPostDto.Sensitive,
                     InReplyTo = createPostDto.InReplyTo,
                     Content = createPostDto.Content,
-                    Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"),
+                    Id = new Uri($"https://{domainName}/posts/{postId}"),
                     Type = createPostDto.Type,
                     Published = createPostDto.Published,
                     AttributedTo = actorId,
-                    Shares = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}"),
-                    Likes = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
+                    Shares = new Uri($"https://{domainName}/shares/{postId}"),
+                    Likes = new Uri($"https://{domainName}/likes/{postId}")
                 };
 
                 await _repository.Create(post, DatabaseLocations.OutboxNotes.Database,
@@ -119,7 +119,7 @@ public class ActivityHandler : IActivityHandler
         var activity = new Activity
         {
             Actor = actorId,
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activitys/{postId}"),
+            Id = new Uri($"https://{domainName}/activitys/{postId}"),
             Type = activityDto.Type,
             To = activityDto.To,
             Bto = activityDto.Bto,

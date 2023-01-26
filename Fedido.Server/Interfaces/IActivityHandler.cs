@@ -8,5 +8,5 @@ public interface IActivityHandler
 {
     public Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor);
     public Task<Actor> GetActorAsync(Guid userId, string domainName);
-    public Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto);
+    public Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName);
 }
