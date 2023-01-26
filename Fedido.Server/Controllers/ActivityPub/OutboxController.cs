@@ -58,10 +58,7 @@ public class OutboxController : ControllerBase
         var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
         var activity = await CreateActivity(userId, activityDto);
 
-        if (activity.IsNull())
-        {
-            return BadRequest("Activity could not be created. Check if Activity Type is supported.");
-        }
+        if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 
         await _activityHandler.SendActivitiesAsync(activity, user, actor);
 
@@ -109,7 +106,7 @@ public class OutboxController : ControllerBase
 
                 obj = uriString;
 
-                var likeHelper = new LikeHelper()
+                var likeHelper = new LikeHelper
                 {
                     Like = new Uri(uriString)
                 };
@@ -128,14 +125,14 @@ public class OutboxController : ControllerBase
             {
                 var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
                 obj = uriString;
-                
-                var shareHelper = new ShareHelper()
+
+                var shareHelper = new ShareHelper
                 {
                     Share = new Uri(uriString)
                 };
 
                 await _repository.Create(shareHelper, DatabaseLocations.Shareings.Database, userId.ToString());
-                
+
                 break;
             }
             default:

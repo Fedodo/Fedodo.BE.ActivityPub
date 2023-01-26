@@ -22,8 +22,8 @@ public static class DatabaseLocations
     {
         Database = "Shares",
         Collection = null
-    };    
-    
+    };
+
     public static DatabaseCollectionPair Shareings { get; } = new()
     {
         Database = "Shareings",
@@ -34,8 +34,8 @@ public static class DatabaseLocations
     {
         Database = "Likes",
         Collection = null
-    };    
-    
+    };
+
     public static DatabaseCollectionPair Likings { get; } = new()
     {
         Database = "Likings",

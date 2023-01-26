@@ -38,6 +38,6 @@ jobs:
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
+
       - name: Push the image to dockerhub
         run: docker push ${{ env.DOCKERHUB_USERNAME }}/activity-pub-server:dev_${{ github.run_number }}
