@@ -1,19 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ap-deployment
+  name: fedodo-deployment
+  namespace: dev-fedodo
 spec:
   selector:
     matchLabels:
-      app: ap
+      app: fedodo
   template:
     metadata:
       labels:
-        app: ap
+        app: fedodo
     spec:
       containers:
-        - name: ap
-          image: lnadev/activity-pub-server:dev_8
+        - name: fedodo
+          image: fedodo/fedodo.server:dev_13
           imagePullPolicy: Always
           resources:
             limits:
@@ -24,7 +25,7 @@ spec:
               name: port-http
           env:
             - name: DOMAINNAME
-              value: "ap.lna-dev.net"
+              value: "dev.fedodo.social"
             - name: MONGO_HOSTNAME
               value: "cluster0.mnp03hj.mongodb.net"
             - name: MONGO_USERNAME
@@ -32,27 +33,28 @@ spec:
             - name: MONGO_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: activity-pub-server-secrets
+                  name: fedodo-secrets
                   key: mongodb-password
             - name: API_ENCRYPTION_CERT
               valueFrom:
                 secretKeyRef:
-                  name: activity-pub-server-certs
-                  key: activity-pub-server-encryption
+                  name: fedodo-certs
+                  key: fedodo-encryption
             - name: API_SIGNING_CERT
               valueFrom:
                 secretKeyRef:
-                  name: activity-pub-server-certs
-                  key: actvity-pub-server-signing
+                  name: fedodo-certs
+                  key: fedodo-signing
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ap-service
+  name: fedodo-service
+  namespace: dev-fedodo
 spec:
   selector:
-    app: ap
+    app: fedodo
   ports:
     - port: 80
       targetPort: port-http
@@ -62,7 +64,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ap-ingress
+  name: fedodo-ingress
+  namespace: dev-fedodo
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
@@ -70,17 +73,17 @@ metadata:
 spec:
   tls:
     - hosts:
-        - "ap.lna-dev.net"
-      secretName: ap-cert
+        - "dev.fedodo.social"
+      secretName: fedodo-cert
   rules:
-    - host: ap.lna-dev.net
+    - host: dev.fedodo.social
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: ap-service
+                name: fedodo-service
                 port:
                   number: 80
 #
@@ -156,20 +159,21 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ap-ingress-http
+  name: fedodo-ingress-http
+  namespace: dev-fedodo
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
     traefik.ingress.kubernetes.io/router.middlewares: default-redirectscheme@kubernetescrd
 spec:
   rules:
-    - host: ap.lna-dev.net
+    - host: dev.fedodo.social
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: ap-service
+                name: fedodo-service
                 port:
                   number: 80
 ---
@@ -177,6 +181,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: redirectscheme
+  namespace: dev-fedodo
 spec:
   redirectRegex:
     regex: '^https?://(?:www\.)?(.+)'
