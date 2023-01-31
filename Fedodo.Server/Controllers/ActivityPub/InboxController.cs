@@ -40,7 +40,7 @@ public class InboxController : ControllerBase
         var orderedCollection = new OrderedCollection<Post>
         {
             Summary = $"Inbox of {userId}",
-            OrderedItems = posts
+            OrderedItems = posts.OrderByDescending(i => i.Published)
         };
 
         return Ok(orderedCollection);
