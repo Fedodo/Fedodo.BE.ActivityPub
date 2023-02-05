@@ -14,12 +14,12 @@ spec:
     spec:
       containers:
         - name: fedodo
-          image: fedodo/fedodo.server:dev_15
+          image: fedodo/fedodo.server:dev_16
           imagePullPolicy: Always
           resources:
             limits:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: "500Mi"
+              cpu: "1m"
           ports:
             - containerPort: 80
               name: port-http
