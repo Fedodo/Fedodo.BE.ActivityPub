@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: fedodo
-          image: fedodo/fedodo.server:dev_16
+          image: fedodo/fedodo.server:dev_18
           imagePullPolicy: Always
           resources:
             limits:
