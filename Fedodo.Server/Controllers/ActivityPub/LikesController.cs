@@ -18,8 +18,8 @@ public class LikesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{postId:guid}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetLikes(Guid postId)
+    [Route("{postId}")]
+    public async Task<ActionResult<OrderedCollection<string>>> GetLikes(Uri postId)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
@@ -27,7 +27,7 @@ public class LikesController : ControllerBase
 
         var orderedCollection = new OrderedCollection<string>
         {
-            Summary = $"Likes of {postId}",
+            Summary = $"Likes of Post with id: {postId}",
             OrderedItems = likes.Select(i => i.Like.ToString())
         };
 

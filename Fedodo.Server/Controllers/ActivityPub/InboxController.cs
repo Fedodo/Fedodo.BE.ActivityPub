@@ -222,8 +222,7 @@ public class InboxController : ControllerBase
                     Like = activity.Actor
                 };
 
-                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
-                    .Replace("posts", "").Replace("/", "");
+                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).ToString();
 
                 var definitionBuilder = Builders<LikeHelper>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
@@ -261,8 +260,7 @@ public class InboxController : ControllerBase
                     {
                         _logger.LogTrace("Got undoActivity of type Like");
 
-                        var postId = undoActivityObject.AbsolutePath
-                            .Replace("posts", "").Replace("/", "");
+                        var postId = undoActivityObject.ToString();
 
                         var definitionBuilder = Builders<LikeHelper>.Filter;
                         var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
