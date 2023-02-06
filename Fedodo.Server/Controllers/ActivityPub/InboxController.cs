@@ -199,8 +199,7 @@ public class InboxController : ControllerBase
                     Share = activity.Actor
                 };
 
-                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).AbsolutePath
-                    .Replace("posts", "").Replace("/", "");
+                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).ToString();
 
                 var definitionBuilder = Builders<ShareHelper>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
@@ -278,8 +277,7 @@ public class InboxController : ControllerBase
                     {
                         _logger.LogTrace("Got an Undo Announce Activity");
 
-                        var postId = undoActivityObject.AbsolutePath
-                            .Replace("posts", "").Replace("/", "");
+                        var postId = undoActivityObject.ToString();
 
                         var definitionBuilder = Builders<ShareHelper>.Filter;
                         var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);

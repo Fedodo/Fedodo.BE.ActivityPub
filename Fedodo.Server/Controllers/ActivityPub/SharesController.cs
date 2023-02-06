@@ -18,8 +18,8 @@ public class SharesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{postId:guid}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetShares(Guid postId)
+    [Route("{postId}")]
+    public async Task<ActionResult<OrderedCollection<string>>> GetShares(Uri postId)
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
 
@@ -27,7 +27,7 @@ public class SharesController : ControllerBase
 
         var orderedCollection = new OrderedCollection<string>
         {
-            Summary = $"Shares of {postId}",
+            Summary = $"Shares of Post: {postId}",
             OrderedItems = shares.Select(i => i.Share.ToString())
         };
 
