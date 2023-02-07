@@ -50,6 +50,8 @@ public class OutboxController : ControllerBase
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
+        _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
+        
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
