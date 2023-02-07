@@ -83,9 +83,16 @@ public class ActivityHandler : IActivityHandler
                 {
                     Like = new Uri(uriString)
                 };
+                
+                var definitionBuilder = Builders<LikeHelper>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Like, actorId);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database, uriString);
 
-                await _repository.Create(likeHelper, DatabaseLocations.Likings.Database, userId.ToString());
-
+                if (fItem.IsNullOrEmpty())
+                    await _repository.Create(likeHelper, DatabaseLocations.Likes.Database, uriString);
+                else
+                    _logger.LogWarning("Got another like of the same actor.");
+                
                 break;
             }
             case "Follow":
@@ -104,8 +111,15 @@ public class ActivityHandler : IActivityHandler
                     Share = new Uri(uriString)
                 };
 
-                await _repository.Create(shareHelper, DatabaseLocations.Shareings.Database, userId.ToString());
+                var definitionBuilder = Builders<LikeHelper>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Like, actorId);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database, uriString);
 
+                if (fItem.IsNullOrEmpty())
+                    await _repository.Create(shareHelper, DatabaseLocations.Shares.Database, uriString);
+                else
+                    _logger.LogWarning("Got another share of the same actor.");
+                
                 break;
             }
             default:
