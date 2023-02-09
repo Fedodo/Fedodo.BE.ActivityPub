@@ -19,7 +19,7 @@ public class SharesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{postId}")]
+    [Route("{postIdUrlEncoded}")]
     public async Task<ActionResult<OrderedCollection<string>>> GetShares(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");

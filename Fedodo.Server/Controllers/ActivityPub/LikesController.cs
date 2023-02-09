@@ -9,17 +9,17 @@ namespace Fedodo.Server.Controllers.ActivityPub;
 [Route("Likes")]
 public class LikesController : ControllerBase
 {
-    private readonly ILogger<SharesController> _logger;
+    private readonly ILogger<LikesController> _logger;
     private readonly IMongoDbRepository _repository;
 
-    public LikesController(ILogger<SharesController> logger, IMongoDbRepository repository)
+    public LikesController(ILogger<LikesController> logger, IMongoDbRepository repository)
     {
         _logger = logger;
         _repository = repository;
     }
 
     [HttpGet]
-    [Route("{postId}")]
+    [Route("{postIdUrlEncoded}")]
     public async Task<ActionResult<OrderedCollection<string>>> GetLikes(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
