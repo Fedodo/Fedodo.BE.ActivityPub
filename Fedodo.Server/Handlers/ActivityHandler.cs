@@ -81,7 +81,7 @@ public class ActivityHandler : IActivityHandler
 
                 var likeHelper = new LikeHelper
                 {
-                    Like = new Uri(uriString)
+                    Like = new Uri(actorId.ToString())
                 };
                 
                 var definitionBuilder = Builders<LikeHelper>.Filter;
@@ -108,7 +108,7 @@ public class ActivityHandler : IActivityHandler
 
                 var shareHelper = new ShareHelper
                 {
-                    Share = new Uri(uriString)
+                    Share = new Uri(actorId.ToString())
                 };
 
                 var definitionBuilder = Builders<LikeHelper>.Filter;
