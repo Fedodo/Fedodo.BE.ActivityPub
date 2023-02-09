@@ -101,7 +101,7 @@ public class ActivityHandler : IActivityHandler
                 obj = activityDto.Object.TrySystemJsonDeserialization<string>();
                 break;
             }
-            case "Share":
+            case "Announce":
             {
                 var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
                 obj = uriString;
