@@ -1,3 +1,4 @@
+using System.Web;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Model.Helpers;
@@ -19,11 +20,13 @@ public class LikesController : ControllerBase
 
     [HttpGet]
     [Route("{postId}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetLikes(Uri postId)
+    public async Task<ActionResult<OrderedCollection<string>>> GetLikes(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
-        var likes = await _repository.GetAll<LikeHelper>(DatabaseLocations.Likes.Database, postId.ToString());
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
+
+        var likes = await _repository.GetAll<LikeHelper>(DatabaseLocations.Likes.Database, postId);
 
         var orderedCollection = new OrderedCollection<string>
         {
