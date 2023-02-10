@@ -111,9 +111,9 @@ public class ActivityHandler : IActivityHandler
                     Share = new Uri(actorId.ToString())
                 };
 
-                var definitionBuilder = Builders<LikeHelper>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Like, actorId);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database, uriString);
+                var definitionBuilder = Builders<ShareHelper>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Share, actorId);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Shares.Database, uriString);
 
                 if (fItem.IsNullOrEmpty())
                     await _repository.Create(shareHelper, DatabaseLocations.Shares.Database, uriString);
