@@ -59,4 +59,4 @@ jobs:
       - uses: actions/checkout@v3
 
       # Deploy to Kubernetes
-      - run: helm install fedodo oci://registry-1.docker.io/fedodo/fedodo.chart --values ./Kubernetes/values.yaml --kubeconfig ${{ steps.write_file.outputs.filePath }}
+      - run: helm upgrade fedodo oci://registry-1.docker.io/fedodo/fedodo.chart --values ./Kubernetes/values.yaml --kubeconfig ${{ steps.write_file.outputs.filePath }} --set fedodoServer.customContainerVersion=${{ env.DOCKERHUB_USERNAME }}/fedodo.server:dev_${{ github.run_number }}
