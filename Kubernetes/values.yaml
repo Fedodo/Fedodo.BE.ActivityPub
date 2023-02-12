@@ -1,0 +1,6 @@
+name: "fedodo"
+namespace: "dev-fedodo"
+domainName: "dev.fedodo.social"
+
+fedodoServer:
+  customContainerVersion: "fedodo/fedodo.server:dev_32" # Only for debugging purposes! Do not use this option!
