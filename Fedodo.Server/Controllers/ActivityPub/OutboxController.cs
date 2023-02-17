@@ -31,9 +31,10 @@ public class OutboxController : ControllerBase
     {
         // This filter can not use the extensions method IsPostPublic
         var filterDefinitionBuilder = Builders<Post>.Filter;
+        // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
         var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
-            item == "https://www.w3.org/ns/activitystreams#Public"
-            || item == "as:Public" || item == "public"));
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
+            item == "as:Public") || i.To.Any(item => item == "public")); 
         var posts = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxNotes.Database,
             DatabaseLocations.OutboxNotes.Collection);
 
@@ -51,7 +52,7 @@ public class OutboxController : ControllerBase
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-        
+
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
