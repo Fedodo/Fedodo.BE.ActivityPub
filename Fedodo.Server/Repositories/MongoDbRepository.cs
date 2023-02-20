@@ -55,7 +55,7 @@ public class MongoDbRepository : IMongoDbRepository
         return result;
     }
 
-    public async Task<IEnumerable<T>> GetPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
+    public async Task<IEnumerable<T>> GetAllPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
         SortDefinition<T> sortDefinition)
     {
         _logger.LogTrace($"Getting all items paged of type: {typeof(T)}");
@@ -64,6 +64,25 @@ public class MongoDbRepository : IMongoDbRepository
         var collection = database.GetCollection<T>(collectionName);
 
         var result = await collection.Find(new BsonDocument())
+            .Sort(sortDefinition)
+            .Skip(pageId * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+
+        _logger.LogTrace($"Finished getting all items paged of type: {typeof(T)}");
+
+        return result;
+    }
+    
+    public async Task<IEnumerable<T>> GetSpecificPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
+        SortDefinition<T> sortDefinition, FilterDefinition<T> filter)
+    {
+        _logger.LogTrace($"Getting all items paged of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+
+        var result = await collection.Find(filter)
             .Sort(sortDefinition)
             .Skip(pageId * pageSize)
             .Limit(pageSize)

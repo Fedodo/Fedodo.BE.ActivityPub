@@ -59,8 +59,12 @@ public class InboxController : ControllerBase
 
         var builder = Builders<Post>.Sort;
         var sort = builder.Descending(i => i.Published);
-        var page = await _repository.GetPaged(DatabaseLocations.InboxNotes.Database,
-            DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort);
+
+        var filterBuilder = new FilterDefinitionBuilder<Post>();
+        var filter = filterBuilder.Where(i => i.InReplyTo.IsNull());
+        
+        var page = await _repository.GetSpecificPaged(DatabaseLocations.InboxNotes.Database,
+            DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 1) previousPageId = 1;
@@ -71,7 +75,7 @@ public class InboxController : ControllerBase
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
-            OrderedItems = page.Where(i => i.InReplyTo.IsNull()),
+            OrderedItems = page,
             Prev = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),            
             Next = new Uri(
