@@ -4,6 +4,7 @@ using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using OpenIddict.Validation.AspNetCore;
 
@@ -36,27 +37,47 @@ public class InboxController : ControllerBase
 
         var postCount = await _repository.CountAll<Post>(DatabaseLocations.InboxNotes.Database,
             DatabaseLocations.InboxNotes.Collection);
-        
+
         var orderedCollection = new PagedOrderedCollection()
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
             TotalItems = postCount,
             First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/1"),
-            Last = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"),
+            Last = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"),
         };
 
         return Ok(orderedCollection);
-    }    
-    
+    }
+
     [HttpGet("{userId:guid}/page/{pageId:int}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid userId, int pageId)
+    public async Task<ActionResult<OrderedCollectionPage<Post>>> GetPageInInbox(Guid userId, int pageId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
+        var builder = Builders<Post>.Sort;
+        var sort = builder.Descending(i => i.Published);
+        var page = await _repository.GetPaged(DatabaseLocations.InboxNotes.Database,
+            DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort);
 
+        var previousPageId = pageId - 1;
+        if (previousPageId < 1) previousPageId = 1;
+        var nextPageId = pageId + 1;
+        // TODO if (nextPageId > ) nextPageId = 
+        
+        var orderedCollectionPage = new OrderedCollectionPage<Post>()
+        {
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
+            OrderedItems = page,
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),            
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"),
+        };
 
-        return Ok();
+        return Ok(orderedCollectionPage);
     }
 
     [HttpPost]
