@@ -61,7 +61,7 @@ public class InboxController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Post>();
-        var filter = filterBuilder.Where(i => i.InReplyTo.IsNull());
+        var filter = filterBuilder.Where(i => i.InReplyTo == null);
         
         var page = await _repository.GetSpecificPaged(DatabaseLocations.InboxNotes.Database,
             DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
