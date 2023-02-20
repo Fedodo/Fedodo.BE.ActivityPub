@@ -30,20 +30,33 @@ public class InboxController : ControllerBase
 
     [HttpGet("{userId:guid}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
+    public async Task<ActionResult<PagedOrderedCollection>> GetAllPostsInInbox(Guid userId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
-        var posts = await _repository.GetAll<Post>(DatabaseLocations.InboxNotes.Database,
+        var postCount = await _repository.CountAll<Post>(DatabaseLocations.InboxNotes.Database,
             DatabaseLocations.InboxNotes.Collection);
-
-        var orderedCollection = new OrderedCollection<Post>
+        
+        var orderedCollection = new PagedOrderedCollection()
         {
-            Summary = $"Inbox of {userId}",
-            OrderedItems = posts.OrderByDescending(i => i.Published)
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
+            TotalItems = postCount,
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/1"),
+            Last = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"),
         };
 
         return Ok(orderedCollection);
+    }    
+    
+    [HttpGet("{userId:guid}/page/{pageId:int}")]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid userId, int pageId)
+    {
+        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+
+
+
+        return Ok();
     }
 
     [HttpPost]

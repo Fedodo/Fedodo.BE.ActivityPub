@@ -13,4 +13,5 @@ public interface IMongoDbRepository
 
     public Task Update<T>(T item, FilterDefinition<T> filter, string databaseName, string collectionName);
     public Task Delete<T>(FilterDefinition<T> filter, string databaseName, string collectionName);
+    public Task<long> CountAll<T>(string databaseName, string collectionName);
 }
