@@ -105,6 +105,20 @@ public class MongoDbRepository : IMongoDbRepository
         _logger.LogTrace($"Finished counting all items of type: {typeof(T)}");
 
         return result;
+    }    
+    
+    public async Task<long> CountSpecific<T>(string databaseName, string collectionName, FilterDefinition<T> filter)
+    {
+        _logger.LogTrace($"Counting all items of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+
+        var result = await collection.CountDocumentsAsync(filter);
+
+        _logger.LogTrace($"Finished counting all items of type: {typeof(T)}");
+
+        return result;
     }
 
     public async Task<T> GetSpecificItem<T>(FilterDefinition<T> filter, string databaseName, string collectionName)

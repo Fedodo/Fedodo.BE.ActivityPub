@@ -32,7 +32,7 @@ public class InboxController : ControllerBase
 
     [HttpGet("{userId:guid}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<PagedOrderedCollection>> GetAllPostsInInbox(Guid userId)
+    public async Task<ActionResult<PagedOrderedCollection>> GetPageInformation(Guid userId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
@@ -43,7 +43,7 @@ public class InboxController : ControllerBase
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
             TotalItems = postCount,
-            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/1"),
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/0"),
             Last = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"),
         };
@@ -67,7 +67,7 @@ public class InboxController : ControllerBase
             DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
 
         var previousPageId = pageId - 1;
-        if (previousPageId < 1) previousPageId = 1;
+        if (previousPageId < 0) previousPageId = 0;
         var nextPageId = pageId + 1;
         // TODO if (nextPageId > ) nextPageId = 
         

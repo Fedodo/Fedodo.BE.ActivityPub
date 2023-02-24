@@ -20,4 +20,6 @@ public interface IMongoDbRepository
     public Task<IEnumerable<T>> GetSpecificPaged<T>(string databaseName, string collectionName, int pageId,
         int pageSize,
         SortDefinition<T> sortDefinition, FilterDefinition<T> filter);
+
+    public Task<long> CountSpecific<T>(string databaseName, string collectionName, FilterDefinition<T> filter);
 }
