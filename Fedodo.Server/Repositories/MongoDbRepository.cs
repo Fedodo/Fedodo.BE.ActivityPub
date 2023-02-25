@@ -55,6 +55,72 @@ public class MongoDbRepository : IMongoDbRepository
         return result;
     }
 
+    public async Task<IEnumerable<T>> GetAllPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
+        SortDefinition<T> sortDefinition)
+    {
+        _logger.LogTrace($"Getting all items paged of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+
+        var result = await collection.Find(new BsonDocument())
+            .Sort(sortDefinition)
+            .Skip(pageId * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+
+        _logger.LogTrace($"Finished getting all items paged of type: {typeof(T)}");
+
+        return result;
+    }
+    
+    public async Task<IEnumerable<T>> GetSpecificPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
+        SortDefinition<T> sortDefinition, FilterDefinition<T> filter)
+    {
+        _logger.LogTrace($"Getting all items paged of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+
+        var result = await collection.Find(filter)
+            .Sort(sortDefinition)
+            .Skip(pageId * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+
+        _logger.LogTrace($"Finished getting all items paged of type: {typeof(T)}");
+
+        return result;
+    }
+
+    public async Task<long> CountAll<T>(string databaseName, string collectionName)
+    {
+        _logger.LogTrace($"Counting all items of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+
+        var result = (await collection.CountDocumentsAsync(new BsonDocument()));
+
+        _logger.LogTrace($"Finished counting all items of type: {typeof(T)}");
+
+        return result;
+    }    
+    
+    public async Task<long> CountSpecific<T>(string databaseName, string collectionName, FilterDefinition<T> filter)
+    {
+        _logger.LogTrace($"Counting all items of type: {typeof(T)}");
+
+        var database = _client.GetDatabase(databaseName);
+        var collection = database.GetCollection<T>(collectionName);
+
+        var result = await collection.CountDocumentsAsync(filter);
+
+        _logger.LogTrace($"Finished counting all items of type: {typeof(T)}");
+
+        return result;
+    }
+
     public async Task<T> GetSpecificItem<T>(FilterDefinition<T> filter, string databaseName, string collectionName)
     {
         _logger.LogTrace($"Getting specific item with type: {typeof(T)}");

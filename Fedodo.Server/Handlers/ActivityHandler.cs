@@ -81,7 +81,7 @@ public class ActivityHandler : IActivityHandler
 
                 var likeHelper = new LikeHelper
                 {
-                    Like = new Uri(uriString)
+                    Like = new Uri(actorId.ToString())
                 };
                 
                 var definitionBuilder = Builders<LikeHelper>.Filter;
@@ -101,19 +101,19 @@ public class ActivityHandler : IActivityHandler
                 obj = activityDto.Object.TrySystemJsonDeserialization<string>();
                 break;
             }
-            case "Share":
+            case "Announce":
             {
                 var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
                 obj = uriString;
 
                 var shareHelper = new ShareHelper
                 {
-                    Share = new Uri(uriString)
+                    Share = new Uri(actorId.ToString())
                 };
 
-                var definitionBuilder = Builders<LikeHelper>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Like, actorId);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database, uriString);
+                var definitionBuilder = Builders<ShareHelper>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Share, actorId);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Shares.Database, uriString);
 
                 if (fItem.IsNullOrEmpty())
                     await _repository.Create(shareHelper, DatabaseLocations.Shares.Database, uriString);

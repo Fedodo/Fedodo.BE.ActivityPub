@@ -4,7 +4,9 @@ using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
@@ -30,20 +32,57 @@ public class InboxController : ControllerBase
 
     [HttpGet("{userId:guid}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<OrderedCollection<Post>>> GetAllPostsInInbox(Guid userId)
+    public async Task<ActionResult<PagedOrderedCollection>> GetPageInformation(Guid userId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
-        var posts = await _repository.GetAll<Post>(DatabaseLocations.InboxNotes.Database,
+        var postCount = await _repository.CountAll<Post>(DatabaseLocations.InboxNotes.Database,
             DatabaseLocations.InboxNotes.Collection);
 
-        var orderedCollection = new OrderedCollection<Post>
+        var orderedCollection = new PagedOrderedCollection()
         {
-            Summary = $"Inbox of {userId}",
-            OrderedItems = posts.OrderByDescending(i => i.Published)
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
+            TotalItems = postCount,
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/0"),
+            Last = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"),
         };
 
         return Ok(orderedCollection);
+    }
+
+    [HttpGet("{userId:guid}/page/{pageId:int}")]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<OrderedCollectionPage<Post>>> GetPageInInbox(Guid userId, int pageId)
+    {
+        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+
+        var builder = Builders<Post>.Sort;
+        var sort = builder.Descending(i => i.Published);
+
+        var filterBuilder = new FilterDefinitionBuilder<Post>();
+        var filter = filterBuilder.Where(i => i.InReplyTo == null);
+        
+        var page = await _repository.GetSpecificPaged(DatabaseLocations.InboxNotes.Database,
+            DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
+
+        var previousPageId = pageId - 1;
+        if (previousPageId < 0) previousPageId = 0;
+        var nextPageId = pageId + 1;
+        // TODO if (nextPageId > ) nextPageId = 
+        
+        var orderedCollectionPage = new OrderedCollectionPage<Post>()
+        {
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
+            OrderedItems = page,
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),            
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"),
+        };
+
+        return Ok(orderedCollectionPage);
     }
 
     [HttpPost]

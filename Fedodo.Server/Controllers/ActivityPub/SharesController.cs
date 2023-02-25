@@ -1,3 +1,4 @@
+using System.Web;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Model.Helpers;
@@ -18,10 +19,12 @@ public class SharesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{postId}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetShares(Uri postId)
+    [Route("{postIdUrlEncoded}")]
+    public async Task<ActionResult<OrderedCollection<string>>> GetShares(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
+        
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var shares = await _repository.GetAll<ShareHelper>(DatabaseLocations.Shares.Database, postId.ToString());
 

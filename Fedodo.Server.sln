@@ -4,8 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fedodo.Server", "Fedodo.Ser
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{28BE88AC-EB4D-4AD5-A03F-A7D265A8BB26}"
 	ProjectSection(SolutionItems) = preProject
-		Kubernetes\ActivityPubServer-Deployment.yaml = Kubernetes\ActivityPubServer-Deployment.yaml
 		Dockerfile = Dockerfile
+		Kubernetes\values.yaml = Kubernetes\values.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fedodo.Server.Test", "Fedodo.Server.Test\Fedodo.Server.Test.csproj", "{30A1A52B-D1B7-42EF-B6AA-D0319C31BB2E}"
