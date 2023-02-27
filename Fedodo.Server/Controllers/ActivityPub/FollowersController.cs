@@ -19,18 +19,18 @@ public class FollowersController : ControllerBase
 
     [HttpGet]
     [Route("{userId:guid}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetFollowers(Guid userId)
+    public async Task<ActionResult<OrderedCollection<Activity>>> GetFollowers(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
         var followers =
-            await _repository.GetAll<FollowingHelper>(DatabaseLocations.InboxFollow.Database,
+            await _repository.GetAll<Activity>(DatabaseLocations.InboxFollow.Database,
                 DatabaseLocations.InboxFollow.Collection);
 
-        var orderedCollection = new OrderedCollection<string>
+        var orderedCollection = new OrderedCollection<Activity>
         {
             Summary = $"Followers of {userId}",
-            OrderedItems = followers.Select(i => i.Following.ToString())
+            OrderedItems = followers
         };
 
         return Ok(orderedCollection);

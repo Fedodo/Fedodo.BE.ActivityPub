@@ -33,6 +33,24 @@ public static class DatabaseLocations
         Database = "Outbox",
         Collection = "Follow"
     };
+    
+    public static DatabaseCollectionPair OutboxLike { get; } = new()
+    {
+        Database = "Outbox",
+        Collection = "Like"
+    };
+    
+    public static DatabaseCollectionPair OutboxAnnounce { get; } = new()
+    {
+        Database = "Outbox",
+        Collection = "Announce"
+    };
+    
+    public static DatabaseCollectionPair OutboxCreate { get; } = new()
+    {
+        Database = "Outbox",
+        Collection = "Create"
+    };
 
     public static DatabaseCollectionPair InboxCreate { get; } = new()
     {

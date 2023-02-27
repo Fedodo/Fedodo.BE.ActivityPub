@@ -30,14 +30,14 @@ public class OutboxController : ControllerBase
     public async Task<ActionResult<PagedOrderedCollection>> GetPublicPostsPageInformation(Guid userId)
     {
         // This filter can not use the extensions method IsPostPublic
-        var filterDefinitionBuilder = Builders<Post>.Filter;
+        var filterDefinitionBuilder = Builders<Activity>.Filter;
         // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
         var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
             item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
             item == "as:Public") || i.To.Any(item => item == "public")); 
         
-        var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxNotes.Database,
-            DatabaseLocations.OutboxNotes.Collection, filter);
+        var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
+            DatabaseLocations.OutboxCreate.Collection, filter);
 
         var orderedCollection = new PagedOrderedCollection()
         {
@@ -52,29 +52,29 @@ public class OutboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
-    public async Task<ActionResult<OrderedCollectionPage<Post>>> GetPublicPage(Guid userId, int pageId)
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPublicPage(Guid userId, int pageId)
     {
-        var builder = Builders<Post>.Sort;
+        var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var filterBuilder = new FilterDefinitionBuilder<Post>();
-        var filter = filterBuilder.Where(i => (i.To.Any(item =>
+        var filterBuilder = new FilterDefinitionBuilder<Activity>();
+        var filter = filterBuilder.Where(i => i.To.Any(item =>
             item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
-            item == "as:Public") || i.To.Any(item => item == "public")) && i.InReplyTo == null); 
+            item == "as:Public") || i.To.Any(item => item == "public")); 
         
-        var page = await _repository.GetSpecificPaged(DatabaseLocations.OutboxNotes.Database,
-            DatabaseLocations.OutboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
+        var activities = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
+            DatabaseLocations.OutboxCreate.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
         var nextPageId = pageId + 1;
         // TODO if (nextPageId > ) nextPageId = 
         
-        var orderedCollectionPage = new OrderedCollectionPage<Post>()
+        var orderedCollectionPage = new OrderedCollectionPage<Activity>()
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{pageId}"),
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
-            OrderedItems = page,
+            OrderedItems = activities,
             Prev = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),            
             Next = new Uri(
@@ -96,8 +96,7 @@ public class OutboxController : ControllerBase
         var user = await _userHandler.GetUserByIdAsync(userId);
         var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
         var activity =
-            await _activityHandler.CreateActivity(userId, activityDto,
-                Environment.GetEnvironmentVariable("DOMAINNAME"));
+            await _activityHandler.CreateActivity(userId, activityDto, Environment.GetEnvironmentVariable("DOMAINNAME"));
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 
