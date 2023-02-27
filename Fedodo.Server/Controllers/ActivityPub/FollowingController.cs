@@ -24,7 +24,7 @@ public class FollowingController : ControllerBase
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
 
         var followings =
-            await _repository.GetAll<FollowingHelper>(DatabaseLocations.Followings.Database, userId.ToString());
+            await _repository.GetAll<FollowingHelper>(DatabaseLocations.OutboxFollow.Database, DatabaseLocations.OutboxFollow.Collection);
 
         var orderedCollection = new OrderedCollection<string>
         {
