@@ -36,8 +36,8 @@ public class InboxController : ControllerBase
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
-        var postCount = await _repository.CountAll<Post>(DatabaseLocations.InboxNotes.Database,
-            DatabaseLocations.InboxNotes.Collection);
+        var postCount = await _repository.CountAll<Activity>(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection);
 
         var orderedCollection = new PagedOrderedCollection()
         {
@@ -53,31 +53,28 @@ public class InboxController : ControllerBase
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<OrderedCollectionPage<Post>>> GetPageInInbox(Guid userId, int pageId)
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPageInInbox(Guid userId, int pageId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
-        var builder = Builders<Post>.Sort;
+        var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var filterBuilder = new FilterDefinitionBuilder<Post>();
-        var filter = filterBuilder.Where(i => i.InReplyTo == null);
-        
-        var page = await _repository.GetSpecificPaged(DatabaseLocations.InboxNotes.Database,
-            DatabaseLocations.InboxNotes.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
+        var page = await _repository.GetAllPaged(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
         var nextPageId = pageId + 1;
         // TODO if (nextPageId > ) nextPageId = 
-        
-        var orderedCollectionPage = new OrderedCollectionPage<Post>()
+
+        var orderedCollectionPage = new OrderedCollectionPage<Activity>()
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
             OrderedItems = page,
             Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),            
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),
             Next = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"),
         };
@@ -122,32 +119,16 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
-                Post? post = null;
-
-                try
-                {
-                    _logger.LogDebug($"Create object type is {activity.Object.GetType()}");
-                    post = activity.Object.TrySystemJsonDeserialization<Post>();
-                }
-                catch (ArgumentException ex)
-                {
-                    _logger.LogError(ex, "Could not extract Post from Object.");
-
-                    return BadRequest("Could not extract Post from Object.");
-                }
-
-                _logger.LogDebug("Successfully extracted post from Object");
-
-                var postDefinitionBuilder = Builders<Post>.Filter;
-                var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
-                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxNotes.Database,
-                    DatabaseLocations.InboxNotes.Collection);
+                var activityDefinitionBuilder = Builders<Activity>.Filter;
+                var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
+                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxCreate.Database,
+                    DatabaseLocations.InboxCreate.Collection);
 
                 if (fItem.IsNotNullOrEmpty())
-                    return BadRequest("Post already exists");
+                    return BadRequest("Activity already exists");
 
-                await _repository.Create(post, DatabaseLocations.InboxNotes.Database,
-                    DatabaseLocations.InboxNotes.Collection);
+                await _repository.Create(activity, DatabaseLocations.InboxCreate.Database,
+                    DatabaseLocations.InboxCreate.Collection);
 
                 break;
             }
@@ -156,19 +137,14 @@ public class InboxController : ControllerBase
                 _logger.LogDebug(
                     $"Got follow for \"{activity.Object.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
 
-                var followObject = new FollowingHelper
-                {
-                    Id = Guid.NewGuid(),
-                    Following = activity.Actor
-                };
-
-                var definitionBuilder = Builders<FollowingHelper>.Filter;
-                var helperFilter = definitionBuilder.Eq(i => i.Following, followObject.Following);
-                var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.Followers.Database,
-                    userId.ToString());
+                var definitionBuilder = Builders<Activity>.Filter;
+                var helperFilter = definitionBuilder.Eq(i => i.Id, activity.Id);
+                var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.InboxFollow.Database,
+                    DatabaseLocations.InboxFollow.Collection);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(followObject, DatabaseLocations.Followers.Database, userId.ToString());
+                    await _repository.Create(activity, DatabaseLocations.InboxFollow.Database,
+                        DatabaseLocations.InboxFollow.Collection);
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
                 var user = await _userHandler.GetUserByIdAsync(userId);
@@ -182,7 +158,6 @@ public class InboxController : ControllerBase
                     Object = activity.Id,
                     To = new List<string>
                     {
-                        //activity.Actor.ToString()
                         "as:Public"
                     }
                 };
@@ -199,8 +174,8 @@ public class InboxController : ControllerBase
 
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
-                var sendActivity = await _repository.GetSpecificItem(filter, DatabaseLocations.Activities.Database,
-                    userId.ToString().ToLower());
+                var sendActivity = await _repository.GetSpecificItem(filter, DatabaseLocations.OutboxFollow.Database,
+                    DatabaseLocations.OutboxFollow.Collection);
 
                 if (sendActivity.IsNotNull())
                 {
@@ -215,12 +190,11 @@ public class InboxController : ControllerBase
                     var followingDefinitionBuilder = Builders<FollowingHelper>.Filter;
                     var followingHelperFilter = followingDefinitionBuilder.Eq(i => i.Following, followObject.Following);
                     var fItem = await _repository.GetSpecificItems(followingHelperFilter,
-                        DatabaseLocations.Followings.Database,
-                        userId.ToString().ToLower());
+                        DatabaseLocations.OutboxFollow.Database, DatabaseLocations.OutboxFollow.Collection);
 
                     if (fItem.IsNullOrEmpty())
-                        await _repository.Create(followObject, DatabaseLocations.Followings.Database,
-                            userId.ToString().ToLower());
+                        await _repository.Create(followObject, DatabaseLocations.OutboxFollow.Database,
+                            DatabaseLocations.OutboxFollow.Collection);
                 }
                 else
                 {
@@ -231,43 +205,31 @@ public class InboxController : ControllerBase
             }
             case "Announce":
             {
-                _logger.LogTrace("Got an Announce Activity");
+                var activityDefinitionBuilder = Builders<Activity>.Filter;
+                var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
+                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxAnnounce.Database,
+                    DatabaseLocations.InboxAnnounce.Collection);
 
-                var share = new ShareHelper
-                {
-                    Share = activity.Actor
-                };
+                if (fItem.IsNotNullOrEmpty())
+                    return BadRequest("Activity already exists");
 
-                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).ToString();
-
-                var definitionBuilder = Builders<ShareHelper>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Shares.Database, postId);
-
-                if (fItem.IsNullOrEmpty())
-                    await _repository.Create(share, DatabaseLocations.Shares.Database, postId);
-                else
-                    _logger.LogWarning("Got another share of the same actor.");
+                await _repository.Create(activity, DatabaseLocations.InboxAnnounce.Database,
+                    DatabaseLocations.InboxAnnounce.Collection);
 
                 break;
             }
             case "Like":
             {
                 _logger.LogTrace("Got an Like Activity");
-
-                var like = new LikeHelper
-                {
-                    Like = activity.Actor
-                };
-
-                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>()).ToString();
-
-                var definitionBuilder = Builders<LikeHelper>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database, postId);
+                
+                var definitionBuilder = Builders<Activity>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Id, activity.Id);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.InboxLike.Database,
+                    DatabaseLocations.InboxLike.Collection);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(like, DatabaseLocations.Likes.Database, postId);
+                    await _repository.Create(activity, DatabaseLocations.InboxLike.Database,
+                        DatabaseLocations.InboxLike.Collection);
                 else
                     _logger.LogWarning("Got another like of the same actor.");
 
@@ -275,15 +237,11 @@ public class InboxController : ControllerBase
             }
             case "Update":
             {
-                var post = activity.Object.TrySystemJsonDeserialization<Post>();
+                var postDefinitionBuilder = Builders<Activity>.Filter;
+                var postFilter = postDefinitionBuilder.Eq(i => i.Id, activity.Id);
 
-                _logger.LogDebug("Successfully extracted post from Object");
-
-                var postDefinitionBuilder = Builders<Post>.Filter;
-                var postFilter = postDefinitionBuilder.Eq(i => i.Id, post.Id);
-
-                await _repository.Update(post, postFilter, DatabaseLocations.InboxNotes.Database,
-                    DatabaseLocations.InboxNotes.Collection);
+                await _repository.Update(activity, postFilter, DatabaseLocations.InboxCreate.Database,
+                    DatabaseLocations.InboxCreate.Collection);
 
                 break;
             }
@@ -297,16 +255,15 @@ public class InboxController : ControllerBase
                     case "Like":
                     {
                         _logger.LogTrace("Got undoActivity of type Like");
-
-                        var postId = undoActivityObject.ToString();
-
-                        var definitionBuilder = Builders<LikeHelper>.Filter;
-                        var filter = definitionBuilder.Eq(i => i.Like, activity.Actor);
-                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database,
-                            postId);
+                        
+                        var definitionBuilder = Builders<Activity>.Filter;
+                        var filter = definitionBuilder.Eq(i => i.Actor, activity.Actor);
+                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.InboxLike.Database,
+                            DatabaseLocations.InboxLike.Collection);
 
                         if (fItem.IsNotNullOrEmpty())
-                            await _repository.Delete(filter, DatabaseLocations.Likes.Database, postId);
+                            await _repository.Delete(filter, DatabaseLocations.InboxLike.Database,
+                                DatabaseLocations.InboxLike.Collection);
                         else
                             _logger.LogWarning("Got no like of the same actor.");
 
@@ -316,15 +273,14 @@ public class InboxController : ControllerBase
                     {
                         _logger.LogTrace("Got an Undo Announce Activity");
 
-                        var postId = undoActivityObject.ToString();
-
-                        var definitionBuilder = Builders<ShareHelper>.Filter;
-                        var filter = definitionBuilder.Eq(i => i.Share, activity.Actor);
-                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Shares.Database,
-                            postId);
+                        var definitionBuilder = Builders<Activity>.Filter;
+                        var filter = definitionBuilder.Eq(i => i.Id, activity.Id);
+                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.InboxAnnounce.Database,
+                            DatabaseLocations.InboxAnnounce.Collection);
 
                         if (fItem.IsNotNullOrEmpty())
-                            await _repository.Delete(filter, DatabaseLocations.Shares.Database, postId);
+                            await _repository.Delete(filter, DatabaseLocations.InboxAnnounce.Database,
+                                DatabaseLocations.InboxAnnounce.Collection);
                         else
                             _logger.LogWarning("Found no share of this actor to undo.");
 
@@ -336,17 +292,15 @@ public class InboxController : ControllerBase
             }
             case "Delete":
             {
-                var postId = new Uri(activity.Object.TrySystemJsonDeserialization<string>());
+                var definitionBuilder = Builders<Activity>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Id, activity.Id);
 
-                var definitionBuilder = Builders<Post>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Id, postId);
+                var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxCreate.Database,
+                    DatabaseLocations.InboxCreate.Collection);
 
-                var post = await _repository.GetSpecificItem(filter, DatabaseLocations.InboxNotes.Database,
-                    DatabaseLocations.InboxNotes.Collection);
-
-                if (post.AttributedTo == activity.Actor)
-                    await _repository.Delete(filter, DatabaseLocations.InboxNotes.Database,
-                        DatabaseLocations.InboxNotes.Collection);
+                if (activity.Actor == activity.Actor)
+                    await _repository.Delete(filter, DatabaseLocations.InboxCreate.Database,
+                        DatabaseLocations.InboxCreate.Collection);
 
                 break;
             }
