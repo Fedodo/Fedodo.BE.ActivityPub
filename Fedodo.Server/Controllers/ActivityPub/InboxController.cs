@@ -118,7 +118,7 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
-                // activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
+                activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
                 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
@@ -195,6 +195,9 @@ public class InboxController : ControllerBase
             }
             case "Announce":
             {
+                activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
+                activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
+                
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxAnnounce.Database,
