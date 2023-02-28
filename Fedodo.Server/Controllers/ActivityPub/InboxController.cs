@@ -181,20 +181,7 @@ public class InboxController : ControllerBase
                 {
                     _logger.LogDebug("Found activity which was accepted");
 
-                    var followObject = new FollowingHelper
-                    {
-                        Id = Guid.NewGuid(),
-                        Following = new Uri((string)sendActivity.Object)
-                    };
-
-                    var followingDefinitionBuilder = Builders<FollowingHelper>.Filter;
-                    var followingHelperFilter = followingDefinitionBuilder.Eq(i => i.Following, followObject.Following);
-                    var fItem = await _repository.GetSpecificItems(followingHelperFilter,
-                        DatabaseLocations.OutboxFollow.Database, DatabaseLocations.OutboxFollow.Collection);
-
-                    if (fItem.IsNullOrEmpty())
-                        await _repository.Create(followObject, DatabaseLocations.OutboxFollow.Database,
-                            DatabaseLocations.OutboxFollow.Collection);
+                    await _repository.Create(activity, DatabaseLocations.InboxAccept.Database, DatabaseLocations.InboxAccept.Collection);
                 }
                 else
                 {
@@ -221,7 +208,7 @@ public class InboxController : ControllerBase
             case "Like":
             {
                 _logger.LogTrace("Got an Like Activity");
-                
+
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.InboxLike.Database,
@@ -255,7 +242,7 @@ public class InboxController : ControllerBase
                     case "Like":
                     {
                         _logger.LogTrace("Got undoActivity of type Like");
-                        
+
                         var definitionBuilder = Builders<Activity>.Filter;
                         var filter = definitionBuilder.Eq(i => i.Actor, activity.Actor);
                         var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.InboxLike.Database,

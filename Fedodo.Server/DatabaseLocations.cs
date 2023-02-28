@@ -64,6 +64,12 @@ public static class DatabaseLocations
         Collection = "Announce"
     };
     
+    public static DatabaseCollectionPair InboxAccept { get; } = new()
+    {
+        Database = "Inbox",
+        Collection = "Accept"
+    };
+    
     public static DatabaseCollectionPair InboxFollow { get; } = new()
     {
         Database = "Inbox",

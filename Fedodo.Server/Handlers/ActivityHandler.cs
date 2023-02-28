@@ -103,13 +103,16 @@ public class ActivityHandler : IActivityHandler
             }
             case "Follow":
             {
-                // Follow does not need to be stored in the database. This happens only if the sever gets an accept.
-                obj = activityDto.Object.TrySystemJsonDeserialization<string>();
+                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
+                
+                await _repository.Create(activity, DatabaseLocations.OutboxFollow.Database,
+                    DatabaseLocations.OutboxFollow.Collection);
+                
                 break;
             }
             case "Announce":
             {
-                var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
+                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Object, activity.Object);

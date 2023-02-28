@@ -5,6 +5,7 @@ using Fedodo.Server.Controllers;
 using Fedodo.Server.Controllers.ActivityPub;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model;
+using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Model.Helpers;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -24,7 +25,7 @@ public class LikesControllerShould
         var repository = new Mock<IMongoDbRepository>();
         
         repository.Setup(i =>
-                i.GetAll<LikeHelper>(DatabaseLocations.Likes.Database, "")).Throws<Exception>();        
+                i.GetAll<Activity>(DatabaseLocations.InboxLike.Database, DatabaseLocations.InboxLike.Collection)).Throws<Exception>();        
         _likesController = new LikesController(logger.Object, repository.Object);
     }
     
