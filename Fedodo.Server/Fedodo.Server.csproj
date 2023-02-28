@@ -14,9 +14,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.9" />
+        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.10" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12" />
-        <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
+        <PackageReference Include="MongoDB.Driver" Version="2.19.0" />
         <PackageReference Include="OpenIddict" Version="4.0.0" />
         <PackageReference Include="OpenIddict.AspNetCore" Version="4.0.0" />
         <PackageReference Include="OpenIddict.MongoDb" Version="4.0.0" />
