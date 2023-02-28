@@ -45,13 +45,25 @@ public class ActivityHandler : IActivityHandler
         var actorId = new Uri($"https://{domainName}/actor/{userId}");
         object? obj;
 
+        var activity = new Activity
+        {
+            Actor = actorId,
+            Id = new Uri($"https://{domainName}/activitys/{postId}"),
+            Type = activityDto.Type,
+            To = activityDto.To,
+            Bto = activityDto.Bto,
+            Cc = activityDto.Cc,
+            Bcc = activityDto.Bcc,
+            Audience = activityDto.Audience
+        };
+
         switch (activityDto.Type)
         {
             case "Create":
             {
                 var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Post>();
 
-                var post = new Post
+                activity.Object = new Post
                 {
                     To = createPostDto.To,
                     Name = createPostDto.Name,
@@ -67,59 +79,52 @@ public class ActivityHandler : IActivityHandler
                     Likes = new Uri($"https://{domainName}/likes/{postId}")
                 };
 
-                await _repository.Create(post, DatabaseLocations.OutboxNotes.Database,
-                    DatabaseLocations.OutboxNotes.Collection);
+                await _repository.Create(activity, DatabaseLocations.OutboxCreate.Database,
+                    DatabaseLocations.OutboxCreate.Collection);
 
-                obj = post;
                 break;
             }
             case "Like":
             {
-                var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
+                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
 
-                obj = uriString;
-
-                var likeHelper = new LikeHelper
-                {
-                    Like = new Uri(actorId.ToString())
-                };
-                
-                var definitionBuilder = Builders<LikeHelper>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Like, actorId);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Likes.Database, uriString);
+                var definitionBuilder = Builders<Activity>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxLike.Database,
+                    DatabaseLocations.OutboxLike.Collection);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(likeHelper, DatabaseLocations.Likes.Database, uriString);
+                    await _repository.Create(activity, DatabaseLocations.OutboxLike.Database,
+                        DatabaseLocations.OutboxLike.Collection);
                 else
                     _logger.LogWarning("Got another like of the same actor.");
-                
+
                 break;
             }
             case "Follow":
             {
-                // Follow does not need to be stored in the database. This happens only if the sever gets an accept.
-                obj = activityDto.Object.TrySystemJsonDeserialization<string>();
+                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
+                
+                await _repository.Create(activity, DatabaseLocations.OutboxFollow.Database,
+                    DatabaseLocations.OutboxFollow.Collection);
+                
                 break;
             }
             case "Announce":
             {
-                var uriString = activityDto.Object.TrySystemJsonDeserialization<string>();
-                obj = uriString;
+                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
 
-                var shareHelper = new ShareHelper
-                {
-                    Share = new Uri(actorId.ToString())
-                };
-
-                var definitionBuilder = Builders<ShareHelper>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Share, actorId);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Shares.Database, uriString);
+                var definitionBuilder = Builders<Activity>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxAnnounce.Database,
+                    DatabaseLocations.OutboxAnnounce.Collection);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(shareHelper, DatabaseLocations.Shares.Database, uriString);
+                    await _repository.Create(activity, DatabaseLocations.OutboxAnnounce.Database,
+                        DatabaseLocations.OutboxAnnounce.Collection);
                 else
                     _logger.LogWarning("Got another share of the same actor.");
-                
+
                 break;
             }
             default:
@@ -129,21 +134,6 @@ public class ActivityHandler : IActivityHandler
                 return null;
             }
         }
-
-        var activity = new Activity
-        {
-            Actor = actorId,
-            Id = new Uri($"https://{domainName}/activitys/{postId}"),
-            Type = activityDto.Type,
-            To = activityDto.To,
-            Bto = activityDto.Bto,
-            Cc = activityDto.Cc,
-            Bcc = activityDto.Bcc,
-            Audience = activityDto.Audience,
-            Object = obj
-        };
-
-        await _repository.Create(activity, DatabaseLocations.Activities.Database, userId.ToString());
 
         return activity;
     }

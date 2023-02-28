@@ -20,18 +20,18 @@ public class SharesController : ControllerBase
 
     [HttpGet]
     [Route("{postIdUrlEncoded}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetShares(string postIdUrlEncoded)
+    public async Task<ActionResult<OrderedCollection<Activity>>> GetShares(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
         
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var shares = await _repository.GetAll<ShareHelper>(DatabaseLocations.Shares.Database, postId.ToString());
+        var shares = await _repository.GetAll<Activity>(DatabaseLocations.OutboxAnnounce.Database, DatabaseLocations.OutboxAnnounce.Collection);
 
-        var orderedCollection = new OrderedCollection<string>
+        var orderedCollection = new OrderedCollection<Activity>
         {
             Summary = $"Shares of Post: {postId}",
-            OrderedItems = shares.Select(i => i.Share.ToString())
+            OrderedItems = shares
         };
 
         return Ok(orderedCollection);

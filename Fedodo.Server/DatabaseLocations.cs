@@ -4,42 +4,6 @@ namespace Fedodo.Server;
 
 public static class DatabaseLocations
 {
-    #region UserIdCollections
-
-    public static DatabaseCollectionPair Followings { get; } = new()
-    {
-        Database = "Followings",
-        Collection = null
-    };
-
-    public static DatabaseCollectionPair Followers { get; } = new()
-    {
-        Database = "Followers",
-        Collection = null
-    };
-
-    public static DatabaseCollectionPair Shares { get; } = new()
-    {
-        Database = "Shares",
-        Collection = null
-    };
-    
-    public static DatabaseCollectionPair Likes { get; } = new()
-    {
-        Database = "Likes",
-        Collection = null
-    };
-    
-    public static DatabaseCollectionPair Activities { get; } = new()
-    {
-        Database = "Activities",
-        Collection = null
-    };
-
-    #endregion
-
-    #region Hardcoded
-
     public static DatabaseCollectionPair KnownSharedInbox { get; } = new()
     {
         Database = "Others",
@@ -64,17 +28,57 @@ public static class DatabaseLocations
         Collection = "Users"
     };
 
-    public static DatabaseCollectionPair OutboxNotes { get; } = new()
+    public static DatabaseCollectionPair OutboxFollow { get; } = new()
     {
         Database = "Outbox",
-        Collection = "Notes"
+        Collection = "Follow"
+    };
+    
+    public static DatabaseCollectionPair OutboxLike { get; } = new()
+    {
+        Database = "Outbox",
+        Collection = "Like"
+    };
+    
+    public static DatabaseCollectionPair OutboxAnnounce { get; } = new()
+    {
+        Database = "Outbox",
+        Collection = "Announce"
+    };
+    
+    public static DatabaseCollectionPair OutboxCreate { get; } = new()
+    {
+        Database = "Outbox",
+        Collection = "Create"
     };
 
-    public static DatabaseCollectionPair InboxNotes { get; } = new()
+    public static DatabaseCollectionPair InboxCreate { get; } = new()
     {
         Database = "Inbox",
-        Collection = "Notes"
+        Collection = "Create"
     };
 
-    #endregion
+    public static DatabaseCollectionPair InboxAnnounce { get; } = new()
+    {
+        Database = "Inbox",
+        Collection = "Announce"
+    };
+    
+    public static DatabaseCollectionPair InboxAccept { get; } = new()
+    {
+        Database = "Inbox",
+        Collection = "Accept"
+    };
+    
+    public static DatabaseCollectionPair InboxFollow { get; } = new()
+    {
+        Database = "Inbox",
+        Collection = "Follow"
+    };
+    
+    public static DatabaseCollectionPair InboxLike { get; } = new()
+    {
+        Database = "Inbox",
+        Collection = "Like"
+    };
 }

@@ -20,18 +20,18 @@ public class LikesController : ControllerBase
 
     [HttpGet]
     [Route("{postIdUrlEncoded}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetLikes(string postIdUrlEncoded)
+    public async Task<ActionResult<OrderedCollection<Activity>>> GetLikes(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var likes = await _repository.GetAll<LikeHelper>(DatabaseLocations.Likes.Database, postId);
+        var likes = await _repository.GetAll<Activity>(DatabaseLocations.OutboxLike.Database, DatabaseLocations.OutboxLike.Collection);
 
-        var orderedCollection = new OrderedCollection<string>
+        var orderedCollection = new OrderedCollection<Activity>
         {
             Summary = $"Likes of Post with id: {postId}",
-            OrderedItems = likes.Select(i => i.Like.ToString())
+            OrderedItems = likes
         };
 
         return Ok(orderedCollection);
