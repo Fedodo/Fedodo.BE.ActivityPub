@@ -117,6 +117,7 @@ public class InboxController : ControllerBase
             case "Create":
             {
                 activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
+                activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
