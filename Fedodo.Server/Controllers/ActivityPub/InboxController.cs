@@ -118,6 +118,8 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
+                _logger.LogDebug("Entered Create");
+                
                 activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
                 
@@ -195,6 +197,8 @@ public class InboxController : ControllerBase
             }
             case "Announce":
             {
+                _logger.LogDebug("Got Announce");
+                
                 activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
                 
