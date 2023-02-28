@@ -1,6 +1,5 @@
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
@@ -24,7 +23,8 @@ public class FollowingController : ControllerBase
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
 
         var followings =
-            await _repository.GetAll<Activity>(DatabaseLocations.OutboxFollow.Database, DatabaseLocations.OutboxFollow.Collection);
+            await _repository.GetAll<Activity>(DatabaseLocations.OutboxFollow.Database,
+                DatabaseLocations.OutboxFollow.Collection);
 
         var orderedCollection = new OrderedCollection<Activity>
         {

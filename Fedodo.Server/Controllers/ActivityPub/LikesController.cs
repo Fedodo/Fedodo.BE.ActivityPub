@@ -1,7 +1,6 @@
 using System.Web;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
@@ -26,7 +25,8 @@ public class LikesController : ControllerBase
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var likes = await _repository.GetAll<Activity>(DatabaseLocations.OutboxLike.Database, DatabaseLocations.OutboxLike.Collection);
+        var likes = await _repository.GetAll<Activity>(DatabaseLocations.OutboxLike.Database,
+            DatabaseLocations.OutboxLike.Collection);
 
         var orderedCollection = new OrderedCollection<Activity>
         {

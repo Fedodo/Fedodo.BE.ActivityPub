@@ -1,7 +1,6 @@
 using System.Web;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
@@ -23,10 +22,11 @@ public class SharesController : ControllerBase
     public async Task<ActionResult<OrderedCollection<Activity>>> GetShares(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
-        
+
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var shares = await _repository.GetAll<Activity>(DatabaseLocations.OutboxAnnounce.Database, DatabaseLocations.OutboxAnnounce.Collection);
+        var shares = await _repository.GetAll<Activity>(DatabaseLocations.OutboxAnnounce.Database,
+            DatabaseLocations.OutboxAnnounce.Collection);
 
         var orderedCollection = new OrderedCollection<Activity>
         {

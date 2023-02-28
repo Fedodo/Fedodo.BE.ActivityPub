@@ -1,6 +1,5 @@
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.Server.Controllers.ActivityPub;

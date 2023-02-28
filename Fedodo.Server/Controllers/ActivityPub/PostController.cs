@@ -30,7 +30,7 @@ public class PostController : ControllerBase
 
         if (post.IsActivityPublic())
             return Ok(post);
-        
+
         return Forbid("Not a public post");
     }
 }

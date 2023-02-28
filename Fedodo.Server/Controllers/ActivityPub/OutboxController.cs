@@ -25,7 +25,7 @@ public class OutboxController : ControllerBase
         _activityHandler = activityHandler;
         _userHandler = userHandler;
     }
-    
+
     [HttpGet("{userId:guid}")]
     public async Task<ActionResult<PagedOrderedCollection>> GetPublicPostsPageInformation(Guid userId)
     {
@@ -34,18 +34,18 @@ public class OutboxController : ControllerBase
         // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
         var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
             item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
-            item == "as:Public") || i.To.Any(item => item == "public")); 
-        
+            item == "as:Public") || i.To.Any(item => item == "public"));
+
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, filter);
 
-        var orderedCollection = new PagedOrderedCollection()
+        var orderedCollection = new PagedOrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
             TotalItems = postCount,
             First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0"),
             Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}"),
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}")
         };
 
         return Ok(orderedCollection);
@@ -60,25 +60,25 @@ public class OutboxController : ControllerBase
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => i.To.Any(item =>
             item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
-            item == "as:Public") || i.To.Any(item => item == "public")); 
-        
+            item == "as:Public") || i.To.Any(item => item == "public"));
+
         var activities = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
-            DatabaseLocations.OutboxCreate.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort, filter: filter);
+            DatabaseLocations.OutboxCreate.Collection, pageId, 20, sort, filter);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
         var nextPageId = pageId + 1;
         // TODO if (nextPageId > ) nextPageId = 
-        
-        var orderedCollectionPage = new OrderedCollectionPage<Activity>()
+
+        var orderedCollectionPage = new OrderedCollectionPage<Activity>
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{pageId}"),
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
             OrderedItems = activities,
             Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),            
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),
             Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}"),
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}")
         };
 
         return Ok(orderedCollectionPage);
@@ -96,7 +96,8 @@ public class OutboxController : ControllerBase
         var user = await _userHandler.GetUserByIdAsync(userId);
         var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
         var activity =
-            await _activityHandler.CreateActivity(userId, activityDto, Environment.GetEnvironmentVariable("DOMAINNAME"));
+            await _activityHandler.CreateActivity(userId, activityDto,
+                Environment.GetEnvironmentVariable("DOMAINNAME"));
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 

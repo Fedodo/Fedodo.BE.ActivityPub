@@ -104,10 +104,10 @@ public class ActivityHandler : IActivityHandler
             case "Follow":
             {
                 activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
-                
+
                 await _repository.Create(activity, DatabaseLocations.OutboxFollow.Database,
                     DatabaseLocations.OutboxFollow.Collection);
-                
+
                 break;
             }
             case "Announce":

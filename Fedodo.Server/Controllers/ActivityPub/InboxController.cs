@@ -1,12 +1,9 @@
 using CommonExtensions;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
@@ -39,13 +36,13 @@ public class InboxController : ControllerBase
         var postCount = await _repository.CountAll<Activity>(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection);
 
-        var orderedCollection = new PagedOrderedCollection()
+        var orderedCollection = new PagedOrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
             TotalItems = postCount,
             First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/0"),
             Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"),
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}")
         };
 
         return Ok(orderedCollection);
@@ -61,14 +58,14 @@ public class InboxController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var page = await _repository.GetAllPaged(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection, pageId: pageId, pageSize: 20, sortDefinition: sort);
+            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
         var nextPageId = pageId + 1;
         // TODO if (nextPageId > ) nextPageId = 
 
-        var orderedCollectionPage = new OrderedCollectionPage<Activity>()
+        var orderedCollectionPage = new OrderedCollectionPage<Activity>
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
@@ -76,7 +73,7 @@ public class InboxController : ControllerBase
             Prev = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),
             Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"),
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}")
         };
 
         return Ok(orderedCollectionPage);
@@ -181,7 +178,8 @@ public class InboxController : ControllerBase
                 {
                     _logger.LogDebug("Found activity which was accepted");
 
-                    await _repository.Create(activity, DatabaseLocations.InboxAccept.Database, DatabaseLocations.InboxAccept.Collection);
+                    await _repository.Create(activity, DatabaseLocations.InboxAccept.Database,
+                        DatabaseLocations.InboxAccept.Collection);
                 }
                 else
                 {
