@@ -118,9 +118,8 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
-                var temObj = activity.Object.TrySystemJsonDeserialization<string>();
                 // activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
-                activity.Object = BsonSerializer.Deserialize<BsonDocument>(temObj);
+                activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
                 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
