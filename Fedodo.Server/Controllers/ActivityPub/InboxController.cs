@@ -3,6 +3,8 @@ using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using OpenIddict.Validation.AspNetCore;
 
@@ -116,8 +118,9 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
-                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
+                var temObj = activity.Object.TrySystemJsonDeserialization<string>();
                 activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
+                activity.Object = BsonSerializer.Deserialize<BsonDocument>(temObj);
                 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
