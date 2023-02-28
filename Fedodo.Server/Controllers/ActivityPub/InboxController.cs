@@ -116,6 +116,8 @@ public class InboxController : ControllerBase
         {
             case "Create":
             {
+                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
+                
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxCreate.Database,
