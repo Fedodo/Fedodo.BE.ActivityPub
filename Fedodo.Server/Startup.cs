@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Fedodo.Server.APIs;
 using Fedodo.Server.Handlers;
 using Fedodo.Server.Interfaces;
+using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Repositories;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -263,5 +264,7 @@ public class Startup
     {
         BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
         BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));
+        var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo.Server"));
+        BsonSerializer.RegisterSerializer(objectSerializer);
     }
 }

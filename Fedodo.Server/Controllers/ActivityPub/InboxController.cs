@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CommonExtensions;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
@@ -5,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using OpenIddict.Validation.AspNetCore;
 
@@ -103,7 +106,7 @@ public class InboxController : ControllerBase
     public async Task<ActionResult> Inbox(Guid userId, [FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
-
+        
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
 
@@ -122,7 +125,7 @@ public class InboxController : ControllerBase
                 
                 activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
-                
+
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxCreate.Database,
@@ -200,8 +203,7 @@ public class InboxController : ControllerBase
                 _logger.LogDebug("Got Announce");
                 
                 activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
-                activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
-                
+
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxAnnounce.Database,
