@@ -203,6 +203,7 @@ public class InboxController : ControllerBase
                 _logger.LogDebug("Got Announce");
                 
                 activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
+                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
