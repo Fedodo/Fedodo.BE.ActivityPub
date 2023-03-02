@@ -113,9 +113,7 @@ public class InboxController : ControllerBase
         }
 
         if (activity.Published.IsNull() || activity.Published <= DateTime.Parse("2000-01-01"))
-        {
             activity.Published = DateTime.Now;
-        }
 
         activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
 
@@ -146,7 +144,7 @@ public class InboxController : ControllerBase
                     $"Got follow for \"{activity.Object.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
 
                 activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
-                
+
                 var definitionBuilder = Builders<Activity>.Filter;
                 var helperFilter = definitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.InboxFollow.Database,
@@ -181,7 +179,7 @@ public class InboxController : ControllerBase
                 _logger.LogTrace("Got an Accept activity");
 
                 var acceptedActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
-                
+
                 activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
 
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
@@ -225,7 +223,7 @@ public class InboxController : ControllerBase
             case "Like":
             {
                 _logger.LogTrace("Got an Like Activity");
-                
+
                 activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
 
                 var definitionBuilder = Builders<Activity>.Filter;

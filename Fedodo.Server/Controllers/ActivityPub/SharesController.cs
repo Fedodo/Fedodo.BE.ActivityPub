@@ -20,15 +20,13 @@ public class SharesController : ControllerBase
     }
 
     [HttpGet]
-    [Route($"{{postIdUrlEncoded}}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetSharesPage(string postIdUrlEncoded, [FromQuery]int? page = null)
+    [Route("{postIdUrlEncoded}")]
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetSharesPage(string postIdUrlEncoded,
+        [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetSharesPage)} in {nameof(SharesController)}");
 
-        if (page.IsNull())
-        {
-            return Ok(await GetSharesSummary(postIdUrlEncoded));
-        }
+        if (page.IsNull()) return Ok(await GetSharesSummary(postIdUrlEncoded));
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
@@ -37,9 +35,9 @@ public class SharesController : ControllerBase
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => (string)i.Object == postId);
-        
+
         var sharesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
-            DatabaseLocations.OutboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();        
+            DatabaseLocations.OutboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
         var sharesInbox = (await _repository.GetSpecificPaged(DatabaseLocations.InboxAnnounce.Database,
             DatabaseLocations.InboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
         var shares = new List<Activity>();
@@ -47,24 +45,23 @@ public class SharesController : ControllerBase
         shares.AddRange(sharesInbox);
         shares.OrderByDescending(i => i.Published);
         var count = 0;
-        if (shares.Count < 20)
-        {
-            count = shares.Count;
-        }
+        if (shares.Count < 20) count = shares.Count;
         shares = shares.GetRange(0, count);
 
         var orderedCollection = new OrderedCollectionPage<Activity>
         {
             OrderedItems = shares,
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page}"),
-            Next = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page + 1}"), // TODO
-            Prev = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page - 1}"), // TODO
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page + 1}"), // TODO
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page - 1}"), // TODO
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}")
         };
 
         return Ok(orderedCollection);
     }
-    
+
     private async Task<OrderedPagedCollection> GetSharesSummary(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetSharesSummary)} in {nameof(SharesController)}");

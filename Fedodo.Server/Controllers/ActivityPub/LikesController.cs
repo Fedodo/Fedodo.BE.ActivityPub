@@ -18,7 +18,7 @@ public class LikesController : ControllerBase
         _logger = logger;
         _repository = repository;
     }
-    
+
     private async Task<OrderedPagedCollection> GetLikes(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
@@ -46,15 +46,13 @@ public class LikesController : ControllerBase
     }
 
     [HttpGet]
-    [Route($"{{postIdUrlEncoded}}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetLikesPage(string postIdUrlEncoded, [FromQuery]int? page = null)
+    [Route("{postIdUrlEncoded}")]
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetLikesPage(string postIdUrlEncoded,
+        [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetLikesPage)} in {nameof(LikesController)}");
 
-        if (page.IsNull())
-        {
-            return Ok(await GetLikes(postIdUrlEncoded));
-        }
+        if (page.IsNull()) return Ok(await GetLikes(postIdUrlEncoded));
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
@@ -63,9 +61,9 @@ public class LikesController : ControllerBase
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => (string)i.Object == postId);
-        
+
         var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
-            DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();        
+            DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();
         var likesInbox = (await _repository.GetSpecificPaged(DatabaseLocations.InboxLike.Database,
             DatabaseLocations.InboxLike.Collection, (int)page, 20, sort, filter)).ToList();
         var likes = new List<Activity>();
@@ -73,18 +71,17 @@ public class LikesController : ControllerBase
         likes.AddRange(likesInbox);
         likes.OrderByDescending(i => i.Published);
         var count = 0;
-        if (likes.Count < 20)
-        {
-            count = likes.Count;
-        }
+        if (likes.Count < 20) count = likes.Count;
         likes = likes.GetRange(0, count);
 
         var orderedCollection = new OrderedCollectionPage<Activity>
         {
             OrderedItems = likes,
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page}"),
-            Next = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page + 1}"), // TODO
-            Prev = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page - 1}"), // TODO
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page + 1}"), // TODO
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page - 1}"), // TODO
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
         };
 

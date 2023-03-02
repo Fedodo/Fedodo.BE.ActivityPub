@@ -21,13 +21,13 @@ public class FollowersController : ControllerBase
     private async Task<ActionResult<OrderedPagedCollection>> GetFollowers(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
-        
+
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => (string)i.Object == userId.ToString());
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
-        
+
         var orderedCollection = new OrderedPagedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}"),
@@ -41,22 +41,20 @@ public class FollowersController : ControllerBase
     }
 
     [HttpGet]
-    [Route($"{{userId}}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetFollowersPage(Guid userId, [FromQuery]int? page = null)
+    [Route("{userId}")]
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetFollowersPage(Guid userId,
+        [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
 
-        if (page.IsNull())
-        {
-            return Ok(await GetFollowers(userId: userId));
-        }
-        
+        if (page.IsNull()) return Ok(await GetFollowers(userId));
+
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => (string)i.Object == userId.ToString());
-        
+
         var likes = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
 
@@ -64,8 +62,10 @@ public class FollowersController : ControllerBase
         {
             OrderedItems = likes,
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page}"),
-            Next = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page + 1}"), // TODO
-            Prev = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page - 1}"), // TODO
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page + 1}"), // TODO
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page - 1}"), // TODO
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}")
         };
 
