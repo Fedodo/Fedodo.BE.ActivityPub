@@ -112,13 +112,14 @@ public class InboxController : ControllerBase
             return BadRequest("Activity can not be null!");
         }
 
+        activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
+
         switch (activity.Type)
         {
             case "Create":
             {
                 _logger.LogDebug("Entered Create");
 
-                activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 activity.Object = activity.Object.TrySystemJsonDeserialization<Post>();
 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
@@ -139,6 +140,8 @@ public class InboxController : ControllerBase
                 _logger.LogDebug(
                     $"Got follow for \"{activity.Object.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
 
+                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
+                
                 var definitionBuilder = Builders<Activity>.Filter;
                 var helperFilter = definitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.InboxFollow.Database,
@@ -173,6 +176,8 @@ public class InboxController : ControllerBase
                 _logger.LogTrace("Got an Accept activity");
 
                 var acceptedActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
+                
+                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
 
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
@@ -197,7 +202,6 @@ public class InboxController : ControllerBase
             {
                 _logger.LogDebug("Got Announce");
 
-                activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
                 activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
@@ -216,6 +220,8 @@ public class InboxController : ControllerBase
             case "Like":
             {
                 _logger.LogTrace("Got an Like Activity");
+                
+                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Id, activity.Id);
