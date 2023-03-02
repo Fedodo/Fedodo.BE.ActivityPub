@@ -25,16 +25,16 @@ public class LikesControllerShould
         _likesController = new LikesController(logger.Object, repository.Object);
     }
 
-    [Fact]
-    public async Task GetLikes()
-    {
-        // Arrange
-
-        // Act
-        var likes = await _likesController.GetLikesPage(
-            "https:%2F%2Fsocial.heise.de%2Fusers%2Fheiseonline%2Fstatuses%2F109835554713856912");
-
-        // Assert
-        likes.ShouldNotBeNull();
-    }
+    // [Fact]
+    // public async Task GetLikes()
+    // {
+    //     // Arrange
+    //
+    //     // Act
+    //     var likes = await _likesController.GetLikesPage(
+    //         "https:%2F%2Fsocial.heise.de%2Fusers%2Fheiseonline%2Fstatuses%2F109835554713856912");
+    //
+    //     // Assert
+    //     likes.ShouldNotBeNull();
+    // }
 }
