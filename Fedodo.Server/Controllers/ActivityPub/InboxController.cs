@@ -112,6 +112,11 @@ public class InboxController : ControllerBase
             return BadRequest("Activity can not be null!");
         }
 
+        if (activity.Published.IsNull() || activity.Published <= DateTime.Parse("2000-01-01"))
+        {
+            activity.Published = DateTime.Now;
+        }
+
         activity.Context = activity.Context.TrySystemJsonDeserialization<string>();
 
         switch (activity.Type)
