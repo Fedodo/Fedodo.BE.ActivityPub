@@ -1,4 +1,5 @@
 using System.Web;
+using CommonExtensions;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +19,7 @@ public class LikesController : ControllerBase
         _repository = repository;
     }
     
-    [HttpGet]
-    [Route($"{{postIdUrlEncoded}}")]
-    public async Task<ActionResult<PagedOrderedCollection>> GetLikes(string postIdUrlEncoded)
+    private async Task<OrderedPagedCollection> GetLikes(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
@@ -34,7 +33,7 @@ public class LikesController : ControllerBase
         postCount += await _repository.CountSpecific(DatabaseLocations.OutboxAnnounce.Database,
             DatabaseLocations.OutboxAnnounce.Collection, filter);
 
-        var orderedCollection = new PagedOrderedCollection
+        var orderedCollection = new OrderedPagedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}"),
             TotalItems = postCount,
@@ -48,9 +47,14 @@ public class LikesController : ControllerBase
 
     [HttpGet]
     [Route($"{{postIdUrlEncoded}}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetLikesPage(string postIdUrlEncoded, int page)
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetLikesPage(string postIdUrlEncoded, [FromQuery]int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetLikesPage)} in {nameof(LikesController)}");
+
+        if (page.IsNull())
+        {
+            return Ok(await GetLikes(postIdUrlEncoded));
+        }
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
@@ -61,9 +65,9 @@ public class LikesController : ControllerBase
         var filter = filterBuilder.Where(i => (string)i.Object == postId);
         
         var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
-            DatabaseLocations.OutboxLike.Collection, page, 20, sort, filter)).ToList();        
+            DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();        
         var likesInbox = (await _repository.GetSpecificPaged(DatabaseLocations.InboxLike.Database,
-            DatabaseLocations.InboxLike.Collection, page, 20, sort, filter)).ToList();
+            DatabaseLocations.InboxLike.Collection, (int)page, 20, sort, filter)).ToList();
         var likes = new List<Activity>();
         likes.AddRange(likesOutbox);
         likes.AddRange(likesInbox);

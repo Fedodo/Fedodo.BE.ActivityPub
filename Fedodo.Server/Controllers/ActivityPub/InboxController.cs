@@ -29,14 +29,14 @@ public class InboxController : ControllerBase
 
     [HttpGet("{userId:guid}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<PagedOrderedCollection>> GetPageInformation(Guid userId)
+    public async Task<ActionResult<OrderedPagedCollection>> GetPageInformation(Guid userId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
 
         var postCount = await _repository.CountAll<Activity>(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection);
 
-        var orderedCollection = new PagedOrderedCollection
+        var orderedCollection = new OrderedPagedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
             TotalItems = postCount,

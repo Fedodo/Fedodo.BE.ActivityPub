@@ -27,7 +27,7 @@ public class OutboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<PagedOrderedCollection>> GetPublicPostsPageInformation(Guid userId)
+    public async Task<ActionResult<OrderedPagedCollection>> GetPublicPostsPageInformation(Guid userId)
     {
         // This filter can not use the extensions method IsPostPublic
         var filterDefinitionBuilder = Builders<Activity>.Filter;
@@ -39,7 +39,7 @@ public class OutboxController : ControllerBase
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, filter);
 
-        var orderedCollection = new PagedOrderedCollection
+        var orderedCollection = new OrderedPagedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
             TotalItems = postCount,
