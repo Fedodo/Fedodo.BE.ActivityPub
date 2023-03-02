@@ -20,9 +20,37 @@ public class SharesController : ControllerBase
 
     [HttpGet]
     [Route($"{{postIdUrlEncoded}}")]
-    public async Task<ActionResult<OrderedCollection<Activity>>> GetShares(string postIdUrlEncoded, int page)
+    public async Task<ActionResult<PagedOrderedCollection>> GetShares(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
+
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
+
+        var filterBuilder = new FilterDefinitionBuilder<Activity>();
+        var filter = filterBuilder.Where(i => (string)i.Object == postId);
+
+        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxAnnounce.Database,
+            DatabaseLocations.InboxAnnounce.Collection, filter);
+        postCount += await _repository.CountSpecific(DatabaseLocations.OutboxAnnounce.Database,
+            DatabaseLocations.OutboxAnnounce.Collection, filter);
+
+        var orderedCollection = new PagedOrderedCollection
+        {
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}"),
+            TotalItems = postCount,
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}?page=0"),
+            Last = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}?page={postCount / 20}")
+        };
+
+        return orderedCollection;
+    }
+
+    [HttpGet]
+    [Route($"{{postIdUrlEncoded}}")]
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetSharesPage(string postIdUrlEncoded, int page)
+    {
+        _logger.LogTrace($"Entered {nameof(GetSharesPage)} in {nameof(SharesController)}");
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
