@@ -264,7 +264,8 @@ public class Startup
     {
         BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
         BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));
-        var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo.Server"));
+        var objectSerializer = new ObjectSerializer(type =>
+            ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo.Server"));
         BsonSerializer.RegisterSerializer(objectSerializer);
         BsonSerializer.RegisterDiscriminator(typeof(Post), "Post");
     }
