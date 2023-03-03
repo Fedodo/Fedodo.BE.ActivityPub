@@ -18,7 +18,7 @@ public class FollowingController : ControllerBase
         _repository = repository;
     }
 
-    private async Task<ActionResult<OrderedPagedCollection>> GetFollowings(Guid userId)
+    private async Task<OrderedPagedCollection> GetFollowings(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
 

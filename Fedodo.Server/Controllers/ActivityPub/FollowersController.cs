@@ -18,7 +18,7 @@ public class FollowersController : ControllerBase
         _repository = repository;
     }
 
-    private async Task<ActionResult<OrderedPagedCollection>> GetFollowers(Guid userId)
+    private async Task<OrderedPagedCollection> GetFollowers(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
