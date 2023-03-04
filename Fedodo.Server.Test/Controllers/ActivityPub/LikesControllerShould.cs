@@ -1,12 +1,9 @@
 using System;
-using System.Threading.Tasks;
 using Fedodo.Server.Controllers.ActivityPub;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Shouldly;
-using Xunit;
 
 namespace Fedodo.Server.Test.Controllers.ActivityPub;
 
