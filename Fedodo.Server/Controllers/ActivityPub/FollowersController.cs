@@ -18,12 +18,12 @@ public class FollowersController : ControllerBase
         _repository = repository;
     }
 
-    private async Task<OrderedPagedCollection> GetFollowers(Guid userId)
+    private async Task<OrderedPagedCollection> GetFollowers(string userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == userId.ToString());
+        var filter = filterBuilder.Where(i => (string)i.Object == userId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
@@ -42,7 +42,7 @@ public class FollowersController : ControllerBase
 
     [HttpGet]
     [Route("{userId}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetFollowersPage(Guid userId,
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetFollowersPage(string userId,
         [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
@@ -53,7 +53,7 @@ public class FollowersController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == userId.ToString());
+        var filter = filterBuilder.Where(i => (string)i.Object == userId);
 
         var likes = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
