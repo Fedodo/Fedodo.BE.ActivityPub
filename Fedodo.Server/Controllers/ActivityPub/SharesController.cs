@@ -1,8 +1,9 @@
 using System.Web;
+using CommonExtensions;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
 
@@ -20,20 +21,70 @@ public class SharesController : ControllerBase
 
     [HttpGet]
     [Route("{postIdUrlEncoded}")]
-    public async Task<ActionResult<OrderedCollection<string>>> GetShares(string postIdUrlEncoded)
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetSharesPage(string postIdUrlEncoded,
+        [FromQuery] int? page = null)
     {
-        _logger.LogTrace($"Entered {nameof(GetShares)} in {nameof(SharesController)}");
-        
+        _logger.LogTrace($"Entered {nameof(GetSharesPage)} in {nameof(SharesController)}");
+
+        if (page.IsNull()) return Ok(await GetSharesSummary(postIdUrlEncoded));
+
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var shares = await _repository.GetAll<ShareHelper>(DatabaseLocations.Shares.Database, postId.ToString());
+        var builder = Builders<Activity>.Sort;
+        var sort = builder.Descending(i => i.Published);
 
-        var orderedCollection = new OrderedCollection<string>
+        var filterBuilder = new FilterDefinitionBuilder<Activity>();
+        var filter = filterBuilder.Where(i => (string)i.Object == postId);
+
+        var sharesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
+            DatabaseLocations.OutboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
+        var sharesInbox = (await _repository.GetSpecificPaged(DatabaseLocations.InboxAnnounce.Database,
+            DatabaseLocations.InboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
+        var shares = new List<Activity>();
+        shares.AddRange(sharesOutbox);
+        shares.AddRange(sharesInbox);
+        shares.OrderByDescending(i => i.Published);
+        var count = 0;
+        if (shares.Count < 20) count = shares.Count;
+        shares = shares.GetRange(0, count);
+
+        var orderedCollection = new OrderedCollectionPage<Activity>
         {
-            Summary = $"Shares of Post: {postId}",
-            OrderedItems = shares.Select(i => i.Share.ToString())
+            OrderedItems = shares,
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page}"),
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page + 1}"), // TODO
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}/?page={page - 1}"), // TODO
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}")
         };
 
         return Ok(orderedCollection);
+    }
+
+    private async Task<OrderedPagedCollection> GetSharesSummary(string postIdUrlEncoded)
+    {
+        _logger.LogTrace($"Entered {nameof(GetSharesSummary)} in {nameof(SharesController)}");
+
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
+
+        var filterBuilder = new FilterDefinitionBuilder<Activity>();
+        var filter = filterBuilder.Where(i => (string)i.Object == postId);
+
+        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxAnnounce.Database,
+            DatabaseLocations.InboxAnnounce.Collection, filter);
+        postCount += await _repository.CountSpecific(DatabaseLocations.OutboxAnnounce.Database,
+            DatabaseLocations.OutboxAnnounce.Collection, filter);
+
+        var orderedCollection = new OrderedPagedCollection
+        {
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}"),
+            TotalItems = postCount,
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}?page=0"),
+            Last = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{postId}?page={postCount / 20}")
+        };
+
+        return orderedCollection;
     }
 }

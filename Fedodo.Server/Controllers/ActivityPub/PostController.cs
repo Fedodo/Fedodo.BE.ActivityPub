@@ -6,7 +6,7 @@ using MongoDB.Driver;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
 
-[Route("Posts")]
+[Route("Activities")]
 public class PostController : ControllerBase
 {
     private readonly ILogger<PostController> _logger;
@@ -18,18 +18,19 @@ public class PostController : ControllerBase
         _repository = repository;
     }
 
-    [HttpGet("{postId:guid}")]
-    public async Task<ActionResult<Post>> GetPost(Guid postId)
+    [HttpGet("{activityId:guid}")]
+    public async Task<ActionResult<Post>> GetPost(Guid activityId)
     {
-        var postDefinitionBuilder = Builders<Post>.Filter;
+        var postDefinitionBuilder = Builders<Activity>.Filter;
         var postFilter = postDefinitionBuilder.Eq(i => i.Id,
-            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/posts/{postId}"));
+            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activities/{activityId}"));
 
-        var post = await _repository.GetSpecificItem(postFilter, DatabaseLocations.OutboxNotes.Database,
-            DatabaseLocations.OutboxNotes.Collection);
+        var post = await _repository.GetSpecificItem(postFilter, DatabaseLocations.OutboxCreate.Database,
+            DatabaseLocations.OutboxCreate.Collection);
 
-        if (post.IsPostPublic())
+        if (post.IsActivityPublic())
             return Ok(post);
+
         return Forbid("Not a public post");
     }
 }

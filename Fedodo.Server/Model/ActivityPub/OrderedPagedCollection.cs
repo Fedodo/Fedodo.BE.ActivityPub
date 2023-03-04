@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Fedodo.Server.Model.ActivityPub;
 
-public class PagedOrderedCollection
+public class OrderedPagedCollection
 {
     [JsonPropertyName("@context")] public string Context { get; set; } = "https://www.w3.org/ns/activitystreams";
     [JsonPropertyName("id")] public Uri Id { get; set; }

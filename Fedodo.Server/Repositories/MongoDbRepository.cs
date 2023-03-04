@@ -55,7 +55,8 @@ public class MongoDbRepository : IMongoDbRepository
         return result;
     }
 
-    public async Task<IEnumerable<T>> GetAllPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
+    public async Task<IEnumerable<T>> GetAllPaged<T>(string databaseName, string collectionName, int pageId,
+        int pageSize,
         SortDefinition<T> sortDefinition)
     {
         _logger.LogTrace($"Getting all items paged of type: {typeof(T)}");
@@ -73,8 +74,9 @@ public class MongoDbRepository : IMongoDbRepository
 
         return result;
     }
-    
-    public async Task<IEnumerable<T>> GetSpecificPaged<T>(string databaseName, string collectionName, int pageId, int pageSize,
+
+    public async Task<IEnumerable<T>> GetSpecificPaged<T>(string databaseName, string collectionName, int pageId,
+        int pageSize,
         SortDefinition<T> sortDefinition, FilterDefinition<T> filter)
     {
         _logger.LogTrace($"Getting all items paged of type: {typeof(T)}");
@@ -100,13 +102,13 @@ public class MongoDbRepository : IMongoDbRepository
         var database = _client.GetDatabase(databaseName);
         var collection = database.GetCollection<T>(collectionName);
 
-        var result = (await collection.CountDocumentsAsync(new BsonDocument()));
+        var result = await collection.CountDocumentsAsync(new BsonDocument());
 
         _logger.LogTrace($"Finished counting all items of type: {typeof(T)}");
 
         return result;
-    }    
-    
+    }
+
     public async Task<long> CountSpecific<T>(string databaseName, string collectionName, FilterDefinition<T> filter)
     {
         _logger.LogTrace($"Counting all items of type: {typeof(T)}");

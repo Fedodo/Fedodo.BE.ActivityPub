@@ -41,7 +41,7 @@ jobs:
 
       - name: Push the image to dockerhub
         run: docker push ${{ env.DOCKERHUB_USERNAME }}/fedodo.server:dev_${{ github.run_number }}
-        
+  
   PublishVersion:
     runs-on: ubuntu-latest
     needs: [ "ReleaseVersion" ]
@@ -54,7 +54,7 @@ jobs:
         with:
           fileName: "custom-config"
           encodedString: ${{ secrets.KUBECTL_CONFIG }}
-        
+      
       # Checkout
       - uses: actions/checkout@v3
 
