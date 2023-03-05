@@ -90,7 +90,7 @@ public class ActivityHandlerShould
     [Theory]
     [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Create")]
     [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Like")]
-    [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Share")]
+    [InlineData("EAB26E2C-48BE-45F6-BB17-FB35BB7F889F", "Announce")]
     public async Task CreateActivity(string userId, string type)
     {
         // Arrange

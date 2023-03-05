@@ -12,11 +12,11 @@ namespace Fedodo.Server.Controllers.GUI;
 
 public class AccountController : Controller
 {
-    private readonly Interfaces.IAuthenticationHandler _authenticationHandler;
+    private readonly IAuthenticationHandler _authenticationHandler;
     private readonly ILogger<AccountController> _logger;
     private readonly IUserHandler _userHandler;
 
-    public AccountController(Interfaces.IAuthenticationHandler authenticationHandler, IUserHandler userHandler,
+    public AccountController(IAuthenticationHandler authenticationHandler, IUserHandler userHandler,
         ILogger<AccountController> logger)
     {
         _authenticationHandler = authenticationHandler;

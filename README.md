@@ -17,8 +17,7 @@
 
 ### Fedodo.Server
 
-<!-- TODO Change the description -->
-In this repository I have created a Fedodo.Server based on Best-Fedodo.Server
+Fedodo Server is the backend API for the Fedodo-Social-Network.
 
 <p align="center">
 

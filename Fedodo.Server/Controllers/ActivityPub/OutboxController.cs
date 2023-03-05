@@ -27,29 +27,69 @@ public class OutboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<OrderedCollection<Post>>> GetAllPublicPosts(Guid userId)
+    public async Task<ActionResult<OrderedPagedCollection>> GetPublicPostsPageInformation(Guid userId)
     {
         // This filter can not use the extensions method IsPostPublic
-        var filterDefinitionBuilder = Builders<Post>.Filter;
+        var filterDefinitionBuilder = Builders<Activity>.Filter;
+        // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
         var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
-            item == "https://www.w3.org/ns/activitystreams#Public"
-            || item == "as:Public" || item == "public"));
-        var posts = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxNotes.Database,
-            DatabaseLocations.OutboxNotes.Collection);
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
+            item == "as:Public") || i.To.Any(item => item == "public"));
 
-        var orderedCollection = new OrderedCollection<Post>
+        var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
+            DatabaseLocations.OutboxCreate.Collection, filter);
+
+        var orderedCollection = new OrderedPagedCollection
         {
-            Summary = $"Posts of {userId}",
-            OrderedItems = posts
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
+            TotalItems = postCount,
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0"),
+            Last = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}")
         };
 
         return Ok(orderedCollection);
+    }
+
+    [HttpGet("{userId:guid}/page/{pageId:int}")]
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPublicPage(Guid userId, int pageId)
+    {
+        var builder = Builders<Activity>.Sort;
+        var sort = builder.Descending(i => i.Published);
+
+        var filterBuilder = new FilterDefinitionBuilder<Activity>();
+        var filter = filterBuilder.Where(i => i.To.Any(item =>
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
+            item == "as:Public") || i.To.Any(item => item == "public"));
+
+        var activities = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
+            DatabaseLocations.OutboxCreate.Collection, pageId, 20, sort, filter);
+
+        var previousPageId = pageId - 1;
+        if (previousPageId < 0) previousPageId = 0;
+        var nextPageId = pageId + 1;
+        // TODO if (nextPageId > ) nextPageId = 
+
+        var orderedCollectionPage = new OrderedCollectionPage<Activity>
+        {
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{pageId}"),
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
+            OrderedItems = activities,
+            Prev = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),
+            Next = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}")
+        };
+
+        return Ok(orderedCollectionPage);
     }
 
     [HttpPost("{userId:guid}")]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
+        _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
+
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
