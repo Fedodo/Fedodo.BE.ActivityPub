@@ -18,12 +18,14 @@ public class FollowersController : ControllerBase
         _repository = repository;
     }
 
-    private async Task<OrderedPagedCollection> GetFollowers(string userId)
+    private async Task<OrderedPagedCollection> GetFollowers(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
+
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == userId);
+        var filter = filterBuilder.Where(i => (string)i.Object == fullUserId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
@@ -47,9 +49,9 @@ public class FollowersController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
 
-        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actors/{userId}";
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
-        if (page.IsNull()) return Ok(await GetFollowers(fullUserId));
+        if (page.IsNull()) return Ok(await GetFollowers(userId));
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);

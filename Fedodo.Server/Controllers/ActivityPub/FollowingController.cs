@@ -21,9 +21,11 @@ public class FollowingController : ControllerBase
     private async Task<OrderedPagedCollection> GetFollowings(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
+        
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == userId.ToString());
+        var filter = filterBuilder.Where(i => (string)i.Object == fullUserId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, filter);
@@ -47,13 +49,15 @@ public class FollowingController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowingsPage)} in {nameof(FollowingController)}");
 
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
+
         if (page.IsNull()) return Ok(await GetFollowings(userId));
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == userId.ToString());
+        var filter = filterBuilder.Where(i => (string)i.Object == fullUserId);
 
         var likes = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
