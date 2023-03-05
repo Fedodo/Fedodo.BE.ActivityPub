@@ -42,18 +42,20 @@ public class FollowersController : ControllerBase
 
     [HttpGet]
     [Route("{userId}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetFollowersPage(string userId,
+    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetFollowersPage(Guid userId,
         [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
 
-        if (page.IsNull()) return Ok(await GetFollowers(userId));
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actors/{userId}";
+
+        if (page.IsNull()) return Ok(await GetFollowers(fullUserId));
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == userId);
+        var filter = filterBuilder.Where(i => (string)i.Object == fullUserId);
 
         var likes = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
