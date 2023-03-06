@@ -51,12 +51,12 @@ public class SharesController : ControllerBase
         var orderedCollection = new OrderedCollectionPage<Activity>
         {
             OrderedItems = shares,
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}/?page={page}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}/?page={page}"),
             Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}/?page={page + 1}"), // TODO
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}/?page={page + 1}"), // TODO
             Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}/?page={page - 1}"), // TODO
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}/?page={page - 1}"), // TODO
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}")
         };
 
         return Ok(orderedCollection);
@@ -78,11 +78,11 @@ public class SharesController : ControllerBase
 
         var orderedCollection = new OrderedPagedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}"),
             TotalItems = postCount,
-            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}?page=0"),
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}?page=0"),
             Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.HtmlEncode(postId)}?page={postCount / 20}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}")
         };
 
         return orderedCollection;
