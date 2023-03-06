@@ -35,11 +35,11 @@ public class LikesController : ControllerBase
 
         var orderedCollection = new OrderedPagedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}"),
             TotalItems = postCount,
-            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}?page=0"),
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}?page=0"),
             Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}?page={postCount / 20}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}?page={postCount / 20}")
         };
 
         return orderedCollection;
@@ -77,12 +77,12 @@ public class LikesController : ControllerBase
         var orderedCollection = new OrderedCollectionPage<Activity>
         {
             OrderedItems = likes,
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}/?page={page}"),
             Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page + 1}"), // TODO
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}/?page={page + 1}"), // TODO
             Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}/?page={page - 1}"), // TODO
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{postId}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}/?page={page - 1}"), // TODO
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.HtmlEncode(postId)}")
         };
 
         return Ok(orderedCollection);
