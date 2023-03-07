@@ -41,20 +41,21 @@ public class ActivityHandler : IActivityHandler
 
     public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName)
     {
-        var postId = Guid.NewGuid();
+        var activityId = Guid.NewGuid();
         var actorId = new Uri($"https://{domainName}/actor/{userId}");
         object? obj;
 
         var activity = new Activity
         {
             Actor = actorId,
-            Id = new Uri($"https://{domainName}/activitys/{postId}"),
+            Id = new Uri($"https://{domainName}/outbox/{activityDto.Type}/{activityId}".ToLower()),
             Type = activityDto.Type,
             To = activityDto.To,
             Bto = activityDto.Bto,
             Cc = activityDto.Cc,
             Bcc = activityDto.Bcc,
-            Audience = activityDto.Audience
+            Audience = activityDto.Audience,
+            Published = DateTime.UtcNow
         };
 
         switch (activityDto.Type)
@@ -71,12 +72,12 @@ public class ActivityHandler : IActivityHandler
                     Sensitive = createPostDto.Sensitive,
                     InReplyTo = createPostDto.InReplyTo,
                     Content = createPostDto.Content,
-                    Id = new Uri($"https://{domainName}/posts/{postId}"),
+                    Id = new Uri($"https://{domainName}/posts/{activityId}"),
                     Type = createPostDto.Type,
                     Published = createPostDto.Published,
                     AttributedTo = actorId,
-                    Shares = new Uri($"https://{domainName}/shares/{postId}"),
-                    Likes = new Uri($"https://{domainName}/likes/{postId}")
+                    Shares = new Uri($"https://{domainName}/shares/{activityId}"),
+                    Likes = new Uri($"https://{domainName}/likes/{activityId}")
                 };
 
                 await _repository.Create(activity, DatabaseLocations.OutboxCreate.Database,
