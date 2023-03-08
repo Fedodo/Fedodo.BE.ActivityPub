@@ -146,7 +146,7 @@ public class InboxController : ControllerBase
                     if (((Post)activity.Object).InReplyTo?.Host == Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
                         var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter = updateFilterBuilder.Eq(i => i.Id, ((Post)activity.Object).InReplyTo);
+                        var updateFilter = updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.OutboxCreate.Database,
@@ -174,7 +174,7 @@ public class InboxController : ControllerBase
                         _logger.LogDebug("Entering Outbox reply logic");
 
                         var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter = updateFilterBuilder.Eq(i => i.Id, ((Post)activity.Object).InReplyTo);
+                        var updateFilter = updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.InboxCreate.Database,
