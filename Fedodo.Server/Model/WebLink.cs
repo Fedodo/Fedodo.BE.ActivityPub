@@ -1,6 +1,6 @@
 namespace Fedodo.Server.Model;
 
-public class Link
+public class WebLink
 {
     public string? Rel { get; set; }
     public string? Type { get; set; }

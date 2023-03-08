@@ -152,6 +152,11 @@ public class InboxController : ControllerBase
                             break;
                         }
 
+                        if (((Post)updateItem.Object).Replies.Items.IsNull())
+                        {
+                            ((Post)updateItem.Object).Replies.Items = new List<Link>();
+                        }
+                        
                         ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()
                         {
                             Href = activity.Id
@@ -171,6 +176,11 @@ public class InboxController : ControllerBase
                         if (updateItem.IsNull())
                         {
                             break;
+                        }
+                        
+                        if (((Post)updateItem.Object).Replies.Items.IsNull())
+                        {
+                            ((Post)updateItem.Object).Replies.Items = new List<Link>();
                         }
 
                         ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()

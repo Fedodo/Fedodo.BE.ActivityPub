@@ -17,7 +17,7 @@ public class NodeInfoController : ControllerBase
     }
 
     [HttpGet(".well-known/nodeinfo")]
-    public ActionResult<Link> GetNodeInfoLink()
+    public ActionResult<WebLink> GetNodeInfoLink()
     {
         _logger.LogTrace($"Entered {nameof(GetNodeInfoLink)} in {nameof(NodeInfoController)}");
 

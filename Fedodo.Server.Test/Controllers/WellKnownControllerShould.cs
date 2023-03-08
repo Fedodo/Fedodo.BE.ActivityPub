@@ -30,7 +30,7 @@ public class WellKnownControllerShould
             Subject = "resource",
             Links = new[]
             {
-                new Link()
+                new WebLink()
             }
         };
 

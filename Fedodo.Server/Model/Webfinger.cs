@@ -8,5 +8,5 @@ public class Webfinger
     [JsonIgnore] public ObjectId Id { get; set; } // Needed for storing in MongoDB
 
     public string? Subject { get; set; }
-    public IEnumerable<Link>? Links { get; set; }
+    public IEnumerable<WebLink>? Links { get; set; }
 }
