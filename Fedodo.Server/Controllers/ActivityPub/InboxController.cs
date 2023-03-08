@@ -102,8 +102,10 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
 
-        // if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
-        //     return BadRequest("Invalid Signature");
+#if !DEBUG
+        if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
+            return BadRequest("Invalid Signature");
+#endif
 
         if (activity.IsNull())
         {
@@ -136,8 +138,11 @@ public class InboxController : ControllerBase
                 await _repository.Create(activity, DatabaseLocations.InboxCreate.Database,
                     DatabaseLocations.InboxCreate.Collection);
 
+                _logger.LogDebug("Handling Reply Logic");
                 if (((Post)activity.Object).InReplyTo.IsNotNull())
                 {
+                    _logger.LogDebug("InReply is not null");
+
                     if (((Post)activity.Object).InReplyTo?.Host == Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
                         var updateFilterBuilder = Builders<Activity>.Filter;
@@ -156,7 +161,7 @@ public class InboxController : ControllerBase
                         {
                             ((Post)updateItem.Object).Replies.Items = new List<Link>();
                         }
-                        
+
                         ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()
                         {
                             Href = activity.Id
@@ -166,6 +171,8 @@ public class InboxController : ControllerBase
                     }
                     else
                     {
+                        _logger.LogDebug("Entering Outbox reply logic");
+
                         var updateFilterBuilder = Builders<Activity>.Filter;
                         var updateFilter = updateFilterBuilder.Eq(i => i.Id, ((Post)activity.Object).InReplyTo);
 
@@ -175,6 +182,8 @@ public class InboxController : ControllerBase
 
                         if (updateItem.IsNull())
                         {
+                            _logger.LogWarning("Update Item is null");
+
                             break;
                         }
 
@@ -182,7 +191,7 @@ public class InboxController : ControllerBase
                         {
                             ((Post)updateItem.Object).Replies = new();
                         }
-                        
+
                         if (((Post)updateItem.Object).Replies.Items.IsNull())
                         {
                             ((Post)updateItem.Object).Replies.Items = new List<Link>();
@@ -196,10 +205,16 @@ public class InboxController : ControllerBase
                         });
                         replies.Items = repliesItems;
                         ((Post)updateItem.Object).Replies = replies;
-                        
+
+                        _logger.LogDebug("Sending Update to database");
+
                         await _repository.Update(updateItem, updateFilter, DatabaseLocations.InboxCreate.Database,
                             DatabaseLocations.InboxCreate.Collection);
                     }
+                }
+                else
+                {
+                    _logger.LogDebug("In Reply is null");
                 }
 
                 break;
