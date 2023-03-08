@@ -85,7 +85,7 @@ public class UserController : ControllerBase
         var webfinger = new Webfinger
         {
             Subject = $"acct:{actor.PreferredUsername}@{Environment.GetEnvironmentVariable("DOMAINNAME")}",
-            Links = new List<Link>
+            Links = new List<Model.Link>
             {
                 new()
                 {

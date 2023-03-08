@@ -136,6 +136,52 @@ public class InboxController : ControllerBase
                 await _repository.Create(activity, DatabaseLocations.InboxCreate.Database,
                     DatabaseLocations.InboxCreate.Collection);
 
+                if (((Post)activity.Object).InReplyTo.IsNotNull())
+                {
+                    if (((Post)activity.Object).InReplyTo?.Host == Environment.GetEnvironmentVariable("DOMAINNAME"))
+                    {
+                        var updateFilterBuilder = Builders<Activity>.Filter;
+                        var updateFilter = updateFilterBuilder.Eq(i => i.Id, ((Post)activity.Object).InReplyTo);
+
+                        var updateItem = await _repository.GetSpecificItem(updateFilter,
+                            DatabaseLocations.OutboxCreate.Database,
+                            DatabaseLocations.OutboxCreate.Collection);
+
+                        if (updateItem.IsNull())
+                        {
+                            break;
+                        }
+
+                        ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()
+                        {
+                            Href = activity.Id
+                        });
+                        await _repository.Update(updateItem, updateFilter, DatabaseLocations.OutboxCreate.Database,
+                            DatabaseLocations.OutboxCreate.Collection);
+                    }
+                    else
+                    {
+                        var updateFilterBuilder = Builders<Activity>.Filter;
+                        var updateFilter = updateFilterBuilder.Eq(i => i.Id, ((Post)activity.Object).InReplyTo);
+
+                        var updateItem = await _repository.GetSpecificItem(updateFilter,
+                            DatabaseLocations.InboxCreate.Database,
+                            DatabaseLocations.InboxCreate.Collection);
+
+                        if (updateItem.IsNull())
+                        {
+                            break;
+                        }
+
+                        ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()
+                        {
+                            Href = activity.Id
+                        });
+                        await _repository.Update(updateItem, updateFilter, DatabaseLocations.InboxCreate.Database,
+                            DatabaseLocations.InboxCreate.Collection);
+                    }
+                }
+
                 break;
             }
             case "Follow":
