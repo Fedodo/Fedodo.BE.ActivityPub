@@ -139,6 +139,7 @@ public class InboxController : ControllerBase
                     DatabaseLocations.InboxCreate.Collection);
 
                 _logger.LogDebug("Handling Reply Logic");
+                // TODO Extract this two if parts into one function
                 if (((Post)activity.Object).InReplyTo.IsNotNull())
                 {
                     _logger.LogDebug("InReply is not null");
