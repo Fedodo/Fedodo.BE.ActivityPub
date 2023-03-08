@@ -201,7 +201,7 @@ public class InboxController : ControllerBase
                         var repliesItems = replies.Items.ToList();
                         repliesItems.Add(new Link()
                         {
-                            Href = updateItem.Id
+                            Href = activity.Id
                         });
                         replies.Items = repliesItems;
                         ((Post)updateItem.Object).Replies = replies;
