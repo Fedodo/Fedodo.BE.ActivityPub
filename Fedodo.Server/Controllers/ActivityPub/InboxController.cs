@@ -102,8 +102,8 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
 
-        if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
-            return BadRequest("Invalid Signature");
+        // if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
+        //     return BadRequest("Invalid Signature");
 
         if (activity.IsNull())
         {
@@ -177,16 +177,26 @@ public class InboxController : ControllerBase
                         {
                             break;
                         }
+
+                        if (((Post)updateItem.Object).Replies.IsNull())
+                        {
+                            ((Post)updateItem.Object).Replies = new();
+                        }
                         
                         if (((Post)updateItem.Object).Replies.Items.IsNull())
                         {
                             ((Post)updateItem.Object).Replies.Items = new List<Link>();
                         }
 
-                        ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()
+                        var replies = ((Post)updateItem.Object).Replies;
+                        var repliesItems = replies.Items.ToList();
+                        repliesItems.Add(new Link()
                         {
-                            Href = activity.Id
+                            Href = updateItem.Id
                         });
+                        replies.Items = repliesItems;
+                        ((Post)updateItem.Object).Replies = replies;
+                        
                         await _repository.Update(updateItem, updateFilter, DatabaseLocations.InboxCreate.Database,
                             DatabaseLocations.InboxCreate.Collection);
                     }
