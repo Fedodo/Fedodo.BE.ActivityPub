@@ -62,8 +62,14 @@ public class OutboxController : ControllerBase
             item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
             item == "as:Public") || i.To.Any(item => item == "public"));
 
-        var activities = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
+        var createPage = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, pageId, 20, sort, filter);
+        var announcePage = await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
+            DatabaseLocations.OutboxAnnounce.Collection, pageId, 20, sort, filter);
+        
+        var page = createPage.ToList();
+        page.AddRange(announcePage);
+        page = page.OrderByDescending(i => i.Published).Take(20).ToList();
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
@@ -74,7 +80,7 @@ public class OutboxController : ControllerBase
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{pageId}"),
             PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
-            OrderedItems = activities,
+            OrderedItems = page,
             Prev = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),
             Next = new Uri(

@@ -49,16 +49,26 @@ public class InboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
+#if !DEBUG    
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+#endif
     public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPageInInbox(Guid userId, int pageId)
     {
+#if !DEBUG
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+#endif
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var page = await _repository.GetAllPaged(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort);
+        var pageCreate = await _repository.GetAllPaged(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort);        
+        var pageAnnounce = await _repository.GetAllPaged(DatabaseLocations.InboxAnnounce.Database,
+            DatabaseLocations.InboxAnnounce.Collection, pageId, 20, sort);
+
+        var page = pageCreate.ToList();
+        page.AddRange(pageAnnounce);
+        page = page.OrderByDescending(i => i.Published).Take(20).ToList();
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
