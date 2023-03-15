@@ -61,14 +61,8 @@ public class InboxController : ControllerBase
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var pageCreate = await _repository.GetAllPaged(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort);        
-        var pageAnnounce = await _repository.GetAllPaged(DatabaseLocations.InboxAnnounce.Database,
-            DatabaseLocations.InboxAnnounce.Collection, pageId, 20, sort);
-
-        var page = pageCreate.ToList();
-        page.AddRange(pageAnnounce);
-        page = page.OrderByDescending(i => i.Published).Take(20).ToList();
+        var page = await _repository.GetAllPagedFromCollections(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
