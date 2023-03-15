@@ -28,10 +28,10 @@ public class LikesController : ControllerBase
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => (string)i.Object == postId);
 
-        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxAnnounce.Database,
-            DatabaseLocations.InboxAnnounce.Collection, filter);
-        postCount += await _repository.CountSpecific(DatabaseLocations.OutboxAnnounce.Database,
-            DatabaseLocations.OutboxAnnounce.Collection, filter);
+        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxLike.Database,
+            DatabaseLocations.InboxLike.Collection, filter);
+        postCount += await _repository.CountSpecific(DatabaseLocations.OutboxLike.Database,
+            DatabaseLocations.OutboxLike.Collection, filter);
 
         var orderedCollection = new OrderedPagedCollection
         {
