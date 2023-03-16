@@ -106,9 +106,17 @@ public class ActivityHandler : IActivityHandler
             {
                 activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
 
-                await _repository.Create(activity, DatabaseLocations.OutboxFollow.Database,
+                var definitionBuilder = Builders<Activity>.Filter;
+                var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxFollow.Database,
                     DatabaseLocations.OutboxFollow.Collection);
 
+                if (fItem.IsNullOrEmpty())
+                    await _repository.Create(activity, DatabaseLocations.OutboxFollow.Database,
+                        DatabaseLocations.OutboxFollow.Collection);
+                else
+                    _logger.LogWarning("Got another follow of the same actor.");
+                
                 break;
             }
             case "Announce":
