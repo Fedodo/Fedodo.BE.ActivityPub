@@ -25,7 +25,7 @@ public class FollowingController : ControllerBase
         var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == fullUserId);
+        var filter = filterBuilder.Where(i => i.Actor.ToString() == fullUserId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, filter);
@@ -57,14 +57,14 @@ public class FollowingController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == fullUserId);
+        var filter = filterBuilder.Where(i => i.Actor.ToString() == fullUserId);
 
-        var likes = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxFollow.Database,
+        var followings = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
 
         var orderedCollection = new OrderedCollectionPage<Activity>
         {
-            OrderedItems = likes,
+            OrderedItems = followings,
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page}"),
             Next = new Uri(
