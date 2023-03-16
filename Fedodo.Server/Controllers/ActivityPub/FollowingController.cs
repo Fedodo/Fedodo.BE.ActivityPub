@@ -32,11 +32,11 @@ public class FollowingController : ControllerBase
 
         var orderedCollection = new OrderedPagedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}"),
             TotalItems = postCount,
-            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}?page=0"),
+            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0"),
             Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}?page={postCount / 20}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}")
         };
 
         return orderedCollection;
@@ -66,12 +66,12 @@ public class FollowingController : ControllerBase
         {
             OrderedItems = likes,
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}/?page={page}"),
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page}"),
             Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}/?page={page + 1}"), // TODO
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page + 1}"), // TODO
             Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}/?page={page - 1}"), // TODO
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followings/{userId}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page - 1}"), // TODO
+            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}")
         };
 
         return Ok(orderedCollection);
