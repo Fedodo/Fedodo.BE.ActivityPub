@@ -1,4 +1,4 @@
-using Fedodo.Server.Interfaces;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Model;
 using Fedodo.Server.Model.NodeInfo;
 using Microsoft.AspNetCore.Mvc;

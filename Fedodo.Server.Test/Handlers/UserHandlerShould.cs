@@ -1,9 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using CommonExtensions;
-using Fedodo.Server.Handlers;
-using Fedodo.Server.Interfaces;
-using Fedodo.Server.Model.Authentication;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Handlers;
+using Fedodo.NuGet.Common.Interfaces;
+using Fedodo.NuGet.Common.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;

@@ -1,4 +1,6 @@
 using CommonExtensions;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Authorization;
@@ -49,7 +51,7 @@ public class InboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
-#if !DEBUG    
+#if !DEBUG
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 #endif
     public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPageInInbox(Guid userId, int pageId)
@@ -151,23 +153,19 @@ public class InboxController : ControllerBase
                     if (((Post)activity.Object).InReplyTo?.Host == Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
                         var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter = updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
+                        var updateFilter =
+                            updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.OutboxCreate.Database,
                             DatabaseLocations.OutboxCreate.Collection);
 
-                        if (updateItem.IsNull())
-                        {
-                            break;
-                        }
+                        if (updateItem.IsNull()) break;
 
                         if (((Post)updateItem.Object).Replies.Items.IsNull())
-                        {
                             ((Post)updateItem.Object).Replies.Items = new List<Link>();
-                        }
 
-                        ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link()
+                        ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link
                         {
                             Href = activity.Id
                         });
@@ -179,7 +177,8 @@ public class InboxController : ControllerBase
                         _logger.LogDebug("Entering Outbox reply logic");
 
                         var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter = updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
+                        var updateFilter =
+                            updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.InboxCreate.Database,
@@ -193,18 +192,14 @@ public class InboxController : ControllerBase
                         }
 
                         if (((Post)updateItem.Object).Replies.IsNull())
-                        {
-                            ((Post)updateItem.Object).Replies = new();
-                        }
+                            ((Post)updateItem.Object).Replies = new CollectionPage<Link>();
 
                         if (((Post)updateItem.Object).Replies.Items.IsNull())
-                        {
                             ((Post)updateItem.Object).Replies.Items = new List<Link>();
-                        }
 
                         var replies = ((Post)updateItem.Object).Replies;
                         var repliesItems = replies.Items.ToList();
-                        repliesItems.Add(new Link()
+                        repliesItems.Add(new Link
                         {
                             Href = activity.Id
                         });

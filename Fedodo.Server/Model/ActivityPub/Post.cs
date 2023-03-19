@@ -14,7 +14,7 @@ public class Post
     [JsonPropertyName("type")] public string Type { get; set; }
     [JsonPropertyName("published")] public DateTime Published { get; set; }
     [JsonPropertyName("attributedTo")] public Uri AttributedTo { get; set; }
-    [JsonPropertyName("replies")] public CollectionPage<ActivityPub.Link> Replies { get; set; }
+    [JsonPropertyName("replies")] public CollectionPage<Link> Replies { get; set; }
 
     // Likes and Shares are not used like this by Mastodon and Pixelfed...
     // Keep this in mind.

@@ -1,6 +1,7 @@
 using System.Web;
 using CommonExtensions;
-using Fedodo.Server.Interfaces;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -35,9 +36,11 @@ public class LikesController : ControllerBase
 
         var orderedCollection = new OrderedPagedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}"),
+            Id = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}"),
             TotalItems = postCount,
-            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page=0"),
+            First = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page=0"),
             Last = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}")
         };
@@ -75,11 +78,12 @@ public class LikesController : ControllerBase
         likes = likes.GetRange(0, count);
 
         var encodedPostId = HttpUtility.UrlEncode(postId);
-        
+
         var orderedCollection = new OrderedCollectionPage<Activity>
         {
             OrderedItems = likes,
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
+            Id = new Uri(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
             Next = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}"), // TODO
             Prev = new Uri(

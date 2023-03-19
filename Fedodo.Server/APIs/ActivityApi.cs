@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Fedodo.NuGet.Common.Models;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Authentication;
 using Fedodo.Server.Model.Helpers;
 
 namespace Fedodo.Server.APIs;

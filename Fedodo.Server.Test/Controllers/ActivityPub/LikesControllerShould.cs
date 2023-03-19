@@ -1,6 +1,7 @@
 using System;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Controllers.ActivityPub;
-using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.Extensions.Logging;
 using Moq;
