@@ -7,7 +7,6 @@ using Fedodo.Server.Model.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using OpenIddict.Validation.AspNetCore;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
 
@@ -93,7 +92,7 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{userId:guid}")]
-    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    [Authorize]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");

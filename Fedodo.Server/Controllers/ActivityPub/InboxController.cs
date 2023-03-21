@@ -6,7 +6,6 @@ using Fedodo.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using OpenIddict.Validation.AspNetCore;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
 
@@ -30,7 +29,7 @@ public class InboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    [Authorize]
     public async Task<ActionResult<OrderedPagedCollection>> GetPageInformation(Guid userId)
     {
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
