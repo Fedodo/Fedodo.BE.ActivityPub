@@ -1,6 +1,4 @@
-using System.Text;
 using Fedodo.Server;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
@@ -34,7 +32,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = false,
-        ValidIssuer = "dev.fedodo.social",
+        ValidIssuer = Environment.GetEnvironmentVariable("DOMAINNAME")
         // ValidAudience = builder.Configuration["Jwt:Issuer"],
         // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };

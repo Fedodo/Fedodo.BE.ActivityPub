@@ -5,7 +5,6 @@ using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Handlers;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Moq;
