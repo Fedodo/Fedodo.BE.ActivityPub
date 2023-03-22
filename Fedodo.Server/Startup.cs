@@ -18,15 +18,10 @@ public class Startup
 {
     public void AddSwagger(WebApplicationBuilder webApplicationBuilder)
     {
-#if DEBUG
-        var tokenUrl = new Uri("http://localhost/oauth/token");
-        var authUrl = new Uri("http://localhost/oauth/authorize");
-#else
         var tokenUrl = new Uri(
             $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token");
         var authUrl = new Uri(
             $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize");
-#endif
 
         webApplicationBuilder.Services.AddSwaggerGen(
             c =>

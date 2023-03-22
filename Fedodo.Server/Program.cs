@@ -24,8 +24,13 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+builder.Services.AddAuthentication(options =>
 {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.Authority = "https://" + Environment.GetEnvironmentVariable("DOMAINNAME");
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
