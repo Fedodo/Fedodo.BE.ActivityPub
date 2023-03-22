@@ -1,10 +1,11 @@
 using System.Security.Cryptography;
 using CommonExtensions;
 using CommonExtensions.Cryptography;
-using Fedodo.Server.Interfaces;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
+using Fedodo.NuGet.Common.Models;
 using Fedodo.Server.Model;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Authentication;
 using Fedodo.Server.Model.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -85,7 +86,7 @@ public class UserController : ControllerBase
         var webfinger = new Webfinger
         {
             Subject = $"acct:{actor.PreferredUsername}@{Environment.GetEnvironmentVariable("DOMAINNAME")}",
-            Links = new List<Model.WebLink>
+            Links = new List<WebLink>
             {
                 new()
                 {

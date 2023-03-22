@@ -1,8 +1,10 @@
 using CommonExtensions;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
+using Fedodo.NuGet.Common.Models;
 using Fedodo.Server.Extensions;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
-using Fedodo.Server.Model.Authentication;
 using Fedodo.Server.Model.DTOs;
 using Fedodo.Server.Model.Helpers;
 using MongoDB.Driver;
@@ -116,7 +118,7 @@ public class ActivityHandler : IActivityHandler
                         DatabaseLocations.OutboxFollow.Collection);
                 else
                     _logger.LogWarning("Got another follow of the same actor.");
-                
+
                 break;
             }
             case "Announce":

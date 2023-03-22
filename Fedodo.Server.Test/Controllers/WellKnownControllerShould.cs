@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
 using CommonExtensions;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Controllers;
-using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

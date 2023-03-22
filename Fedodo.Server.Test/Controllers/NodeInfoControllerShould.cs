@@ -1,5 +1,5 @@
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Controllers;
-using Fedodo.Server.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 

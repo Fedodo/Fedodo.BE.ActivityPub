@@ -1,5 +1,5 @@
 using System;
-using Fedodo.Server.Handlers;
+using Fedodo.NuGet.Common.Handlers;
 using Shouldly;
 using Xunit;
 

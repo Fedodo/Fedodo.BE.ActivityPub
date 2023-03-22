@@ -1,5 +1,6 @@
 using CommonExtensions;
-using Fedodo.Server.Interfaces;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -21,7 +22,7 @@ public class FollowingController : ControllerBase
     private async Task<OrderedPagedCollection> GetFollowings(Guid userId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
-        
+
         var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();

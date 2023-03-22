@@ -1,11 +1,12 @@
 using CommonExtensions;
+using Fedodo.NuGet.Common.Constants;
+using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
 using Fedodo.Server.Model.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using OpenIddict.Validation.AspNetCore;
 
 namespace Fedodo.Server.Controllers.ActivityPub;
 
@@ -66,7 +67,7 @@ public class OutboxController : ControllerBase
             DatabaseLocations.OutboxCreate.Collection, pageId, 20, sort, filter);
         var announcePage = await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
             DatabaseLocations.OutboxAnnounce.Collection, pageId, 20, sort, filter);
-        
+
         var page = createPage.ToList();
         page.AddRange(announcePage);
         page = page.OrderByDescending(i => i.Published).Take(20).ToList();
@@ -91,7 +92,7 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{userId:guid}")]
-    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    [Authorize]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");

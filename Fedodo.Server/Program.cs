@@ -1,6 +1,9 @@
+using System.Text;
 using Fedodo.Server;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 
 var startup = new Startup();
@@ -20,15 +23,24 @@ if (useHttpLogging)
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => { options.LoginPath = "/account/login"; });
 
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = false,
+        ValidIssuer = "dev.fedodo.social",
+        // ValidAudience = builder.Configuration["Jwt:Issuer"],
+        // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
 startup.AddSwagger(builder);
-
-startup.AddOpenIdDict(builder, mongoClient);
-
-await startup.CreateMongoDbIndexes(builder);
 
 startup.SetupMongoDb();
 
