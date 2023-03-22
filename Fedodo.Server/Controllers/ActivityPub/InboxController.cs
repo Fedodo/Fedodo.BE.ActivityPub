@@ -51,7 +51,7 @@ public class InboxController : ControllerBase
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
 #if !DEBUG
-    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    [Authorize]
 #endif
     public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPageInInbox(Guid userId, int pageId)
     {
