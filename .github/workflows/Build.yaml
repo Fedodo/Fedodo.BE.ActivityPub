@@ -6,7 +6,7 @@ on:
 
 env:
   DOCKERHUB_USERNAME: "fedodo"
-  PROJECT_PATH: "Fedodo.Server.Test/Fedodo.Server.Test.csproj"
+  PROJECT_PATH: "Fedodo.BE.ActivityPub.Test/Fedodo.BE.ActivityPub.Test.csproj"
   VERSION: 0.1.${{ github.run_number }}
 
 jobs:
