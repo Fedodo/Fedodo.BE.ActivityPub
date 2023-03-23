@@ -1,3 +1,5 @@
+<!-- VERSION: Fedodo.README.Template V1.0 -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -7,63 +9,50 @@
 [![HugoBuildAndDeploy](https://img.shields.io/github/actions/workflow/status/Fedodo/Fedodo.Server/Build.yaml?style=for-the-badge)](https://github.com/Fedodo/Fedodo.Server/actions/workflows/Build.yaml)
 
 <!-- PROJECT LOGO -->
-<br/>
+<br />
 <div align="center">
-  <a href="https://github.com/Fedodo/Fedodo.Server">
-    <img src="https://fachinformatikerpruefungsvorbereitung.de/Assets/Images/Pingüino-Square.png" alt="Logo" width="80" height="80">
+  <a href="https://fedodo.org">
+    <img src="https://github.com/Fedodo/.github/blob/main/assets/logo%20and%20icons/Fedodo%20Circle%20Dark.png?raw=true" alt="Logo" width="200" height="200">
   </a>
 
-<!-- TODO Change the project name -->
+<br>
+<br>
 
-### Fedodo.Server
+### Fedodo.BE.ActivityPub
 
-Fedodo Server is the backend API for the Fedodo-Social-Network.
+This repository contains the ActivityPub backend for Fedodo.
 
 <p align="center">
 
 <br />
 
-<!-- TODO Change the Link for Project, Bug and Feature -->
-<a href="https://Fedodo.com"><strong>Explore the Project »</strong></a>
+<a href="https://fedodo.org"><strong>Explore the Project »</strong></a>
 <br />
 <br />
-<a href="https://github.com/Fedodo/Fedodo.Server/issues">Report Bug</a>
+<a href="https://github.com/Fedodo/Fedodo.BE.ActivityPub/issues">Report Bug</a>
 ·
-<a href="https://github.com/Fedodo/Fedodo.Server/issues">Request Feature</a>
+<a href="https://github.com/Fedodo/Fedodo.BE.ActivityPub/issues">Request Feature</a>
   </p>
 </div>
-
-<!-- ABOUT THE PROJECT -->
-
-## About The Project 🗺️
-
-<!-- TODO Tell the world about your project -->
-Here you can describe your project a little bit more. Explain the world your thoughts and what your project does. Have
-fun and build something.
-
-<br>
 
 ## Build With 🏗️
 
 <!-- TODO Go to https://github.com/Ileriayo/markdown-badges and search for a fitting batch🙃 -->
 
+![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)  
 ![Markdown](https://img.shields.io/badge/markdown-%23000000.svg?style=for-the-badge&logo=markdown&logoColor=white)  
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 
 <br>
 
 <!-- CONTRIBUTING -->
-
 ## Contributing ✨
 
-<!-- TODO Customize the contributing text -->
-If you have any ideas or want to contribute yourself... go for it. I really appreciate it if some of you have cool
-ideas🚀
+If you have any ideas or want to contribute yourself... go for it. I really appreciate it if some of you have cool ideas🚀
 
 <br>
 
 <!-- LICENSE -->
-
 ## License 📝
 
 The code is distributed under the AGPL-3.0 License. See `LICENSE` for more information.
@@ -71,29 +60,19 @@ The code is distributed under the AGPL-3.0 License. See `LICENSE` for more infor
 <br>
 
 <!-- ACKNOWLEDGMENTS -->
-
+<!-- TODO Add your acknowledgments -->
 ## Acknowledgments 🙏
 
-- [Markdown-Badges](https://github.com/Ileriayo/markdown-badges)
+- [LNA-DEV README-Template](https://github.com/lna-dev/README-Template)
 
 <!-- MARKDOWN LINKS & IMAGES -->
-
-[contributors-shield]: https://img.shields.io/github/contributors/Fedodo/Fedodo.Server.svg?style=for-the-badge
-
-[contributors-url]: https://github.com/Fedodo/Fedodo.Server/graphs/contributors
-
-[forks-shield]: https://img.shields.io/github/forks/Fedodo/Fedodo.Server.svg?style=for-the-badge
-
-[forks-url]: https://github.com/Fedodo/Fedodo.Server/network/members
-
-[stars-shield]: https://img.shields.io/github/stars/Fedodo/Fedodo.Server.svg?style=for-the-badge
-
-[stars-url]: https://github.com/Fedodo/Fedodo.Server/stargazers
-
-[issues-shield]: https://img.shields.io/github/issues/Fedodo/Fedodo.Server.svg?style=for-the-badge
-
-[issues-url]: https://github.com/Fedodo/Fedodo.Server/issues
-
-[license-shield]: https://img.shields.io/github/license/Fedodo/Fedodo.Server.svg?style=for-the-badge
-
-[license-url]: https://github.com/Fedodo/Fedodo.Server/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/Fedodo/Fedodo.BE.ActivityPub.svg?style=for-the-badge
+[contributors-url]: https://github.com/Fedodo/Fedodo.BE.ActivityPub/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Fedodo/Fedodo.BE.ActivityPub.svg?style=for-the-badge
+[forks-url]: https://github.com/Fedodo/Fedodo.BE.ActivityPub/network/members
+[stars-shield]: https://img.shields.io/github/stars/Fedodo/Fedodo.BE.ActivityPub.svg?style=for-the-badge
+[stars-url]: https://github.com/Fedodo/Fedodo.BE.ActivityPub/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Fedodo/Fedodo.BE.ActivityPub.svg?style=for-the-badge
+[issues-url]: https://github.com/Fedodo/Fedodo.BE.ActivityPub/issues
+[license-shield]: https://img.shields.io/github/license/Fedodo/Fedodo.BE.ActivityPub.svg?style=for-the-badge
+[license-url]: https://github.com/Fedodo/Fedodo.BE.ActivityPub/blob/master/LICENSE
