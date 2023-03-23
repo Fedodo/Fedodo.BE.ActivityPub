@@ -17,11 +17,13 @@
         <PackageReference Include="Fedodo.NuGet.Common" Version="0.0.5" />
         <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.11" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12" />
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.4" />
         <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.27.0" />
         <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.27.0" />
         <PackageReference Include="MongoDB.Driver" Version="2.19.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.27.0" />
     </ItemGroup>
 
     <ItemGroup>

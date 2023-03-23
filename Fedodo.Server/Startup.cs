@@ -5,6 +5,7 @@ using Fedodo.Server.APIs;
 using Fedodo.Server.Handlers;
 using Fedodo.Server.Interfaces;
 using Fedodo.Server.Model.ActivityPub;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
@@ -19,9 +20,9 @@ public class Startup
     public void AddSwagger(WebApplicationBuilder webApplicationBuilder)
     {
         var tokenUrl = new Uri(
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token");
+            $"https://auth.{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token");
         var authUrl = new Uri(
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize");
+            $"https://auth.{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize");
 
         webApplicationBuilder.Services.AddSwaggerGen(
             c =>
@@ -73,6 +74,11 @@ public class Startup
     public void AddApp(WebApplication app, bool httpLogging = false)
     {
         if (httpLogging) app.UseHttpLogging();
+        
+        if (app.Environment.IsDevelopment())
+        {
+            IdentityModelEventSource.ShowPII = true;
+        }
 
         app.UseSwagger();
         app.UseSwaggerUI(c =>
@@ -89,8 +95,8 @@ public class Startup
 
         app.UseStaticFiles();
 
-        app.UseRouting();
         app.UseAuthentication();
+        app.UseRouting();
         app.UseAuthorization();
         app.UseEndpoints(options =>
         {

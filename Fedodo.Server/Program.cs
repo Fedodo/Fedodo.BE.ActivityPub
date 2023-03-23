@@ -30,16 +30,15 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    options.Authority = "https://" + Environment.GetEnvironmentVariable("DOMAINNAME");
+    options.Authority = "https://auth." + Environment.GetEnvironmentVariable("DOMAINNAME");
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = false,
         ValidateLifetime = true,
-        ValidateIssuerSigningKey = false,
-        ValidIssuer = Environment.GetEnvironmentVariable("DOMAINNAME")
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "https://auth." + Environment.GetEnvironmentVariable("DOMAINNAME")
         // ValidAudience = builder.Configuration["Jwt:Issuer"],
-        // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
 
