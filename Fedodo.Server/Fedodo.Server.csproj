@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Fedodo.NuGet.Common" Version="0.0.5" />
+        <PackageReference Include="Fedodo.NuGet.Common" Version="0.0.6" />
         <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.11" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12" />
         <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.4" />
