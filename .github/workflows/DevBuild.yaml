@@ -32,7 +32,7 @@ jobs:
 
       # Build
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/fedodo.server:dev_${{ github.run_number }}
+        run: docker build . --file Dockerfile --tag ${{ env.DOCKERHUB_USERNAME }}/fedodo.be.activitypub:dev_${{ github.run_number }}
 
       # Publish
       - name: Login to Docker Hub
@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push the image to dockerhub
-        run: docker push ${{ env.DOCKERHUB_USERNAME }}/fedodo.server:dev_${{ github.run_number }}
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/fedodo.be.activitypub:dev_${{ github.run_number }}
   
   PublishVersion:
     runs-on: ubuntu-latest
