@@ -23,7 +23,7 @@ public class NodeInfoController : ControllerBase
 
         var wrapper = new
         {
-            links = new List<NodeLink>()
+            links = new List<NodeLink>
             {
                 new()
                 {
