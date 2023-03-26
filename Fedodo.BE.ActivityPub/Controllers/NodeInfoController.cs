@@ -21,13 +21,19 @@ public class NodeInfoController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetNodeInfoLink)} in {nameof(NodeInfoController)}");
 
-        var link = new NodeLink
+        var wrapper = new
         {
-            Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",
-            Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.0")
+            links = new List<NodeLink>()
+            {
+                new()
+                {
+                    Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",
+                    Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.0")
+                }
+            }
         };
 
-        return Ok(link);
+        return Ok(wrapper);
     }
 
     [HttpGet("nodeinfo/2.0")]
@@ -55,6 +61,7 @@ public class NodeInfoController : ControllerBase
             Usage = new Usage
             {
                 LocalPosts = 0, // TODO
+                LocalComments = 0, // TODO
                 Users = new Users
                 {
                     ActiveHalfyear = 1, // TODO
