@@ -31,29 +31,31 @@ public class NodeInfoController : ControllerBase
             {
                 new()
                 {
-                    Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",
-                    Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.0")
+                    Rel = "http://nodeinfo.diaspora.software/ns/schema/2.1",
+                    Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.1")
                 }
             }
         };
 
         return Ok(wrapper);
     }
-
-    [HttpGet("nodeinfo/2.0")]
-    public async Task<ActionResult<NodeInfo>> GetNodeInfo()
+    
+    [HttpGet("nodeinfo/2.1")]
+    public async Task<ActionResult<NodeInfo>> GetNodeInfo2_1()
     {
-        _logger.LogTrace($"Entered {nameof(GetNodeInfo)} in {nameof(NodeInfoController)}");
+        _logger.LogTrace($"Entered {nameof(GetNodeInfo2_1)} in {nameof(NodeInfoController)}");
 
         var version = Environment.GetEnvironmentVariable("VERSION") ?? "0.0.0";
 
         var nodeInfo = new NodeInfo
         {
-            Version = "2.0",
+            Version = "2.1",
             Software = new Software
             {
                 Name = "Fedodo",
-                Version = version
+                Version = version,
+                Repository = new Uri("https://github.com/Fedodo"),
+                HomePage = new Uri("https://fedodo.org")
             },
             Protocols = new[]
             {
