@@ -73,9 +73,20 @@ public class Startup
 
     public void AddApp(WebApplication app, bool httpLogging = false)
     {
+        // TODO Check http logging => to is development
         if (httpLogging) app.UseHttpLogging();
 
         if (app.Environment.IsDevelopment()) IdentityModelEventSource.ShowPII = true;
+
+        app.Use(async (context, next) =>
+        {
+            await next();
+            if (context.Response.StatusCode == 404)
+            {
+                context.Request.Path = "/NotFound";
+                await next();
+            }
+        });
 
         app.UseSwagger();
         app.UseSwaggerUI(c =>

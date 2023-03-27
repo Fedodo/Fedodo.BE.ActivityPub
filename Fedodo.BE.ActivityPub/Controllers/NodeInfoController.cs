@@ -1,7 +1,11 @@
+using CommonExtensions;
 using Fedodo.BE.ActivityPub.Model;
+using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.NodeInfo;
+using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
 
@@ -21,27 +25,37 @@ public class NodeInfoController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetNodeInfoLink)} in {nameof(NodeInfoController)}");
 
-        var link = new NodeLink
+        var wrapper = new
         {
-            Rel = "http://nodeinfo.diaspora.software/ns/schema/2.0",
-            Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.0")
+            links = new List<NodeLink>
+            {
+                new()
+                {
+                    Rel = "http://nodeinfo.diaspora.software/ns/schema/2.1",
+                    Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.1")
+                }
+            }
         };
 
-        return Ok(link);
+        return Ok(wrapper);
     }
-
-    [HttpGet("nodeinfo/2.0")]
-    public ActionResult<NodeInfo> GetNodeInfo()
+    
+    [HttpGet("nodeinfo/2.1")]
+    public async Task<ActionResult<NodeInfo>> GetNodeInfo2_1()
     {
-        _logger.LogTrace($"Entered {nameof(GetNodeInfo)} in {nameof(NodeInfoController)}");
+        _logger.LogTrace($"Entered {nameof(GetNodeInfo2_1)} in {nameof(NodeInfoController)}");
+
+        var version = Environment.GetEnvironmentVariable("VERSION") ?? "0.0.0";
 
         var nodeInfo = new NodeInfo
         {
-            Version = "2.0",
+            Version = "2.1",
             Software = new Software
             {
                 Name = "Fedodo",
-                Version = "0.1"
+                Version = version,
+                Repository = new Uri("https://github.com/Fedodo"),
+                HomePage = new Uri("https://fedodo.org")
             },
             Protocols = new[]
             {
@@ -49,20 +63,25 @@ public class NodeInfoController : ControllerBase
             },
             Services = new Services
             {
-                Outbound = new object[0],
-                Inbound = new object[0]
+                Outbound = Array.Empty<object>(),
+                Inbound = Array.Empty<object>()
             },
             Usage = new Usage
             {
-                LocalPosts = 0, // TODO
+                LocalPosts =
+                    await _repository.CountAll<Activity>(DatabaseLocations.OutboxCreate.Database,
+                        DatabaseLocations.OutboxCreate.Collection) + await _repository.CountAll<Activity>(
+                        DatabaseLocations.OutboxAnnounce.Database, DatabaseLocations.OutboxAnnounce.Collection),
+                LocalComments = 0, // TODO
                 Users = new Users
                 {
                     ActiveHalfyear = 1, // TODO
                     ActiveMonth = 1, // TODO
-                    Total = 1 // TODO
+                    Total = await _repository.CountAll<Activity>(DatabaseLocations.Actors.Database,
+                        DatabaseLocations.Actors.Collection)
                 }
             },
-            OpenRegistrations = false,
+            OpenRegistrations = true,
             Metadata = new Dictionary<string, string>()
         };
 

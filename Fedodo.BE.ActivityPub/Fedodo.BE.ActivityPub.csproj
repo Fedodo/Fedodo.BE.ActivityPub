@@ -40,4 +40,8 @@
         <_ContentIncludedByDefault Remove="Views\_ViewStart.cshtml"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="wwwroot\Images\Fedodo.svg"/>
+    </ItemGroup>
+
 </Project>
