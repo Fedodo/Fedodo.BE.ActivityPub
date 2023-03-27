@@ -19,6 +19,6 @@ jobs:
       - uses: Fedodo/Fedodo.Pipelines/DeployContainer.NET@main
         with:
           KUBECTL_CONFIG: ${{ secrets.KUBECTL_CONFIG }}
-          VALUES_FILE: ".Kubernetes/values.yaml"
+          VALUES_FILE: "./Kubernetes/values.yaml"
           MICROSERVICE: "fedodo_be_activitypub"
           REPO: "fedodo.be.activitypub"
