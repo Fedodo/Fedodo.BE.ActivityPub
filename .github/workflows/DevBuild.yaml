@@ -17,3 +17,5 @@ jobs:
 
     steps:
       - uses: Fedodo/Fedodo.Pipelines.BuildContainer.NET@V9
+        with:
+          PROJECT_PATH: "Fedodo.BE.ActivityPub.Test/Fedodo.BE.ActivityPub.Test.csproj"
