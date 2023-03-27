@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: Fedodo/Fedodo.Pipelines.BuildContainer.NET@V9
+      - uses: Fedodo/Fedodo.Pipelines.BuildContainer.NET@V10
         with:
           PROJECT_PATH: "Fedodo.BE.ActivityPub.Test/Fedodo.BE.ActivityPub.Test.csproj"
+          DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
