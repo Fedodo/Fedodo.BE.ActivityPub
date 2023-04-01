@@ -1,5 +1,5 @@
 using CommonExtensions;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;

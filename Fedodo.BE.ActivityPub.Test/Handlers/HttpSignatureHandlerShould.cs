@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using CommonExtensions.Cryptography;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;

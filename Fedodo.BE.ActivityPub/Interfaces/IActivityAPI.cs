@@ -1,5 +1,5 @@
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.Helpers;
+using Fedodo.NuGet.ActivityPub.Model;
 using Fedodo.NuGet.Common.Models;
 
 namespace Fedodo.BE.ActivityPub.Interfaces;

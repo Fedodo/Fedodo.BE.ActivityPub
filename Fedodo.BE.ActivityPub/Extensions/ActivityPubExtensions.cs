@@ -1,4 +1,4 @@
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model;
 
 namespace Fedodo.BE.ActivityPub.Extensions;
 

@@ -1,9 +1,9 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
+using Fedodo.NuGet.ActivityPub.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;

@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.Helpers;
+using Fedodo.NuGet.ActivityPub.Model;
 using Fedodo.NuGet.Common.Models;
 
 namespace Fedodo.BE.ActivityPub.APIs;
