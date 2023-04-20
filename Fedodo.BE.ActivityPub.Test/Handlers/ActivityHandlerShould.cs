@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommonExtensions;
@@ -7,7 +8,10 @@ using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;
@@ -66,16 +70,16 @@ public class ActivityHandlerShould
 
         collectionApi.Setup(i => i.GetOrderedCollection<Uri>(It.Is<Uri>(i => i != new Uri("https://example.com/null"))))
             .ReturnsAsync(
-                new OrderedCollection<Uri>
+                new OrderedCollection
                 {
-                    OrderedItems = new[]
+                    Items = new[]
                     {
                         new Uri("https://example.com/asdf")
                     }
                 });
 
         collectionApi.Setup(i => i.GetCollection<Uri>(It.IsAny<Uri>())).ReturnsAsync(
-            new Collection<Uri>
+            new Collection
             {
                 Items = new[]
                 {
@@ -99,7 +103,7 @@ public class ActivityHandlerShould
         object obj;
 
         if (type == "Create")
-            obj = new Post();
+            obj = new Note();
         else
             obj = "https://example.com/resource";
 

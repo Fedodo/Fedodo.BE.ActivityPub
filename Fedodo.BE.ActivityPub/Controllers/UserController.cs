@@ -3,7 +3,6 @@ using CommonExtensions;
 using CommonExtensions.Cryptography;
 using Fedodo.BE.ActivityPub.Model;
 using Fedodo.BE.ActivityPub.Model.DTOs;
-using Fedodo.NuGet.ActivityPub.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;

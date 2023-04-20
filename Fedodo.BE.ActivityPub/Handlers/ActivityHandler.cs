@@ -3,7 +3,9 @@ using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;
@@ -64,9 +66,9 @@ public class ActivityHandler : IActivityHandler
         {
             case "Create":
             {
-                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Post>();
+                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Note>();
 
-                activity.Object = new Post
+                activity.Object = new Note()
                 {
                     To = createPostDto.To,
                     Name = createPostDto.Name,

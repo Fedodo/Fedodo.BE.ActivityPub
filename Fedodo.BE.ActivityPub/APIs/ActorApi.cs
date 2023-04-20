@@ -1,7 +1,6 @@
 using System.Text.Json;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.NuGet.ActivityPub.Model;
 
 namespace Fedodo.BE.ActivityPub.APIs;
 
