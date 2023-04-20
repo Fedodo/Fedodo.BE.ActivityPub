@@ -3,11 +3,15 @@ using CommonExtensions;
 using CommonExtensions.Cryptography;
 using Fedodo.BE.ActivityPub.Model;
 using Fedodo.BE.ActivityPub.Model.DTOs;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
+using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
 
@@ -49,16 +53,19 @@ public class UserController : ControllerBase
             Followers = new Uri($"https://{domainName}/followers/{userId}"),
 
             // Hardcoded
-            Context = new[]
+            Context = new TripleSet<Object>()
             {
-                "https://www.w3.org/ns/activitystreams",
-                "https://w3id.org/security/v1"
-            }
+                StringLinks = new[]
+                {
+                    "https://www.w3.org/ns/activitystreams",
+                    "https://w3id.org/security/v1"
+                }
+            },
         };
 
         var rsa = RSA.Create();
 
-        actor.PublicKey = new PublicKeyAP
+        actor.PublicKey = new PublicKey
         {
             Id = new Uri($"{actor.Id}#main-key"),
             Owner = actor.Id,

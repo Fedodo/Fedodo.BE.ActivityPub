@@ -1,5 +1,6 @@
 using System.Web;
 using CommonExtensions;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public class SharesController : ControllerBase
 
     [HttpGet]
     [Route("{postIdUrlEncoded}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetSharesPage(string postIdUrlEncoded,
+    public async Task<ActionResult<OrderedCollectionPage>> GetSharesPage(string postIdUrlEncoded,
         [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetSharesPage)} in {nameof(SharesController)}");

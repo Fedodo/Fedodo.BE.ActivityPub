@@ -1,5 +1,6 @@
 using Fedodo.BE.ActivityPub.Model;
 using Fedodo.BE.ActivityPub.Model.NodeInfo;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;

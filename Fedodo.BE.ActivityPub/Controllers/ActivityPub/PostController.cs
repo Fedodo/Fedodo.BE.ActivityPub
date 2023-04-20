@@ -1,4 +1,6 @@
 using Fedodo.BE.ActivityPub.Extensions;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +21,7 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("{activityId:guid}")]
-    public async Task<ActionResult<Post>> GetPost(Guid activityId)
+    public async Task<ActionResult<Note>> GetPost(Guid activityId)
     {
         var postDefinitionBuilder = Builders<Activity>.Filter;
         var postFilter = postDefinitionBuilder.Eq(i => i.Id,
