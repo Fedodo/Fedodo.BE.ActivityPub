@@ -1,4 +1,3 @@
-
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 
@@ -8,12 +7,19 @@ public static class ActivityPubExtensions
 {
     public static bool IsPostPublic(this Note post)
     {
-        return post.To.StringLinks.Any(item => item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public");
+        foreach (var item in post.To.StringLinks)
+        {
+            if (item == new Uri("https://www.w3.org/ns/activitystreams#Public") || item == new Uri("as:Public") ||
+                item == new Uri("public")) return true;
+        }
+
+        return false;
     }
 
     public static bool IsActivityPublic(this Activity activity)
     {
         return activity.To.StringLinks.Any(
-            item => item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public");
+            item => item == new Uri("https://www.w3.org/ns/activitystreams#Public") || item == new Uri("as:Public") ||
+                    item == new Uri("public"));
     }
 }

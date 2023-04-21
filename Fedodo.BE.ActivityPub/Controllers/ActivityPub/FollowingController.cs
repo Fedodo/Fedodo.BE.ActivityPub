@@ -40,14 +40,14 @@ public class FollowingController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0",
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0"),
                 }
             },
             Last = new()
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}",
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}"),
                 }
             }
         };
@@ -87,21 +87,21 @@ public class FollowingController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page + 1}" // TODO
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page + 1}") // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page - 1}" // TODO
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page - 1}") // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}" // TODO
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}") // TODO
                 }
             }
         };
