@@ -8,6 +8,7 @@ using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
@@ -53,7 +54,8 @@ public class InboxController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}")
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}")
                 }
             }
         };
@@ -85,11 +87,29 @@ public class InboxController : ControllerBase
         var orderedCollectionPage = new OrderedCollectionPage
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
-            Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),
-            Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}")
+            PartOf = new TripleSet<OrderedCollection>()
+            {
+                StringLinks = new[]
+                {
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
+                }
+            },
+            Prev = new TripleSet<OrderedCollectionPage>()
+            {
+                StringLinks = new[]
+                {
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"),
+                }
+            },
+            Next = new TripleSet<OrderedCollectionPage>()
+            {
+                StringLinks = new[]
+                {
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}")
+                }
+            }
         };
 
         return Ok(orderedCollectionPage);
@@ -156,7 +176,8 @@ public class InboxController : ControllerBase
                 {
                     _logger.LogDebug("InReply is not null");
 
-                    if (activity.Object.InReplyTo?.StringLinks.First().Host == Environment.GetEnvironmentVariable("DOMAINNAME"))
+                    if (activity.Object.InReplyTo?.StringLinks.First().Host ==
+                        Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
                         var updateFilterBuilder = Builders<Activity>.Filter;
                         var updateFilter =
@@ -168,13 +189,18 @@ public class InboxController : ControllerBase
 
                         if (updateItem.IsNull()) break;
 
-                        if (updateItem.Object.Replies.Items.IsNull())
-                            updateItem.Object.Replies.Items = new List<Link>();
+                        if (updateItem.Object.Replies.Items.Links.IsNull())
+                            updateItem.Object.Replies.Items = new();
 
-                        ((Post)updateItem.Object).Replies.Items.ToList().Add(new Link
+                        var tempLinks = updateItem.Object.Replies.Items.Links.ToList();
+
+                        tempLinks.Add(new Link
                         {
                             Href = activity.Id
                         });
+
+                        updateItem.Object.Replies.Items.Links = tempLinks;
+                        
                         await _repository.Update(updateItem, updateFilter, DatabaseLocations.OutboxCreate.Database,
                             DatabaseLocations.OutboxCreate.Collection);
                     }
@@ -184,7 +210,7 @@ public class InboxController : ControllerBase
 
                         var updateFilterBuilder = Builders<Activity>.Filter;
                         var updateFilter =
-                            updateFilterBuilder.Eq(i => ((Post)i.Object).Id, ((Post)activity.Object).InReplyTo);
+                            updateFilterBuilder.Eq(i => i.Object.Id, activity.Object.InReplyTo.StringLinks.First());
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.InboxCreate.Database,
@@ -197,20 +223,20 @@ public class InboxController : ControllerBase
                             break;
                         }
 
-                        if (((Post)updateItem.Object).Replies.IsNull())
-                            ((Post)updateItem.Object).Replies = new CollectionPage<Link>();
+                        if (updateItem.Object.Replies.IsNull())
+                            updateItem.Object.Replies = new CollectionPage();
 
-                        if (((Post)updateItem.Object).Replies.Items.IsNull())
-                            ((Post)updateItem.Object).Replies.Items = new List<Link>();
+                        if (updateItem.Object.Replies.Items.IsNull())
+                            updateItem.Object.Replies.Items = new();
 
-                        var replies = ((Post)updateItem.Object).Replies;
-                        var repliesItems = replies.Items.ToList();
+                        var replies = updateItem.Object.Replies;
+                        var repliesItems = replies.Items.Links.ToList();
                         repliesItems.Add(new Link
                         {
                             Href = activity.Id
                         });
-                        replies.Items = repliesItems;
-                        ((Post)updateItem.Object).Replies = replies;
+                        replies.Items.Links = repliesItems;
+                        updateItem.Object.Replies = replies;
 
                         _logger.LogDebug("Sending Update to database");
 
@@ -229,9 +255,7 @@ public class InboxController : ControllerBase
             {
                 _logger.LogDebug(
                     $"Got follow for \"{activity.Object.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
-
-                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
-
+                
                 var definitionBuilder = Builders<Activity>.Filter;
                 var helperFilter = definitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.InboxFollow.Database,
@@ -249,7 +273,13 @@ public class InboxController : ControllerBase
                 {
                     Id = new Uri($"https://{domainName}/accepts/{Guid.NewGuid()}"),
                     Type = "Accept",
-                    Actor = actor.Id,
+                    Actor = new TripleSet<Object>()
+                    {
+                        StringLinks = new List<Uri>()
+                        {
+                            actor.Id
+                        }
+                    },
                     Object = activity.Id,
                     To = new List<string>
                     {
@@ -291,7 +321,7 @@ public class InboxController : ControllerBase
             case "Announce":
             {
                 _logger.LogDebug("Got Announce");
-                
+
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.InboxAnnounce.Database,

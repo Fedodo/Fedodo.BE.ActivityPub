@@ -28,7 +28,7 @@ public class FollowersController : ControllerBase
         var fullUserId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Id == fullUserId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == fullUserId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
@@ -70,7 +70,7 @@ public class FollowersController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Id == fullUserId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == fullUserId);
 
         var likes = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();

@@ -37,7 +37,7 @@ public class SharesController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Id == postId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
 
         var sharesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
             DatabaseLocations.OutboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
@@ -92,7 +92,7 @@ public class SharesController : ControllerBase
         var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Id == postId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxAnnounce.Database,
             DatabaseLocations.InboxAnnounce.Collection, filter);

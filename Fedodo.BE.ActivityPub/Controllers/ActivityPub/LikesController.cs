@@ -1,6 +1,7 @@
 using System.Web;
 using CommonExtensions;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -38,10 +39,22 @@ public class LikesController : ControllerBase
         {
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}"),
-            First = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0"),
-            Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}")
+            First = new()
+            {
+                StringLinks = new[]
+                {
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0"),
+                }
+            },
+            Last = new TripleSet<OrderedCollectionPage>()
+            {
+                StringLinks = new[]
+                {
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}")
+                }
+            }
         };
 
         return orderedCollection;
@@ -56,7 +69,7 @@ public class LikesController : ControllerBase
 
         if (page.IsNull()) return Ok(await GetLikes(postIdUrlEncoded));
 
-        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
+        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
@@ -76,17 +89,36 @@ public class LikesController : ControllerBase
         if (likes.Count < 20) count = likes.Count;
         likes = likes.GetRange(0, count);
 
-        var encodedPostId = HttpUtility.UrlEncode(postId);
+        var encodedPostId = HttpUtility.UrlEncode(postId.ToString());
 
         var orderedCollection = new OrderedCollectionPage
         {
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
-            Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}"), // TODO
-            Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}"), // TODO
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}")
+            Next = new TripleSet<OrderedCollectionPage>()
+            {
+                StringLinks = new[]
+                {
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}"), // TODO
+                }
+            },
+            Prev = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    new Uri(
+                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}"
+                    ) // TODO
+                }
+            },
+            PartOf = new TripleSet<OrderedCollection>()
+            {
+                StringLinks = new []
+                {
+                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}")
+                }
+            }
         };
 
         return Ok(orderedCollection);
