@@ -126,13 +126,13 @@ public class ActivityHandlerShould
 
         // Assert
         result.ShouldNotBeNull();
-        result.Actor.StringLinks.First()
+        result.Actor!.StringLinks!.First()
             .ShouldBe(new Uri("https://example.com/actor/eab26e2c-48be-45f6-bb17-fb35bb7f889f"));
         result.Type.ShouldBe(type);
         if (type != "Create")
             result.Object.ShouldBe(obj);
         else
-            result.Object.ShouldBeOfType<Note>();
+            result.Object!.Objects!.First().ShouldBeOfType<Note>();
     }
 
     [Theory]
