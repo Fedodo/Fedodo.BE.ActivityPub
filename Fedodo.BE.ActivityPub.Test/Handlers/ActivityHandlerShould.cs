@@ -120,7 +120,7 @@ public class ActivityHandlerShould
             Object = obj,
             Type = type
         };
-
+        
         // Act
         var result = await _handler.CreateActivity(new Guid(userId), dto, "example.com");
 

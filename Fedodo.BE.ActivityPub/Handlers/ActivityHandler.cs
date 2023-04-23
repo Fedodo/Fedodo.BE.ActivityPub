@@ -64,23 +64,23 @@ public class ActivityHandler : IActivityHandler
             Type = activityDto.Type,
             To = new TripleSet<Object>()
             {
-                StringLinks = activityDto.To.Select(i => new Uri(i))
-            },            
+                StringLinks = activityDto.To?.Select(i => new Uri(i))
+            },
             Bto = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Bto.Select(i => new Uri(i))
-            },            
+                StringLinks = activityDto.Bto?.Select(i => new Uri(i))
+            },
             Cc = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Cc.Select(i => new Uri(i))
-            },            
+                StringLinks = activityDto.Cc?.Select(i => new Uri(i))
+            },
             Bcc = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Bcc.Select(i => new Uri(i))
-            },            
+                StringLinks = activityDto.Bcc?.Select(i => new Uri(i))
+            },
             Audience = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Audience.Select(i => new Uri(i))
+                StringLinks = activityDto.Audience?.Select(i => new Uri(i))
             },
             Published = DateTime.UtcNow
         };
@@ -279,7 +279,7 @@ public class ActivityHandler : IActivityHandler
         {
             var collection = await _collectionApi.GetCollection<Uri>(target);
 
-            if (collection.IsNull())
+            if (collection.IsNull() || collection.Items.IsNull() || collection.Items.StringLinks.IsNull())
                 _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
                                    $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
             else
@@ -297,17 +297,21 @@ public class ActivityHandler : IActivityHandler
         }
         else
         {
-            foreach (var item in orderedCollection.Items.StringLinks)
-            {
-                var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+            if (orderedCollection.IsNull() || orderedCollection.Items.IsNull() || orderedCollection.Items.StringLinks.IsNull())
+                _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
+                                   $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
+            else
+                foreach (var item in orderedCollection.Items.StringLinks)
+                {
+                    var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
 
-                if (serverNameInboxPair.IsNotNull())
-                    serverNameInboxPairs.Add(serverNameInboxPair);
-                else
-                    _logger.LogWarning("Someone hit second layer of collections");
-                // Here would start another layer of unwrapping collections
-                // This can be made but is not necessary
-            }
+                    if (serverNameInboxPair.IsNotNull())
+                        serverNameInboxPairs.Add(serverNameInboxPair);
+                    else
+                        _logger.LogWarning("Someone hit second layer of collections");
+                    // Here would start another layer of unwrapping collections
+                    // This can be made but is not necessary
+                }
         }
 
         return serverNameInboxPairs;
@@ -318,6 +322,7 @@ public class ActivityHandler : IActivityHandler
         var actor = await _actorApi.GetActor(actorUri);
 
         if (actor.IsNull()) return null;
+        if (actor.Inbox.IsNull()) return null;
 
         if (isPublic) // Public Activity
         {
@@ -325,12 +330,10 @@ public class ActivityHandler : IActivityHandler
 
             if (sharedInbox.IsNull())
             {
-                if (actor.Inbox.IsNull()) return null;
-
                 return new ServerNameInboxPair
                 {
-                    Inbox = actor?.Inbox,
-                    ServerName = actor?.Inbox?.Host
+                    Inbox = actor.Inbox,
+                    ServerName = actor.Inbox.Host
                 };
             }
 
@@ -339,15 +342,15 @@ public class ActivityHandler : IActivityHandler
             return new ServerNameInboxPair
             {
                 Inbox = sharedInbox,
-                ServerName = sharedInbox?.Host
+                ServerName = sharedInbox.Host
             };
         }
 
         // Private Activity
         return new ServerNameInboxPair
         {
-            Inbox = actor?.Inbox,
-            ServerName = actor?.Inbox?.Host
+            Inbox = actor.Inbox,
+            ServerName = actor.Inbox.Host
         };
     }
 }
