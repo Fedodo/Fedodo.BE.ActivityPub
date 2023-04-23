@@ -172,16 +172,16 @@ public class InboxController : ControllerBase
 
                 _logger.LogDebug("Handling Reply Logic");
                 // TODO Extract this two if parts into one function
-                if (activity.Object.InReplyTo.IsNotNull())
+                if (activity.Object.Objects.First().InReplyTo.IsNotNull())
                 {
                     _logger.LogDebug("InReply is not null");
 
-                    if (activity.Object.InReplyTo?.StringLinks.First().Host ==
+                    if (activity.Object.Objects.First().InReplyTo?.StringLinks.First().Host ==
                         Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
                         var updateFilterBuilder = Builders<Activity>.Filter;
                         var updateFilter =
-                            updateFilterBuilder.Eq(i => i.Object.Id, activity.Object.InReplyTo.StringLinks.First());
+                            updateFilterBuilder.Eq(i => i.Object.Objects.First().Id, activity.Object.Objects.First().InReplyTo.StringLinks.First());
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.OutboxCreate.Database,
@@ -189,17 +189,17 @@ public class InboxController : ControllerBase
 
                         if (updateItem.IsNull()) break;
 
-                        if (updateItem.Object.Replies.Items.Links.IsNull())
-                            updateItem.Object.Replies.Items = new();
+                        if (updateItem.Object.Objects.First().Replies.Items.Links.IsNull())
+                            updateItem.Object.Objects.First().Replies.Items = new();
 
-                        var tempLinks = updateItem.Object.Replies.Items.Links.ToList();
+                        var tempLinks = updateItem.Object.Objects.First().Replies.Items.Links.ToList();
 
                         tempLinks.Add(new Link
                         {
                             Href = activity.Id
                         });
 
-                        updateItem.Object.Replies.Items.Links = tempLinks;
+                        updateItem.Object.Objects.First().Replies.Items.Links = tempLinks;
                         
                         await _repository.Update(updateItem, updateFilter, DatabaseLocations.OutboxCreate.Database,
                             DatabaseLocations.OutboxCreate.Collection);
@@ -210,7 +210,7 @@ public class InboxController : ControllerBase
 
                         var updateFilterBuilder = Builders<Activity>.Filter;
                         var updateFilter =
-                            updateFilterBuilder.Eq(i => i.Object.Id, activity.Object.InReplyTo.StringLinks.First());
+                            updateFilterBuilder.Eq(i => i.Object.Objects.First().Id, activity.Object.Objects.First().InReplyTo.StringLinks.First());
 
                         var updateItem = await _repository.GetSpecificItem(updateFilter,
                             DatabaseLocations.InboxCreate.Database,
@@ -223,20 +223,20 @@ public class InboxController : ControllerBase
                             break;
                         }
 
-                        if (updateItem.Object.Replies.IsNull())
-                            updateItem.Object.Replies = new CollectionPage();
+                        if (updateItem.Object.Objects.First().Replies.IsNull())
+                            updateItem.Object.Objects.First().Replies = new CollectionPage();
 
-                        if (updateItem.Object.Replies.Items.IsNull())
-                            updateItem.Object.Replies.Items = new();
+                        if (updateItem.Object.Objects.First().Replies.Items.IsNull())
+                            updateItem.Object.Objects.First().Replies.Items = new();
 
-                        var replies = updateItem.Object.Replies;
+                        var replies = updateItem.Object.Objects.First().Replies;
                         var repliesItems = replies.Items.Links.ToList();
                         repliesItems.Add(new Link
                         {
                             Href = activity.Id
                         });
                         replies.Items.Links = repliesItems;
-                        updateItem.Object.Replies = replies;
+                        updateItem.Object.Objects.First().Replies = replies;
 
                         _logger.LogDebug("Sending Update to database");
 
@@ -280,10 +280,19 @@ public class InboxController : ControllerBase
                             actor.Id
                         }
                     },
-                    Object = activity.Id,
-                    To = new List<string>
+                    Object = new TripleSet<Object>()
                     {
-                        "as:Public"
+                        StringLinks = new []
+                        {
+                            activity.Id
+                        }
+                    },
+                    To = new TripleSet<Object>()
+                    {
+                        StringLinks = new []
+                        {
+                            new Uri("as:Public")
+                        }
                     }
                 };
 
@@ -296,9 +305,7 @@ public class InboxController : ControllerBase
                 _logger.LogTrace("Got an Accept activity");
 
                 var acceptedActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
-
-                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
-
+                
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
                 var sendActivity = await _repository.GetSpecificItem(filter, DatabaseLocations.OutboxFollow.Database,
@@ -338,9 +345,7 @@ public class InboxController : ControllerBase
             case "Like":
             {
                 _logger.LogTrace("Got an Like Activity");
-
-                activity.Object = activity.Object.TrySystemJsonDeserialization<string>();
-
+                
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Id, activity.Id);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.InboxLike.Database,

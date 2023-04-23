@@ -11,6 +11,7 @@ using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
@@ -20,6 +21,7 @@ using MongoDB.Driver;
 using Moq;
 using Shouldly;
 using Xunit;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Test.Handlers;
 
@@ -72,18 +74,24 @@ public class ActivityHandlerShould
             .ReturnsAsync(
                 new OrderedCollection
                 {
-                    Items = new[]
+                    Items = new TripleSet<Object>()
                     {
-                        new Uri("https://example.com/asdf")
+                        StringLinks = new[]
+                        {
+                            new Uri("https://example.com/asdf")
+                        }
                     }
                 });
 
         collectionApi.Setup(i => i.GetCollection<Uri>(It.IsAny<Uri>())).ReturnsAsync(
             new Collection
             {
-                Items = new[]
+                Items = new TripleSet<Object>()
                 {
-                    new Uri("https://example.com/uri")
+                    StringLinks = new[]
+                    {
+                        new Uri("https://example.com/uri")
+                    }
                 }
             });
 
@@ -118,12 +126,13 @@ public class ActivityHandlerShould
 
         // Assert
         result.ShouldNotBeNull();
-        result.Actor.ShouldBe(new Uri("https://example.com/actor/eab26e2c-48be-45f6-bb17-fb35bb7f889f"));
+        result.Actor.StringLinks.First()
+            .ShouldBe(new Uri("https://example.com/actor/eab26e2c-48be-45f6-bb17-fb35bb7f889f"));
         result.Type.ShouldBe(type);
         if (type != "Create")
             result.Object.ShouldBe(obj);
         else
-            result.Object.ShouldBeOfType<Post>();
+            result.Object.ShouldBeOfType<Note>();
     }
 
     [Theory]
@@ -150,32 +159,47 @@ public class ActivityHandlerShould
         // Arrange
         var activity = new Activity
         {
-            To = new[]
+            To = new TripleSet<Object>()
             {
-                to,
-                "https://example.com/user/123",
-                "https://example.com/fail"
+                StringLinks = new[]
+                {
+                    new Uri(to),
+                    new Uri("https://example.com/user/123"),
+                    new Uri("https://example.com/fail")
+                }
             },
-            Bto = new[]
+            Bto = new TripleSet<Object>()
             {
-                to,
-                "https://example.com/user/123"
+                StringLinks = new[]
+                {
+                    new Uri(to),
+                    new Uri("https://example.com/user/123"),
+                }
             },
-            Audience = new[]
+            Audience = new TripleSet<Object>()
             {
-                to,
-                "https://example.com/user/123"
+                StringLinks = new[]
+                {
+                    new Uri(to),
+                    new Uri("https://example.com/user/123"),
+                }
             },
-            Cc = new[]
+            Cc = new TripleSet<Object>()
             {
-                to,
-                "https://example.com/user/123"
+                StringLinks = new[]
+                {
+                    new Uri(to),
+                    new Uri("https://example.com/user/123"),
+                }
             },
-            Bcc = new[]
+            Bcc = new TripleSet<Object>()
             {
-                to,
-                "https://example.com/user/123"
-            }
+                StringLinks = new[]
+                {
+                    new Uri(to),
+                    new Uri("https://example.com/user/123"),
+                }
+            },
         };
         var user = new User
         {

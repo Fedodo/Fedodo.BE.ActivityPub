@@ -28,7 +28,7 @@ public class LikesController : ControllerBase
         var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Id == postId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxLike.Database,
             DatabaseLocations.InboxLike.Collection, filter);
@@ -75,7 +75,7 @@ public class LikesController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Id == postId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
 
         var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
             DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();

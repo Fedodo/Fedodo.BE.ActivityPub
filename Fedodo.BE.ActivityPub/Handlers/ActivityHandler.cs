@@ -91,26 +91,32 @@ public class ActivityHandler : IActivityHandler
             {
                 var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Note>();
 
-                activity.Object = new Note()
+                activity.Object = new TripleSet<Object>()
                 {
-                    To = createPostDto.To,
-                    Name = createPostDto.Name,
-                    Summary = createPostDto.Summary,
-                    Sensitive = createPostDto.Sensitive,
-                    InReplyTo = createPostDto.InReplyTo,
-                    Content = createPostDto.Content,
-                    Id = new Uri($"https://{domainName}/posts/{activityId}"),
-                    Type = createPostDto.Type,
-                    Published = createPostDto.Published,
-                    AttributedTo = new()
+                    Objects = new[]
                     {
-                        StringLinks = new[]
+                        new Note()
                         {
-                            actorId
+                            To = createPostDto.To,
+                            Name = createPostDto.Name,
+                            Summary = createPostDto.Summary,
+                            Sensitive = createPostDto.Sensitive,
+                            InReplyTo = createPostDto.InReplyTo,
+                            Content = createPostDto.Content,
+                            Id = new Uri($"https://{domainName}/posts/{activityId}"),
+                            Type = createPostDto.Type,
+                            Published = createPostDto.Published,
+                            AttributedTo = new()
+                            {
+                                StringLinks = new[]
+                                {
+                                    actorId
+                                }
+                            },
+                            Shares = new Uri($"https://{domainName}/shares/{activityId}"),
+                            Likes = new Uri($"https://{domainName}/likes/{activityId}")
                         }
-                    },
-                    Shares = new Uri($"https://{domainName}/shares/{activityId}"),
-                    Likes = new Uri($"https://{domainName}/likes/{activityId}")
+                    }
                 };
 
                 await _repository.Create(activity, DatabaseLocations.OutboxCreate.Database,
