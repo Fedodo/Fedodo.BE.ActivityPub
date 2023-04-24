@@ -3,11 +3,15 @@ using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Handlers;
 
@@ -44,42 +48,83 @@ public class ActivityHandler : IActivityHandler
     public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName)
     {
         var activityId = Guid.NewGuid();
-        var actorId = new Uri($"https://{domainName}/actor/{userId}");
+        var actorId = $"https://{domainName}/actor/{userId}";
         object? obj;
 
         var activity = new Activity
         {
-            Actor = actorId,
+            Actor = new TripleSet<Object>
+            {
+                StringLinks = new[]
+                {
+                    actorId
+                }
+            },
             Id = new Uri($"https://{domainName}/outbox/{activityDto.Type}/{activityId}".ToLower()),
             Type = activityDto.Type,
-            To = activityDto.To,
-            Bto = activityDto.Bto,
-            Cc = activityDto.Cc,
-            Bcc = activityDto.Bcc,
-            Audience = activityDto.Audience,
-            Published = DateTime.UtcNow
+            To = new TripleSet<Object>
+            {
+                StringLinks = activityDto.To?.Select(i => i)
+            },
+            Bto = new TripleSet<Object>
+            {
+                StringLinks = activityDto.Bto?.Select(i => i)
+            },
+            Cc = new TripleSet<Object>
+            {
+                StringLinks = activityDto.Cc?.Select(i => i)
+            },
+            Bcc = new TripleSet<Object>
+            {
+                StringLinks = activityDto.Bcc?.Select(i => i)
+            },
+            Audience = new TripleSet<Object>
+            {
+                StringLinks = activityDto.Audience?.Select(i => i)
+            },
+            Published = DateTime.UtcNow,
+            Object = new TripleSet<Object>()
         };
+
+        if (activityDto.Object is string dtoObject)
+        {
+            var tempList = activity.Object.StringLinks?.ToList() ?? new List<string>();
+            tempList.Add(dtoObject);
+            activity.Object.StringLinks = tempList;
+        }
 
         switch (activityDto.Type)
         {
             case "Create":
             {
-                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Post>();
+                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Note>();
 
-                activity.Object = new Post
+                activity.Object = new TripleSet<Object>
                 {
-                    To = createPostDto.To,
-                    Name = createPostDto.Name,
-                    Summary = createPostDto.Summary,
-                    Sensitive = createPostDto.Sensitive,
-                    InReplyTo = createPostDto.InReplyTo,
-                    Content = createPostDto.Content,
-                    Id = new Uri($"https://{domainName}/posts/{activityId}"),
-                    Type = createPostDto.Type,
-                    Published = createPostDto.Published,
-                    AttributedTo = actorId,
-                    Shares = new Uri($"https://{domainName}/shares/{activityId}"),
-                    Likes = new Uri($"https://{domainName}/likes/{activityId}")
+                    Objects = new[]
+                    {
+                        new Note
+                        {
+                            To = createPostDto.To,
+                            Name = createPostDto.Name,
+                            Summary = createPostDto.Summary,
+                            Sensitive = createPostDto.Sensitive,
+                            InReplyTo = createPostDto.InReplyTo,
+                            Content = createPostDto.Content,
+                            Id = new Uri($"https://{domainName}/posts/{activityId}"),
+                            Type = createPostDto.Type,
+                            Published = createPostDto.Published,
+                            AttributedTo = new TripleSet<Object>
+                            {
+                                StringLinks = new[]
+                                {
+                                    actorId
+                                }
+                            },
+                            Shares = new Uri($"https://{domainName}/shares/{activityId}"),
+                            Likes = new Uri($"https://{domainName}/likes/{activityId}")
+                        }
+                    }
                 };
 
                 await _repository.Create(activity, DatabaseLocations.OutboxCreate.Database,
@@ -89,8 +134,6 @@ public class ActivityHandler : IActivityHandler
             }
             case "Like":
             {
-                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
-
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxLike.Database,
@@ -106,8 +149,6 @@ public class ActivityHandler : IActivityHandler
             }
             case "Follow":
             {
-                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
-
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxFollow.Database,
@@ -123,8 +164,6 @@ public class ActivityHandler : IActivityHandler
             }
             case "Announce":
             {
-                activity.Object = activityDto.Object.TrySystemJsonDeserialization<string>();
-
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxAnnounce.Database,
@@ -157,11 +196,11 @@ public class ActivityHandler : IActivityHandler
 
         var receivers = new List<string>();
 
-        if (activity.To.IsNotNullOrEmpty()) receivers.AddRange(activity.To);
-        if (activity.Bcc.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc);
-        if (activity.Audience.IsNotNullOrEmpty()) receivers.AddRange(activity.Audience);
-        if (activity.Bto.IsNotNullOrEmpty()) receivers.AddRange(activity.Bto);
-        if (activity.Cc.IsNotNullOrEmpty()) receivers.AddRange(activity.Cc);
+        if (activity.To.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.To.StringLinks);
+        if (activity.Bcc.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc.StringLinks);
+        if (activity.Audience.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Audience.StringLinks);
+        if (activity.Bto.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Bto.StringLinks);
+        if (activity.Cc.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Cc.StringLinks);
 
         if (activity.IsActivityPublic()) // Public Post
         {
@@ -169,7 +208,8 @@ public class ActivityHandler : IActivityHandler
 
             foreach (var item in receivers)
             {
-                if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
+                if (item == "https://www.w3.org/ns/activitystreams#Public" || item == "as:Public" ||
+                    item == "public") continue;
 
                 var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
                 if (serverNameInboxPair.IsNotNull())
@@ -203,8 +243,7 @@ public class ActivityHandler : IActivityHandler
                 }
                 else
                 {
-                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(
-                        new Uri(item), false);
+                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(new Uri(item), false);
                     foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
@@ -248,13 +287,13 @@ public class ActivityHandler : IActivityHandler
         {
             var collection = await _collectionApi.GetCollection<Uri>(target);
 
-            if (collection.IsNull())
+            if (collection.IsNull() || collection.Items.IsNull() || collection.Items.StringLinks.IsNull())
                 _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
                                    $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
             else
-                foreach (var item in collection.Items)
+                foreach (var item in collection.Items.StringLinks)
                 {
-                    var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+                    var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic);
 
                     if (serverNameInboxPair.IsNotNull())
                         serverNameInboxPairs.Add(serverNameInboxPair);
@@ -266,17 +305,22 @@ public class ActivityHandler : IActivityHandler
         }
         else
         {
-            foreach (var item in orderedCollection.OrderedItems)
-            {
-                var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+            if (orderedCollection.IsNull() || orderedCollection.Items.IsNull() ||
+                orderedCollection.Items.StringLinks.IsNull())
+                _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
+                                   $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
+            else
+                foreach (var item in orderedCollection.Items.StringLinks)
+                {
+                    var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic);
 
-                if (serverNameInboxPair.IsNotNull())
-                    serverNameInboxPairs.Add(serverNameInboxPair);
-                else
-                    _logger.LogWarning("Someone hit second layer of collections");
-                // Here would start another layer of unwrapping collections
-                // This can be made but is not necessary
-            }
+                    if (serverNameInboxPair.IsNotNull())
+                        serverNameInboxPairs.Add(serverNameInboxPair);
+                    else
+                        _logger.LogWarning("Someone hit second layer of collections");
+                    // Here would start another layer of unwrapping collections
+                    // This can be made but is not necessary
+                }
         }
 
         return serverNameInboxPairs;
@@ -287,36 +331,33 @@ public class ActivityHandler : IActivityHandler
         var actor = await _actorApi.GetActor(actorUri);
 
         if (actor.IsNull()) return null;
+        if (actor.Inbox.IsNull()) return null;
 
         if (isPublic) // Public Activity
         {
             var sharedInbox = actor?.Endpoints?.SharedInbox;
 
             if (sharedInbox.IsNull())
-            {
-                if (actor.Inbox.IsNull()) return null;
-
                 return new ServerNameInboxPair
                 {
-                    Inbox = actor?.Inbox,
-                    ServerName = actor?.Inbox?.Host
+                    Inbox = actor.Inbox,
+                    ServerName = actor.Inbox.Host
                 };
-            }
 
             await _sharedInboxHandler.AddSharedInboxAsync(sharedInbox);
 
             return new ServerNameInboxPair
             {
                 Inbox = sharedInbox,
-                ServerName = sharedInbox?.Host
+                ServerName = sharedInbox.Host
             };
         }
 
         // Private Activity
         return new ServerNameInboxPair
         {
-            Inbox = actor?.Inbox,
-            ServerName = actor?.Inbox?.Host
+            Inbox = actor.Inbox,
+            ServerName = actor.Inbox.Host
         };
     }
 }

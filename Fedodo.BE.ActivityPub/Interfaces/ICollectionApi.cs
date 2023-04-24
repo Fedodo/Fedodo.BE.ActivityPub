@@ -1,9 +1,9 @@
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 
 namespace Fedodo.BE.ActivityPub.Interfaces;
 
 public interface ICollectionApi
 {
-    public Task<OrderedCollection<T>> GetOrderedCollection<T>(Uri orderedCollectionUri);
-    public Task<Collection<T>> GetCollection<T>(Uri collectionUri);
+    public Task<OrderedCollection> GetOrderedCollection<T>(Uri orderedCollectionUri);
+    public Task<Collection> GetCollection<T>(Uri collectionUri);
 }

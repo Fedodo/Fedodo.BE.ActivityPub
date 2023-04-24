@@ -1,7 +1,7 @@
 using Fedodo.BE.ActivityPub.APIs;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Handlers;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Repositories;
@@ -137,6 +137,6 @@ public class Startup
         var objectSerializer = new ObjectSerializer(type =>
             ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo"));
         BsonSerializer.RegisterSerializer(objectSerializer);
-        BsonSerializer.RegisterDiscriminator(typeof(Post), "Post");
+        BsonSerializer.RegisterDiscriminator(typeof(Note), "Note");
     }
 }

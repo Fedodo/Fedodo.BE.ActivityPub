@@ -1,7 +1,7 @@
 using System.Text.Json;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 
 namespace Fedodo.BE.ActivityPub.APIs;
 

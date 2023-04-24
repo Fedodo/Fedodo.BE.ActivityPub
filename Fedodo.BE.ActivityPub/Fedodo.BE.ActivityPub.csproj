@@ -15,17 +15,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Fedodo.ActivityPub.Model" Version="2.0.7" />
-        <PackageReference Include="Fedodo.NuGet.Common" Version="1.0.13" />
-        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.11" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
-        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.5" />
-        <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.29.0" />
-        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.29.0" />
-        <PackageReference Include="MongoDB.Driver" Version="2.19.1" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.29.0" />
+        <PackageReference Include="Fedodo.ActivityPub.Model" Version="2.0.12"/>
+        <PackageReference Include="Fedodo.NuGet.Common" Version="1.0.13"/>
+        <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.11"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5"/>
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.5"/>
+        <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.29.0"/>
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.29.0"/>
+        <PackageReference Include="MongoDB.Driver" Version="2.19.1"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.29.0"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -35,15 +35,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
-        <_ContentIncludedByDefault Remove="Views\Account\Login.cshtml" />
-        <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />
-        <_ContentIncludedByDefault Remove="Views\_ViewImports.cshtml" />
-        <_ContentIncludedByDefault Remove="Views\_ViewStart.cshtml" />
+        <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\Account\Login.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\_ViewImports.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\_ViewStart.cshtml"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="wwwroot\Images\Fedodo.svg" />
+        <None Include="wwwroot\Images\Fedodo.svg"/>
     </ItemGroup>
 
 </Project>

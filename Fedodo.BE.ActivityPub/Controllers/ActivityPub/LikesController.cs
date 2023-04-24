@@ -1,6 +1,7 @@
 using System.Web;
 using CommonExtensions;
-using Fedodo.NuGet.ActivityPub.Model;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -20,29 +21,38 @@ public class LikesController : ControllerBase
         _repository = repository;
     }
 
-    private async Task<OrderedPagedCollection> GetLikes(string postIdUrlEncoded)
+    private async Task<OrderedCollection> GetLikes(string postIdUrlEncoded)
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
-        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
+        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == postId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxLike.Database,
             DatabaseLocations.InboxLike.Collection, filter);
         postCount += await _repository.CountSpecific(DatabaseLocations.OutboxLike.Database,
             DatabaseLocations.OutboxLike.Collection, filter);
 
-        var orderedCollection = new OrderedPagedCollection
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}"),
-            TotalItems = postCount,
-            First = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page=0"),
-            Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}")
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}"),
+            First = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0"
+                }
+            },
+            Last = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}"
+                }
+            }
         };
 
         return orderedCollection;
@@ -50,20 +60,20 @@ public class LikesController : ControllerBase
 
     [HttpGet]
     [Route("{postIdUrlEncoded}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetLikesPage(string postIdUrlEncoded,
+    public async Task<ActionResult<OrderedCollectionPage>> GetLikesPage(string postIdUrlEncoded,
         [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetLikesPage)} in {nameof(LikesController)}");
 
         if (page.IsNull()) return Ok(await GetLikes(postIdUrlEncoded));
 
-        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
+        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => (string)i.Object == postId);
+        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
 
         var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
             DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();
@@ -77,18 +87,33 @@ public class LikesController : ControllerBase
         if (likes.Count < 20) count = likes.Count;
         likes = likes.GetRange(0, count);
 
-        var encodedPostId = HttpUtility.UrlEncode(postId);
+        var encodedPostId = HttpUtility.UrlEncode(postId.ToString());
 
-        var orderedCollection = new OrderedCollectionPage<Activity>
+        var orderedCollection = new OrderedCollectionPage
         {
-            OrderedItems = likes,
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
-            Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}"), // TODO
-            Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}"), // TODO
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}")
+            Next = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}" // TODO
+                }
+            },
+            Prev = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}" // TODO
+                }
+            },
+            PartOf = new TripleSet<OrderedCollection>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}"
+                }
+            }
         };
 
         return Ok(orderedCollection);
