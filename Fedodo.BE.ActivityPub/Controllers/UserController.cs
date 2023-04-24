@@ -57,8 +57,8 @@ public class UserController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri("https://www.w3.org/ns/activitystreams"),
-                    new Uri("https://w3id.org/security/v1")
+                    "https://www.w3.org/ns/activitystreams",
+                    "https://w3id.org/security/v1"
                 }
             },
         };

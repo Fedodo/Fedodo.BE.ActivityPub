@@ -35,8 +35,8 @@ public class OutboxController : ControllerBase
         var filterDefinitionBuilder = Builders<Activity>.Filter;
         // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
         var filter = filterDefinitionBuilder.Where(i => i.To.StringLinks.Any(item =>
-            item == new Uri("https://www.w3.org/ns/activitystreams#Public")) || i.To.StringLinks.Any(item =>
-            item == new Uri("as:Public")) || i.To.StringLinks.Any(item => item == new Uri("public")));
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.StringLinks.Any(item =>
+            item == "as:Public") || i.To.StringLinks.Any(item => item == "public"));
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, filter);
@@ -48,15 +48,14 @@ public class OutboxController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0"),
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0",
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}")
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}"
                 }
             }
         };
@@ -72,8 +71,8 @@ public class OutboxController : ControllerBase
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => i.To.StringLinks.Any(item =>
-            item == new Uri("https://www.w3.org/ns/activitystreams#Public")) || i.To.StringLinks.Any(item =>
-            item == new Uri("as:Public")) || i.To.StringLinks.Any(item => item == new Uri("public")));
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.StringLinks.Any(item =>
+            item == "as:Public") || i.To.StringLinks.Any(item => item == "public"));
 
         var createPage = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, pageId, 20, sort, filter);
@@ -96,23 +95,21 @@ public class OutboxController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}",
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"
                 }
             },
             Next = new TripleSet<OrderedCollectionPage>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}")
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}"
                 }
             }
         };

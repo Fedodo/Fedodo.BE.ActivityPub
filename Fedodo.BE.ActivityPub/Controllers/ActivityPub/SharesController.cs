@@ -63,21 +63,21 @@ public class SharesController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page + 1}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page + 1}" // TODO
                 }
             },
             Prev = new()
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page - 1}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new()
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}" // TODO
                 }
             }
         };
@@ -107,14 +107,14 @@ public class SharesController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page=0") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page=0" // TODO
                 }
             },
             Last = new()
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}" // TODO
                 }
             },
         };

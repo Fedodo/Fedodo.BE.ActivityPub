@@ -48,7 +48,7 @@ public class ActivityHandler : IActivityHandler
     public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName)
     {
         var activityId = Guid.NewGuid();
-        var actorId = new Uri($"https://{domainName}/actor/{userId}");
+        var actorId = $"https://{domainName}/actor/{userId}";
         object? obj;
 
         var activity = new Activity
@@ -64,23 +64,23 @@ public class ActivityHandler : IActivityHandler
             Type = activityDto.Type,
             To = new TripleSet<Object>()
             {
-                StringLinks = activityDto.To?.Select(i => new Uri(i))
+                StringLinks = activityDto.To?.Select(i => i)
             },
             Bto = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Bto?.Select(i => new Uri(i))
+                StringLinks = activityDto.Bto?.Select(i => i)
             },
             Cc = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Cc?.Select(i => new Uri(i))
+                StringLinks = activityDto.Cc?.Select(i => i)
             },
             Bcc = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Bcc?.Select(i => new Uri(i))
+                StringLinks = activityDto.Bcc?.Select(i => i)
             },
             Audience = new TripleSet<Object>()
             {
-                StringLinks = activityDto.Audience?.Select(i => new Uri(i))
+                StringLinks = activityDto.Audience?.Select(i => i)
             },
             Published = DateTime.UtcNow
         };
@@ -186,7 +186,7 @@ public class ActivityHandler : IActivityHandler
 
         var targets = new HashSet<ServerNameInboxPair>();
 
-        var receivers = new List<Uri>();
+        var receivers = new List<string>();
 
         if (activity.To.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.To.StringLinks);
         if (activity.Bcc.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc.StringLinks);
@@ -200,17 +200,17 @@ public class ActivityHandler : IActivityHandler
 
             foreach (var item in receivers)
             {
-                if (item == new Uri("https://www.w3.org/ns/activitystreams#Public") || item == new Uri("as:Public") ||
-                    item == new Uri("public")) continue;
+                if (item == "https://www.w3.org/ns/activitystreams#Public" || item == "as:Public" ||
+                    item == "public") continue;
 
-                var serverNameInboxPair = await GetServerNameInboxPair(item, true);
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
                 if (serverNameInboxPair.IsNotNull())
                 {
                     targets.Add(serverNameInboxPair);
                 }
                 else
                 {
-                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(item, true);
+                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(new Uri(item), true);
                     foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
@@ -228,14 +228,14 @@ public class ActivityHandler : IActivityHandler
 
             foreach (var item in receivers)
             {
-                var serverNameInboxPair = await GetServerNameInboxPair(item, false);
+                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), false);
                 if (serverNameInboxPair.IsNotNull())
                 {
                     targets.Add(serverNameInboxPair);
                 }
                 else
                 {
-                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(item, false);
+                    var serverNameInboxPairs = await GetServerNameInboxPairsAsync(new Uri(item), false);
                     foreach (var inboxPair in serverNameInboxPairs) targets.Add(inboxPair);
                 }
             }
@@ -285,7 +285,7 @@ public class ActivityHandler : IActivityHandler
             else
                 foreach (var item in collection.Items.StringLinks)
                 {
-                    var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+                    var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic);
 
                     if (serverNameInboxPair.IsNotNull())
                         serverNameInboxPairs.Add(serverNameInboxPair);
@@ -303,7 +303,7 @@ public class ActivityHandler : IActivityHandler
             else
                 foreach (var item in orderedCollection.Items.StringLinks)
                 {
-                    var serverNameInboxPair = await GetServerNameInboxPair(item, isPublic);
+                    var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic);
 
                     if (serverNameInboxPair.IsNotNull())
                         serverNameInboxPairs.Add(serverNameInboxPair);

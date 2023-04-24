@@ -43,16 +43,14 @@ public class LikesController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0"),
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0",
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}")
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}"
                 }
             }
         };
@@ -99,24 +97,21 @@ public class LikesController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}"), // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}", // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    new Uri(
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}"
-                    ) // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>()
             {
-                StringLinks = new []
+                StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}")
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}"
                 }
             }
         };

@@ -78,7 +78,7 @@ public class ActivityHandlerShould
                     {
                         StringLinks = new[]
                         {
-                            new Uri("https://example.com/asdf")
+                            "https://example.com/asdf"
                         }
                     }
                 });
@@ -90,7 +90,7 @@ public class ActivityHandlerShould
                 {
                     StringLinks = new[]
                     {
-                        new Uri("https://example.com/uri")
+                        "https://example.com/uri"
                     }
                 }
             });
@@ -120,14 +120,13 @@ public class ActivityHandlerShould
             Object = obj,
             Type = type
         };
-        
+
         // Act
         var result = await _handler.CreateActivity(new Guid(userId), dto, "example.com");
 
         // Assert
         result.ShouldNotBeNull();
-        result.Actor!.StringLinks!.First()
-            .ShouldBe(new Uri("https://example.com/actor/eab26e2c-48be-45f6-bb17-fb35bb7f889f"));
+        result.Actor!.StringLinks!.First().ShouldBe("https://example.com/actor/eab26e2c-48be-45f6-bb17-fb35bb7f889f");
         result.Type.ShouldBe(type);
         if (type != "Create")
             result.Object.ShouldBe(obj);
@@ -163,41 +162,41 @@ public class ActivityHandlerShould
             {
                 StringLinks = new[]
                 {
-                    new Uri(to),
-                    new Uri("https://example.com/user/123"),
-                    new Uri("https://example.com/fail")
+                    to,
+                    "https://example.com/user/123",
+                    "https://example.com/fail"
                 }
             },
             Bto = new TripleSet<Object>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(to),
-                    new Uri("https://example.com/user/123"),
+                    to,
+                    "https://example.com/user/123",
                 }
             },
             Audience = new TripleSet<Object>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(to),
-                    new Uri("https://example.com/user/123"),
+                    to,
+                    "https://example.com/user/123",
                 }
             },
             Cc = new TripleSet<Object>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(to),
-                    new Uri("https://example.com/user/123"),
+                    to,
+                    "https://example.com/user/123"
                 }
             },
             Bcc = new TripleSet<Object>()
             {
                 StringLinks = new[]
                 {
-                    new Uri(to),
-                    new Uri("https://example.com/user/123"),
+                    to,
+                    "https://example.com/user/123"
                 }
             },
         };

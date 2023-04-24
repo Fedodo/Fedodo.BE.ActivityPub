@@ -9,8 +9,7 @@ public static class ActivityPubExtensions
     {
         foreach (var item in post.To.StringLinks)
         {
-            if (item == new Uri("https://www.w3.org/ns/activitystreams#Public") || item == new Uri("as:Public") ||
-                item == new Uri("public")) return true;
+            if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") return true;
         }
 
         return false;
@@ -19,7 +18,6 @@ public static class ActivityPubExtensions
     public static bool IsActivityPublic(this Activity activity)
     {
         return activity.To.StringLinks.Any(
-            item => item == new Uri("https://www.w3.org/ns/activitystreams#Public") || item == new Uri("as:Public") ||
-                    item == new Uri("public"));
+            item => item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public");
     }
 }

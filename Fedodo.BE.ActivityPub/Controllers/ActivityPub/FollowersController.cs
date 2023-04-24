@@ -40,14 +40,14 @@ public class FollowersController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page=0")
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page=0"
                 }
             },
             Last = new()
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}")
+                   $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}"
                 }
             }
         };
@@ -86,21 +86,21 @@ public class FollowersController : ControllerBase
             {
                 StringLinks = new []
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page + 1}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page + 1}" // TODO
                 }
             },            
             Prev = new()
             {
                 StringLinks = new []
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page - 1}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page - 1}" // TODO
                 }
             },            
             PartOf = new()
             {
                 StringLinks = new []
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}" // TODO
                 }
             }
         };

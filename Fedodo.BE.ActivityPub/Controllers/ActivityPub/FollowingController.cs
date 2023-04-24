@@ -40,14 +40,14 @@ public class FollowingController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0"),
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0",
                 }
             },
             Last = new()
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}"),
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}",
                 }
             }
         };
@@ -81,27 +81,26 @@ public class FollowingController : ControllerBase
             {
                 Objects = followings
             },
-            Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page + 1}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page - 1}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}") // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}" // TODO
                 }
             }
         };
