@@ -82,8 +82,16 @@ public class ActivityHandler : IActivityHandler
             {
                 StringLinks = activityDto.Audience?.Select(i => i)
             },
-            Published = DateTime.UtcNow
+            Published = DateTime.UtcNow,
+            Object = new TripleSet<Object>()
         };
+
+        if (activityDto.Object is string dtoObject)
+        {
+            var tempList = activity.Object.StringLinks?.ToList() ?? new List<string>();
+            tempList.Add(dtoObject);
+            activity.Object.StringLinks = tempList;
+        }
 
         switch (activityDto.Type)
         {
