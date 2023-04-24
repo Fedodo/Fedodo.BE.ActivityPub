@@ -31,7 +31,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Actor>> CreateUser(CreateActorDto actorDto)
+    public async Task<ActionResult<Actor>> CreateUserAsync(CreateActorDto actorDto)
     {
         // Create actor
         var userId = Guid.NewGuid();
