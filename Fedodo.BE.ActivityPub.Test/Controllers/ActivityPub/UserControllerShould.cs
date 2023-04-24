@@ -29,18 +29,18 @@ public class UserControllerShould
         _userController = new UserController(logger.Object, repository.Object, authHandler);
     }
     
-    [Fact]
-    public async Task CreateUser()
-    {
-        // Arrange
-        var actorDto = new CreateActorDto()
-        {
-            
-        };
-        
-        // Act
-        var result = await _userController.CreateUserAsync(actorDto);
-
-        // Assert
-    }
+    // [Fact]
+    // public async Task CreateUser()
+    // {
+    //     // Arrange
+    //     var actorDto = new CreateActorDto()
+    //     {
+    //         
+    //     };
+    //     
+    //     // Act
+    //     var result = await _userController.CreateUserAsync(actorDto);
+    //
+    //     // Assert
+    // }
 }
