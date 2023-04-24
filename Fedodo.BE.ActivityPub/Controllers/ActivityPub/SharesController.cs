@@ -53,27 +53,27 @@ public class SharesController : ControllerBase
 
         var orderedCollection = new OrderedCollectionPage
         {
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
                 Objects = shares
             },
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page}"),
-            Next = new()
+            Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page + 1}" // TODO
                 }
             },
-            Prev = new()
+            Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}/?page={page - 1}" // TODO
                 }
             },
-            PartOf = new()
+            PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
@@ -99,24 +99,24 @@ public class SharesController : ControllerBase
         postCount += await _repository.CountSpecific(DatabaseLocations.OutboxAnnounce.Database,
             DatabaseLocations.OutboxAnnounce.Collection, filter);
 
-        var orderedCollection = new OrderedCollection()
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}"),
-            First = new()
+            First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page=0" // TODO
                 }
             },
-            Last = new()
+            Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}" // TODO
                 }
-            },
+            }
         };
 
         return orderedCollection;

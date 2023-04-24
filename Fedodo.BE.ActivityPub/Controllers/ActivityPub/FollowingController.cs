@@ -33,21 +33,21 @@ public class FollowingController : ControllerBase
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, filter);
 
-        var orderedCollection = new OrderedCollection()
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}"),
-            First = new()
+            First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page=0"
                 }
             },
-            Last = new()
+            Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}"
                 }
             }
         };
@@ -77,7 +77,7 @@ public class FollowingController : ControllerBase
 
         var orderedCollection = new OrderedCollectionPage
         {
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
                 Objects = followings
             },

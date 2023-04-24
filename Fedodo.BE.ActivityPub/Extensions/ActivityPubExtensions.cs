@@ -8,9 +8,8 @@ public static class ActivityPubExtensions
     public static bool IsPostPublic(this Note post)
     {
         foreach (var item in post.To.StringLinks)
-        {
-            if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") return true;
-        }
+            if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public")
+                return true;
 
         return false;
     }

@@ -53,14 +53,14 @@ public class UserController : ControllerBase
             Followers = new Uri($"https://{domainName}/followers/{userId}"),
 
             // Hardcoded
-            Context = new TripleSet<Object>()
+            Context = new TripleSet<Object>
             {
                 StringLinks = new[]
                 {
                     "https://www.w3.org/ns/activitystreams",
                     "https://w3id.org/security/v1"
                 }
-            },
+            }
         };
 
         var rsa = RSA.Create();

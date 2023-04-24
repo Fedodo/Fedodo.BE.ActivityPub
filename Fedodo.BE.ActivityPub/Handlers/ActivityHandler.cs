@@ -53,7 +53,7 @@ public class ActivityHandler : IActivityHandler
 
         var activity = new Activity
         {
-            Actor = new TripleSet<Object>()
+            Actor = new TripleSet<Object>
             {
                 StringLinks = new[]
                 {
@@ -62,23 +62,23 @@ public class ActivityHandler : IActivityHandler
             },
             Id = new Uri($"https://{domainName}/outbox/{activityDto.Type}/{activityId}".ToLower()),
             Type = activityDto.Type,
-            To = new TripleSet<Object>()
+            To = new TripleSet<Object>
             {
                 StringLinks = activityDto.To?.Select(i => i)
             },
-            Bto = new TripleSet<Object>()
+            Bto = new TripleSet<Object>
             {
                 StringLinks = activityDto.Bto?.Select(i => i)
             },
-            Cc = new TripleSet<Object>()
+            Cc = new TripleSet<Object>
             {
                 StringLinks = activityDto.Cc?.Select(i => i)
             },
-            Bcc = new TripleSet<Object>()
+            Bcc = new TripleSet<Object>
             {
                 StringLinks = activityDto.Bcc?.Select(i => i)
             },
-            Audience = new TripleSet<Object>()
+            Audience = new TripleSet<Object>
             {
                 StringLinks = activityDto.Audience?.Select(i => i)
             },
@@ -91,11 +91,11 @@ public class ActivityHandler : IActivityHandler
             {
                 var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Note>();
 
-                activity.Object = new TripleSet<Object>()
+                activity.Object = new TripleSet<Object>
                 {
                     Objects = new[]
                     {
-                        new Note()
+                        new Note
                         {
                             To = createPostDto.To,
                             Name = createPostDto.Name,
@@ -106,7 +106,7 @@ public class ActivityHandler : IActivityHandler
                             Id = new Uri($"https://{domainName}/posts/{activityId}"),
                             Type = createPostDto.Type,
                             Published = createPostDto.Published,
-                            AttributedTo = new()
+                            AttributedTo = new TripleSet<Object>
                             {
                                 StringLinks = new[]
                                 {
@@ -297,7 +297,8 @@ public class ActivityHandler : IActivityHandler
         }
         else
         {
-            if (orderedCollection.IsNull() || orderedCollection.Items.IsNull() || orderedCollection.Items.StringLinks.IsNull())
+            if (orderedCollection.IsNull() || orderedCollection.Items.IsNull() ||
+                orderedCollection.Items.StringLinks.IsNull())
                 _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
                                    $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
             else
@@ -329,13 +330,11 @@ public class ActivityHandler : IActivityHandler
             var sharedInbox = actor?.Endpoints?.SharedInbox;
 
             if (sharedInbox.IsNull())
-            {
                 return new ServerNameInboxPair
                 {
                     Inbox = actor.Inbox,
                     ServerName = actor.Inbox.Host
                 };
-            }
 
             await _sharedInboxHandler.AddSharedInboxAsync(sharedInbox);
 

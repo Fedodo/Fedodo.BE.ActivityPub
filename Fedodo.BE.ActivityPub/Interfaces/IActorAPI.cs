@@ -1,4 +1,3 @@
-
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 
 namespace Fedodo.BE.ActivityPub.Interfaces;

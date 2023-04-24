@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommonExtensions;
@@ -74,7 +73,7 @@ public class ActivityHandlerShould
             .ReturnsAsync(
                 new OrderedCollection
                 {
-                    Items = new TripleSet<Object>()
+                    Items = new TripleSet<Object>
                     {
                         StringLinks = new[]
                         {
@@ -86,7 +85,7 @@ public class ActivityHandlerShould
         collectionApi.Setup(i => i.GetCollection<Uri>(It.IsAny<Uri>())).ReturnsAsync(
             new Collection
             {
-                Items = new TripleSet<Object>()
+                Items = new TripleSet<Object>
                 {
                     StringLinks = new[]
                     {
@@ -158,7 +157,7 @@ public class ActivityHandlerShould
         // Arrange
         var activity = new Activity
         {
-            To = new TripleSet<Object>()
+            To = new TripleSet<Object>
             {
                 StringLinks = new[]
                 {
@@ -167,23 +166,7 @@ public class ActivityHandlerShould
                     "https://example.com/fail"
                 }
             },
-            Bto = new TripleSet<Object>()
-            {
-                StringLinks = new[]
-                {
-                    to,
-                    "https://example.com/user/123",
-                }
-            },
-            Audience = new TripleSet<Object>()
-            {
-                StringLinks = new[]
-                {
-                    to,
-                    "https://example.com/user/123",
-                }
-            },
-            Cc = new TripleSet<Object>()
+            Bto = new TripleSet<Object>
             {
                 StringLinks = new[]
                 {
@@ -191,7 +174,7 @@ public class ActivityHandlerShould
                     "https://example.com/user/123"
                 }
             },
-            Bcc = new TripleSet<Object>()
+            Audience = new TripleSet<Object>
             {
                 StringLinks = new[]
                 {
@@ -199,6 +182,22 @@ public class ActivityHandlerShould
                     "https://example.com/user/123"
                 }
             },
+            Cc = new TripleSet<Object>
+            {
+                StringLinks = new[]
+                {
+                    to,
+                    "https://example.com/user/123"
+                }
+            },
+            Bcc = new TripleSet<Object>
+            {
+                StringLinks = new[]
+                {
+                    to,
+                    "https://example.com/user/123"
+                }
+            }
         };
         var user = new User
         {

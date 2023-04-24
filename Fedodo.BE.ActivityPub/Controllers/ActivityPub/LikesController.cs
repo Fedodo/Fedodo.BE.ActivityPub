@@ -35,18 +35,18 @@ public class LikesController : ControllerBase
         postCount += await _repository.CountSpecific(DatabaseLocations.OutboxLike.Database,
             DatabaseLocations.OutboxLike.Collection, filter);
 
-        var orderedCollection = new OrderedCollection()
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}"),
-            First = new()
+            First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0"
                 }
             },
-            Last = new TripleSet<OrderedCollectionPage>()
+            Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
@@ -93,11 +93,11 @@ public class LikesController : ControllerBase
         {
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
-            Next = new TripleSet<OrderedCollectionPage>()
+            Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}", // TODO
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
@@ -107,7 +107,7 @@ public class LikesController : ControllerBase
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}" // TODO
                 }
             },
-            PartOf = new TripleSet<OrderedCollection>()
+            PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {

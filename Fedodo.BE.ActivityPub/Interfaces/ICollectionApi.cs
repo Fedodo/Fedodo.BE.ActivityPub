@@ -1,4 +1,3 @@
-
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 
 namespace Fedodo.BE.ActivityPub.Interfaces;

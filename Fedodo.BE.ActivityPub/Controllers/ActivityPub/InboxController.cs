@@ -2,7 +2,6 @@ using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
-using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -43,14 +42,14 @@ public class InboxController : ControllerBase
         var orderedCollection = new OrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
-            First = new TripleSet<OrderedCollectionPage>()
+            First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/0",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/0"
                 }
             },
-            Last = new TripleSet<OrderedCollectionPage>()
+            Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
@@ -86,25 +85,25 @@ public class InboxController : ControllerBase
         var orderedCollectionPage = new OrderedCollectionPage
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
-            PartOf = new TripleSet<OrderedCollection>()
+            PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                   $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"
                 }
             },
-            Prev = new TripleSet<OrderedCollectionPage>()
+            Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"
                 }
             },
-            Next = new TripleSet<OrderedCollectionPage>()
+            Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                        $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"
                 }
             }
         };
@@ -188,7 +187,7 @@ public class InboxController : ControllerBase
                         if (updateItem.IsNull()) break;
 
                         if (updateItem.Object.Objects.First().Replies.Items.Links.IsNull())
-                            updateItem.Object.Objects.First().Replies.Items = new();
+                            updateItem.Object.Objects.First().Replies.Items = new TripleSet<Object>();
 
                         var tempLinks = updateItem.Object.Objects.First().Replies.Items.Links.ToList();
 
@@ -226,7 +225,7 @@ public class InboxController : ControllerBase
                             updateItem.Object.Objects.First().Replies = new CollectionPage();
 
                         if (updateItem.Object.Objects.First().Replies.Items.IsNull())
-                            updateItem.Object.Objects.First().Replies.Items = new();
+                            updateItem.Object.Objects.First().Replies.Items = new TripleSet<Object>();
 
                         var replies = updateItem.Object.Objects.First().Replies;
                         var repliesItems = replies.Items.Links.ToList();
@@ -272,21 +271,21 @@ public class InboxController : ControllerBase
                 {
                     Id = new Uri($"https://{domainName}/accepts/{Guid.NewGuid()}"),
                     Type = "Accept",
-                    Actor = new TripleSet<Object>()
+                    Actor = new TripleSet<Object>
                     {
-                        StringLinks = new List<string>()
+                        StringLinks = new List<string>
                         {
                             actor.Id.ToString()
                         }
                     },
-                    Object = new TripleSet<Object>()
+                    Object = new TripleSet<Object>
                     {
                         StringLinks = new[]
                         {
                             activity.Id.ToString()
                         }
                     },
-                    To = new TripleSet<Object>()
+                    To = new TripleSet<Object>
                     {
                         StringLinks = new[]
                         {

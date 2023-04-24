@@ -33,21 +33,21 @@ public class FollowersController : ControllerBase
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
 
-        var orderedCollection = new OrderedCollection()
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}"),
-            First = new()
+            First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page=0"
                 }
             },
-            Last = new()
+            Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                   $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}"
                 }
             }
         };
@@ -77,28 +77,28 @@ public class FollowersController : ControllerBase
 
         var orderedCollection = new OrderedCollectionPage
         {
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
-              Objects  = likes
+                Objects = likes
             },
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page}"),
-            Next = new()
+            Next = new TripleSet<OrderedCollectionPage>
             {
-                StringLinks = new []
+                StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page + 1}" // TODO
                 }
-            },            
-            Prev = new()
+            },
+            Prev = new TripleSet<OrderedCollectionPage>
             {
-                StringLinks = new []
+                StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page - 1}" // TODO
                 }
-            },            
-            PartOf = new()
+            },
+            PartOf = new TripleSet<OrderedCollection>
             {
-                StringLinks = new []
+                StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}" // TODO
                 }

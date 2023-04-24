@@ -41,17 +41,17 @@ public class OutboxController : ControllerBase
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, filter);
 
-        var orderedCollection = new OrderedCollection()
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
-            First = new TripleSet<OrderedCollectionPage>()
+            First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0"
                 }
             },
-            Last = new TripleSet<OrderedCollectionPage>()
+            Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
@@ -91,21 +91,21 @@ public class OutboxController : ControllerBase
         var orderedCollectionPage = new OrderedCollectionPage
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{pageId}"),
-            PartOf = new TripleSet<OrderedCollection>()
+            PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}",
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"
                 }
             },
-            Prev = new TripleSet<OrderedCollectionPage>()
+            Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"
                 }
             },
-            Next = new TripleSet<OrderedCollectionPage>()
+            Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
