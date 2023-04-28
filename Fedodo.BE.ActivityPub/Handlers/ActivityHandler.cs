@@ -196,6 +196,7 @@ public class ActivityHandler : IActivityHandler
 
         var receivers = new List<string>();
 
+        // TODO Null checks are not working
         if (activity.To.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.To.StringLinks);
         if (activity.Bcc.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc.StringLinks);
         if (activity.Audience.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Audience.StringLinks);
