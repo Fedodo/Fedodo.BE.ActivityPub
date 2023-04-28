@@ -252,7 +252,7 @@ public class InboxController : ControllerBase
             case "Follow":
             {
                 _logger.LogDebug(
-                    $"Got follow for \"{activity.Object.TrySystemJsonDeserialization<string>()}\" from \"{activity.Actor}\"");
+                    $"Got follow for \"{activity.Object?.StringLinks?.FirstOrDefault()}\" from \"{activity.Actor}\"");
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var helperFilter = definitionBuilder.Eq(i => i.Id, activity.Id);
@@ -301,11 +301,9 @@ public class InboxController : ControllerBase
             case "Accept":
             {
                 _logger.LogTrace("Got an Accept activity");
-
-                var acceptedActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
-
+                
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
-                var filter = actorDefinitionBuilder.Eq(i => i.Id, acceptedActivity.Id);
+                var filter = actorDefinitionBuilder.Eq(i => i.Id, activity.Object?.Objects?.FirstOrDefault()?.Id);
                 var sendActivity = await _repository.GetSpecificItem(filter, DatabaseLocations.OutboxFollow.Database,
                     DatabaseLocations.OutboxFollow.Collection);
 
@@ -369,10 +367,10 @@ public class InboxController : ControllerBase
             }
             case "Undo":
             {
-                var undoActivity = activity.Object.TrySystemJsonDeserialization<Activity>();
-                var undoActivityObject = new Uri(undoActivity.Object.TrySystemJsonDeserialization<string>());
+                var undoActivity = (Activity?)activity.Object?.Objects?.FirstOrDefault();
+                var undoActivityObject = new Uri(undoActivity?.Object?.StringLinks?.FirstOrDefault());
 
-                switch (undoActivity.Type)
+                switch (undoActivity?.Type)
                 {
                     case "Like":
                     {

@@ -97,7 +97,7 @@ public class ActivityHandler : IActivityHandler
         {
             case "Create":
             {
-                var createPostDto = activityDto.Object.TrySystemJsonDeserialization<Note>();
+                var createPostDto = activityDto.Object as Note;
 
                 activity.Object = new TripleSet<Object>
                 {
@@ -105,15 +105,15 @@ public class ActivityHandler : IActivityHandler
                     {
                         new Note
                         {
-                            To = createPostDto.To,
-                            Name = createPostDto.Name,
-                            Summary = createPostDto.Summary,
-                            Sensitive = createPostDto.Sensitive,
-                            InReplyTo = createPostDto.InReplyTo,
-                            Content = createPostDto.Content,
+                            To = createPostDto?.To,
+                            Name = createPostDto?.Name,
+                            Summary = createPostDto?.Summary,
+                            Sensitive = createPostDto?.Sensitive,
+                            InReplyTo = createPostDto?.InReplyTo,
+                            Content = createPostDto?.Content,
                             Id = new Uri($"https://{domainName}/posts/{activityId}"),
-                            Type = createPostDto.Type,
-                            Published = createPostDto.Published,
+                            Type = createPostDto?.Type,
+                            Published = createPostDto?.Published,
                             AttributedTo = new TripleSet<Object>
                             {
                                 StringLinks = new[]
