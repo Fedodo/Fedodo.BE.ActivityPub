@@ -196,12 +196,11 @@ public class ActivityHandler : IActivityHandler
 
         var receivers = new List<string>();
 
-        // TODO Null checks are not working
-        if (activity.To.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.To.StringLinks);
-        if (activity.Bcc.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Bcc.StringLinks);
-        if (activity.Audience.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Audience.StringLinks);
-        if (activity.Bto.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Bto.StringLinks);
-        if (activity.Cc.StringLinks.IsNotNullOrEmpty()) receivers.AddRange(activity.Cc.StringLinks);
+        if (activity.To?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.To.StringLinks);
+        if (activity.Bcc?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Bcc.StringLinks);
+        if (activity.Audience?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Audience.StringLinks);
+        if (activity.Bto?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Bto.StringLinks);
+        if (activity.Cc?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Cc.StringLinks);
 
         if (activity.IsActivityPublic()) // Public Post
         {
