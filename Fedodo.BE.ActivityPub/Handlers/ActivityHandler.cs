@@ -214,7 +214,7 @@ public class ActivityHandler : IActivityHandler
             {
                 if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
 
-                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
+                var serverNameInboxPair = await GetServerNameInboxPairAsync(new Uri(item), true);
                 if (serverNameInboxPair.IsNotNull())
                 {
                     targets.Add(serverNameInboxPair);
@@ -241,7 +241,7 @@ public class ActivityHandler : IActivityHandler
 
             foreach (var item in receivers)
             {
-                var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), false);
+                var serverNameInboxPair = await GetServerNameInboxPairAsync(new Uri(item), false);
                 if (serverNameInboxPair.IsNotNull())
                 {
                     targets.Add(serverNameInboxPair);
@@ -302,7 +302,7 @@ public class ActivityHandler : IActivityHandler
             else
                 foreach (var item in collection.Items.StringLinks)
                 {
-                    var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic);
+                    var serverNameInboxPair = await GetServerNameInboxPairAsync(new Uri(item), isPublic);
 
                     if (serverNameInboxPair.IsNotNull())
                         serverNameInboxPairs.Add(serverNameInboxPair);
@@ -321,7 +321,7 @@ public class ActivityHandler : IActivityHandler
             else
                 foreach (var item in orderedCollection.Items.StringLinks)
                 {
-                    var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), isPublic);
+                    var serverNameInboxPair = await GetServerNameInboxPairAsync(new Uri(item), isPublic);
 
                     if (serverNameInboxPair.IsNotNull())
                         serverNameInboxPairs.Add(serverNameInboxPair);
@@ -335,7 +335,7 @@ public class ActivityHandler : IActivityHandler
         return serverNameInboxPairs;
     }
 
-    public async Task<ServerNameInboxPair?> GetServerNameInboxPair(Uri actorUri, bool isPublic)
+    public async Task<ServerNameInboxPair?> GetServerNameInboxPairAsync(Uri actorUri, bool isPublic)
     {
         var actor = await _actorApi.GetActor(actorUri);
 

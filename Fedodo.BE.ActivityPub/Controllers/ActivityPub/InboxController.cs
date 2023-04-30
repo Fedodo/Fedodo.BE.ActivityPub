@@ -149,6 +149,11 @@ public class InboxController : ControllerBase
         if (activity.Published.IsNull() || activity.Published <= DateTime.Parse("2000-01-01"))
             activity.Published = DateTime.Now;
 
+        if (activity.Actor?.StringLinks?.FirstOrDefault().IsNotNull() ?? false)
+        {
+            await _activityHandler.GetServerNameInboxPairAsync(new Uri(activity.Actor.StringLinks.First()), true);
+        }
+        
         switch (activity.Type)
         {
             case "Create":
