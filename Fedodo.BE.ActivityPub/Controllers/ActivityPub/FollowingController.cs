@@ -28,7 +28,8 @@ public class FollowingController : ControllerBase
         var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Actor.ToString() == fullUserId);
+        var filter = filterBuilder.Where(i =>
+            i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, filter);
