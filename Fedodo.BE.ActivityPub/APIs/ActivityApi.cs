@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
@@ -23,7 +24,10 @@ public class ActivityApi : IActivityAPI
         _logger.LogTrace($"Entered {nameof(SendActivity)} in {nameof(ActivityApi)}");
         
         // Set Http Signature
-        var jsonData = JsonSerializer.Serialize(activity);
+        var jsonData = JsonSerializer.Serialize(activity, new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();
