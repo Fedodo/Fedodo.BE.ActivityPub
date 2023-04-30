@@ -118,7 +118,9 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{userId:guid}")]
-    [Authorize]
+#if !DEBUG
+        [Authorize]
+#endif
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
