@@ -125,7 +125,7 @@ public class Startup
         builder.Services.AddSingleton<IMongoClient>(mongoClient1);
         builder.Services.AddSingleton<IAuthenticationHandler, AuthenticationHandler>();
         builder.Services.AddSingleton<IActorAPI, ActorApi>();
-        builder.Services.AddSingleton<IActivityAPI, ActivityAPI>();
+        builder.Services.AddSingleton<IActivityAPI, ActivityApi>();
         builder.Services.AddSingleton<IKnownSharedInboxHandler, KnownSharedInboxHandler>();
         builder.Services.AddSingleton<ICollectionApi, CollectionApi>();
     }

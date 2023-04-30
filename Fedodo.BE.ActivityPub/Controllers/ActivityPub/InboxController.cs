@@ -263,13 +263,13 @@ public class InboxController : ControllerBase
                     await _repository.Create(activity, DatabaseLocations.InboxFollow.Database,
                         DatabaseLocations.InboxFollow.Collection);
 
-                var domainName = Environment.GetEnvironmentVariable("DOMAINNAME") ?? "";
+                var domainName = Environment.GetEnvironmentVariable("DOMAINNAME")!;
                 var user = await _userHandler.GetUserByIdAsync(userId);
                 var actor = await _activityHandler.GetActorAsync(userId, domainName);
 
-                if (actor.IsNull())
+                if (actor.IsNull() || actor.Id.IsNull())
                 {
-                    _logger.LogWarning($"{nameof(actor)} was null in {nameof(InboxController)}");
+                    _logger.LogWarning($"{nameof(actor)} or the id of this actor was null in {nameof(InboxController)}");
 
                     return BadRequest("User not found");
                 }
@@ -289,7 +289,7 @@ public class InboxController : ControllerBase
                     {
                         StringLinks = new[]
                         {
-                            activity.Id.ToString()
+                            activity.Id!.ToString()
                         }
                     },
                     To = new TripleSet<Object>
@@ -302,6 +302,8 @@ public class InboxController : ControllerBase
                 };
 
                 await _activityHandler.SendActivitiesAsync(acceptActivity, user, actor);
+                
+                _logger.LogDebug("Completed Follow activity");
 
                 break;
             }

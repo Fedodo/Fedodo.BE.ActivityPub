@@ -9,23 +9,25 @@ using Fedodo.NuGet.Common.Models;
 
 namespace Fedodo.BE.ActivityPub.APIs;
 
-public class ActivityAPI : IActivityAPI
+public class ActivityApi : IActivityAPI
 {
-    private readonly ILogger<ActivityAPI> _logger;
+    private readonly ILogger<ActivityApi> _logger;
 
-    public ActivityAPI(ILogger<ActivityAPI> logger)
+    public ActivityApi(ILogger<ActivityApi> logger)
     {
         _logger = logger;
     }
 
     public async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor)
     {
+        _logger.LogTrace($"Entered {nameof(SendActivity)} in {nameof(ActivityApi)}");
+        
         // Set Http Signature
         var jsonData = JsonSerializer.Serialize(activity);
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();
-        rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
+        rsa.ImportFromPem(user.PrivateKeyActivityPub!.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =

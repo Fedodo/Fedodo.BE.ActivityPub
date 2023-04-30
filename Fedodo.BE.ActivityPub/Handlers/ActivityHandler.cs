@@ -190,6 +190,8 @@ public class ActivityHandler : IActivityHandler
 
     public async Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor)
     {
+        _logger.LogTrace($"Entered {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
+        
         var everythingSuccessful = true;
 
         var targets = new HashSet<ServerNameInboxPair>();
@@ -206,10 +208,11 @@ public class ActivityHandler : IActivityHandler
         {
             // Send to all receivers and to all known SharedInboxes
 
+            _logger.LogDebug("Is public post");
+            
             foreach (var item in receivers)
             {
-                if (item == "https://www.w3.org/ns/activitystreams#Public" || item == "as:Public" ||
-                    item == "public") continue;
+                if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
 
                 var serverNameInboxPair = await GetServerNameInboxPair(new Uri(item), true);
                 if (serverNameInboxPair.IsNotNull())
@@ -233,6 +236,8 @@ public class ActivityHandler : IActivityHandler
         else // Private Post
         {
             // Send to all receivers
+            
+            _logger.LogDebug("Is private post");
 
             foreach (var item in receivers)
             {
@@ -249,7 +254,9 @@ public class ActivityHandler : IActivityHandler
             }
         }
 
-        // This List is only needed to make sure the HasSet works as expected
+        _logger.LogDebug("Generated targets");
+        
+        // This List is only needed to make sure the HashSet works as expected
         // If you are sure it works you can remove it
         var inboxes = new List<Uri>();
 
@@ -273,6 +280,8 @@ public class ActivityHandler : IActivityHandler
                 Thread.Sleep(10000);
             }
         }
+        
+        _logger.LogTrace($"Left {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
 
         return everythingSuccessful;
     }
