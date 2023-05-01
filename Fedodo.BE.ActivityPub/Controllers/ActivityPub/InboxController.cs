@@ -105,6 +105,10 @@ public class InboxController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"
                 }
+            },
+            Items = new TripleSet<Object>()
+            {
+                Objects = page
             }
         };
 

@@ -137,6 +137,5 @@ public class Startup
         var objectSerializer = new ObjectSerializer(type =>
             ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo"));
         BsonSerializer.RegisterSerializer(objectSerializer);
-        BsonSerializer.RegisterDiscriminator(typeof(Note), "Note");
     }
 }
