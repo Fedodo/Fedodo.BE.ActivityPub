@@ -71,7 +71,7 @@ public class FollowingController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Actor.ToString() == fullUserId);
+        var filter = filterBuilder.Where(i => i.Actor!.Objects!.ToList()[0].Id!.ToString() == fullUserId);
 
         var followings = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, (int)page, 20, sort, filter)).ToList();

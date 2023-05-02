@@ -25,13 +25,15 @@ public class FollowersController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
-        var fullUserId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == fullUserId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == fullUserId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
+        
+        // TODO Total Items not working => also in paged collection
 
         var orderedCollection = new OrderedCollection
         {
@@ -49,7 +51,7 @@ public class FollowersController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}"
                 }
-            }
+            },
         };
 
         return orderedCollection;
@@ -62,7 +64,7 @@ public class FollowersController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
 
-        var fullUserId = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}");
+        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
         if (page.IsNull()) return Ok(await GetFollowers(userId));
 
@@ -70,7 +72,7 @@ public class FollowersController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == fullUserId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == fullUserId);
 
         var likes = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
