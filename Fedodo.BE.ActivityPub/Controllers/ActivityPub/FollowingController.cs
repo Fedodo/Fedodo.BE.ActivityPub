@@ -10,6 +10,7 @@ using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Following")]
+[Produces("application/json")]
 public class FollowingController : ControllerBase
 {
     private readonly ILogger<FollowingController> _logger;

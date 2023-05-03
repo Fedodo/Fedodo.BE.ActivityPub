@@ -12,6 +12,7 @@ using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Inbox")]
+[Produces("application/json")]
 public class InboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;
@@ -115,7 +116,7 @@ public class InboxController : ControllerBase
         return Ok(orderedCollectionPage);
     }
 
-    [HttpPost]
+    [HttpPost("")]
     public async Task<ActionResult> SharedInbox([FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(SharedInbox)} in {nameof(InboxController)}");

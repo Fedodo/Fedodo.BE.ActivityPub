@@ -11,6 +11,7 @@ using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Shares")]
+[Produces("application/json")]
 public class SharesController : ControllerBase
 {
     private readonly ILogger<SharesController> _logger;

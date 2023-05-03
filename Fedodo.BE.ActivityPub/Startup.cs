@@ -95,6 +95,7 @@ public class Startup
             c.OAuthClientSecret("test");
             c.OAuthAppName("Swagger API");
             c.OAuthScopeSeparator(",");
+            c.ConfigObject.AdditionalItems.Add("syntaxHighlight", false);
             // c.OAuthUsePkce();
         });
         app.UseCors(x => x.AllowAnyHeader()

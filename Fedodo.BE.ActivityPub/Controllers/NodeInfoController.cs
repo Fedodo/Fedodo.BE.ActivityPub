@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
 
+[Produces("application/json")]
 public class NodeInfoController : ControllerBase
 {
     private readonly ILogger<NodeInfoController> _logger;

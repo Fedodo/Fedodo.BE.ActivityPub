@@ -8,6 +8,7 @@ using MongoDB.Driver;
 namespace Fedodo.BE.ActivityPub.Controllers;
 
 [Route(".well-known")]
+[Produces("application/json")]
 public class WellKnownController : ControllerBase
 {
     private readonly ILogger<WellKnownController> _logger;

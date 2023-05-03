@@ -16,6 +16,7 @@ using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 namespace Fedodo.BE.ActivityPub.Controllers;
 
 [Route("User")]
+[Produces("application/json")]
 public class UserController : ControllerBase
 {
     private readonly IAuthenticationHandler _authenticationHandler;

@@ -9,6 +9,7 @@ using MongoDB.Driver;
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Activities")]
+[Produces("application/json")]
 public class PostController : ControllerBase
 {
     private readonly ILogger<PostController> _logger;

@@ -12,6 +12,7 @@ using MongoDB.Driver;
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Outbox")]
+[Produces("application/json")]
 public class OutboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;

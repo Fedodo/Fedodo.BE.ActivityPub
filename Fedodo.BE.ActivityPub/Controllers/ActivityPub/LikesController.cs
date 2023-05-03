@@ -10,6 +10,7 @@ using MongoDB.Driver;
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Likes")]
+[Produces("application/json")]
 public class LikesController : ControllerBase
 {
     private readonly ILogger<LikesController> _logger;

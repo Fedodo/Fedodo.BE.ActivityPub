@@ -4,21 +4,28 @@ using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Actor")]
+[Produces("application/json")]
 public class ActorController : ControllerBase
 {
     private readonly ILogger<ActorController> _logger;
     private readonly IMongoDbRepository _repository;
-
+    
     public ActorController(ILogger<ActorController> logger, IMongoDbRepository repository)
     {
         _logger = logger;
         _repository = repository;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="actorId"></param>
+    /// <returns></returns>
     [HttpGet("{actorId:guid}")]
     public async Task<ActionResult<Actor>> GetActor(Guid actorId)
     {
