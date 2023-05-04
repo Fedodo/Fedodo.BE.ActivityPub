@@ -8,6 +8,9 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
+/// <summary>
+/// 
+/// </summary>
 [Route("Actor")]
 [Produces("application/json")]
 public class ActorController : ControllerBase
