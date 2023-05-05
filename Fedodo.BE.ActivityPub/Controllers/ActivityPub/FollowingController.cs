@@ -28,7 +28,6 @@ public class FollowingController : ControllerBase
 
         var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
-        // TODO This filter does return something else than the filter in the method below. Maybe put them in the ctor to use the same.
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i =>
             i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
@@ -74,7 +73,8 @@ public class FollowingController : ControllerBase
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Actor!.Objects!.ToList()[0].Id!.ToString() == fullUserId);
+        var filter = filterBuilder.Where(i =>
+            i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
 
         var followings = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
