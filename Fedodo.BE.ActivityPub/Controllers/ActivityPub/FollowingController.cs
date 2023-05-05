@@ -28,6 +28,7 @@ public class FollowingController : ControllerBase
 
         var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
 
+        // TODO This filter does return something else than the filter in the method below. Maybe put them in the ctor to use the same.
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i =>
             i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
@@ -51,7 +52,8 @@ public class FollowingController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}?page={postCount / 20}"
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return orderedCollection;

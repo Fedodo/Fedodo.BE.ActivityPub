@@ -33,8 +33,6 @@ public class FollowersController : ControllerBase
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, filter);
-        
-        // TODO Total Items not working => also in paged collection
 
         var orderedCollection = new OrderedCollection
         {
@@ -53,6 +51,7 @@ public class FollowersController : ControllerBase
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}"
                 }
             },
+            TotalItems = postCount
         };
 
         return orderedCollection;
@@ -75,14 +74,14 @@ public class FollowersController : ControllerBase
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == fullUserId);
 
-        var likes = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
+        var follows = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
-
+        
         var orderedCollection = new OrderedCollectionPage
         {
             Items = new TripleSet<Object>
             {
-                Objects = likes
+                Objects = follows
             },
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
@@ -105,7 +104,8 @@ public class FollowersController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}" // TODO
                 }
-            }
+            },
+            TotalItems = follows.Count
         };
 
         return Ok(orderedCollection);
