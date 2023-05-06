@@ -51,13 +51,20 @@ public class ActivityApi : IActivityAPI
 
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
-        var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
+        try
+        {
+            var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
 
-        if (httpResponse.IsSuccessStatusCode) return true;
+            if (httpResponse.IsSuccessStatusCode) return true;
+            
+            var responseText = await httpResponse.Content.ReadAsStringAsync();
 
-        var responseText = await httpResponse.Content.ReadAsStringAsync();
-
-        _logger.LogWarning($"An error occured sending an activity: {responseText}");
+            _logger.LogWarning($"An error occured sending an activity: {responseText}");
+        }
+        catch (HttpRequestException httpRequestException)
+        {
+            _logger.LogError(httpRequestException, "Sending an activity failed");
+        }
 
         return false;
     }
