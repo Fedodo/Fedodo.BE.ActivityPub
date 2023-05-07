@@ -8,6 +8,7 @@ using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
@@ -58,7 +59,8 @@ public class OutboxController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}"
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return Ok(orderedCollection);
@@ -112,7 +114,12 @@ public class OutboxController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}"
                 }
-            }
+            },
+            Items = new TripleSet<Object>()
+            {
+                Objects = page
+            },
+            TotalItems = page.Count
         };
 
         return Ok(orderedCollectionPage);
