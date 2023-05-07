@@ -27,10 +27,10 @@ public class LikesController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
-        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxLike.Database,
             DatabaseLocations.InboxLike.Collection, filter);
@@ -70,13 +70,13 @@ public class LikesController : ControllerBase
 
         if (page.IsNull()) return Ok(await GetLikes(postIdUrlEncoded));
 
-        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
 
         var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
             DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();
