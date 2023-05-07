@@ -80,7 +80,8 @@ public class SharesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}" // TODO
                 }
-            }
+            },
+            TotalItems = shares.Count
         };
 
         return Ok(orderedCollection);
@@ -117,7 +118,8 @@ public class SharesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}" // TODO
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return orderedCollection;

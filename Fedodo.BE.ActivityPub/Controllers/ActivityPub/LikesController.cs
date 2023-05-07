@@ -6,6 +6,7 @@ using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
@@ -53,7 +54,8 @@ public class LikesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}"
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return orderedCollection;
@@ -92,6 +94,10 @@ public class LikesController : ControllerBase
 
         var orderedCollection = new OrderedCollectionPage
         {
+            Items = new TripleSet<Object>()
+            {
+              Objects  = likes
+            },
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
@@ -114,7 +120,8 @@ public class LikesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}"
                 }
-            }
+            },
+            TotalItems = likes.Count
         };
 
         return Ok(orderedCollection);
