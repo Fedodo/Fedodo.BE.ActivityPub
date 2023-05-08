@@ -8,6 +8,7 @@ using MongoDB.Driver;
 namespace Fedodo.BE.ActivityPub.Controllers;
 
 [Route(".well-known")]
+[Produces("application/json")]
 public class WellKnownController : ControllerBase
 {
     private readonly ILogger<WellKnownController> _logger;
@@ -32,12 +33,10 @@ public class WellKnownController : ControllerBase
         var finger = await _repository.GetSpecificItem(filter, DatabaseLocations.Webfinger.Database,
             DatabaseLocations.Webfinger.Collection);
 
-        if (finger.IsNull())
-        {
-            _logger.LogWarning($"{nameof(finger)} is null");
-            return BadRequest("Not found WebFinger.");
-        }
+        if (finger.IsNotNull()) return Ok(finger);
+        
+        _logger.LogWarning($"{nameof(finger)} is null");
+        return BadRequest("Not found WebFinger.");
 
-        return Ok(finger);
     }
 }

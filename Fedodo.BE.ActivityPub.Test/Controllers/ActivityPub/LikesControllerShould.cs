@@ -1,6 +1,6 @@
 using System;
 using Fedodo.BE.ActivityPub.Controllers.ActivityPub;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.Extensions.Logging;

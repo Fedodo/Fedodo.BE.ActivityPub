@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using CommonExtensions.Cryptography;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -25,7 +26,7 @@ public class HttpSignatureHandlerShould
         var actorApi = new Mock<IActorAPI>();
         var actor = new Actor
         {
-            PublicKey = new PublicKeyAP
+            PublicKey = new PublicKey
             {
                 Id = new Uri("https://example.com/id"),
                 Owner = new Uri("https://example.com/key"),

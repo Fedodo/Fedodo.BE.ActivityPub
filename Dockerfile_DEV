@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -9,10 +9,10 @@ COPY ["Fedodo.BE.ActivityPub/Fedodo.BE.ActivityPub.csproj", "Fedodo.BE.ActivityP
 RUN dotnet restore "Fedodo.BE.ActivityPub/Fedodo.BE.ActivityPub.csproj"
 COPY . .
 WORKDIR "/src/Fedodo.BE.ActivityPub"
-RUN dotnet build "Fedodo.BE.ActivityPub.csproj" -c Release -o /app/build
+RUN dotnet build "Fedodo.BE.ActivityPub.csproj" -c Debug -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Fedodo.BE.ActivityPub.csproj" -c Release -o /app/publish
+RUN dotnet publish "Fedodo.BE.ActivityPub.csproj" -c Debug -o /app/publish
 
 FROM base AS final
 WORKDIR /app

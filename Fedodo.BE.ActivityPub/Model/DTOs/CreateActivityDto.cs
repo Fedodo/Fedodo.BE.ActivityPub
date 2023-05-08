@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Fedodo.BE.ActivityPub.Model.DTOs;
@@ -15,7 +16,7 @@ public class CreateActivityDto
 
     [Required]
     [JsonPropertyName("object")]
-    public object Object { get; set; }
+    public JsonElement Object { get; set; }
 
     [JsonPropertyName("to")] public IEnumerable<string>? To { get; set; }
     [JsonPropertyName("bto")] public IEnumerable<string>? Bto { get; set; }

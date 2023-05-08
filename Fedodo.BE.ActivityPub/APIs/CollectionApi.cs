@@ -1,5 +1,5 @@
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 
 namespace Fedodo.BE.ActivityPub.APIs;
 
@@ -12,7 +12,7 @@ public class CollectionApi : ICollectionApi
         _logger = logger;
     }
 
-    public async Task<OrderedCollection<T>> GetOrderedCollection<T>(Uri orderedCollectionUri)
+    public async Task<OrderedCollection> GetOrderedCollection<T>(Uri orderedCollectionUri)
     {
         HttpClient http = new();
         http.DefaultRequestHeaders.Add("Accept", "application/ld+json");
@@ -21,7 +21,7 @@ public class CollectionApi : ICollectionApi
 
         if (httpResponse.IsSuccessStatusCode)
         {
-            var collection = await httpResponse.Content.ReadFromJsonAsync<OrderedCollection<T>>();
+            var collection = await httpResponse.Content.ReadFromJsonAsync<OrderedCollection>();
 
             return collection;
         }
@@ -33,7 +33,7 @@ public class CollectionApi : ICollectionApi
         return null;
     }
 
-    public async Task<Collection<T>> GetCollection<T>(Uri collectionUri)
+    public async Task<Collection> GetCollection<T>(Uri collectionUri)
     {
         HttpClient http = new();
         http.DefaultRequestHeaders.Add("Accept", "application/ld+json");
@@ -42,7 +42,7 @@ public class CollectionApi : ICollectionApi
 
         if (httpResponse.IsSuccessStatusCode)
         {
-            var collection = await httpResponse.Content.ReadFromJsonAsync<Collection<T>>();
+            var collection = await httpResponse.Content.ReadFromJsonAsync<Collection>();
 
             return collection;
         }

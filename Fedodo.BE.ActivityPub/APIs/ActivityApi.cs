@@ -1,30 +1,37 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.Helpers;
+using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Models;
 
 namespace Fedodo.BE.ActivityPub.APIs;
 
-public class ActivityAPI : IActivityAPI
+public class ActivityApi : IActivityAPI
 {
-    private readonly ILogger<ActivityAPI> _logger;
+    private readonly ILogger<ActivityApi> _logger;
 
-    public ActivityAPI(ILogger<ActivityAPI> logger)
+    public ActivityApi(ILogger<ActivityApi> logger)
     {
         _logger = logger;
     }
 
     public async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor)
     {
+        _logger.LogTrace($"Entered {nameof(SendActivity)} in {nameof(ActivityApi)}");
+        
         // Set Http Signature
-        var jsonData = JsonSerializer.Serialize(activity);
+        var jsonData = JsonSerializer.Serialize(activity, new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();
-        rsa.ImportFromPem(user.PrivateKeyActivityPub.ToCharArray());
+        rsa.ImportFromPem(user.PrivateKeyActivityPub!.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =
@@ -44,13 +51,28 @@ public class ActivityAPI : IActivityAPI
 
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/ld+json");
 
-        var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
+        try
+        {
+            var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
 
-        if (httpResponse.IsSuccessStatusCode) return true;
+            if (httpResponse.IsSuccessStatusCode) return true;
+            
+            var responseText = await httpResponse.Content.ReadAsStringAsync();
 
-        var responseText = await httpResponse.Content.ReadAsStringAsync();
-
-        _logger.LogWarning($"An error occured sending an activity: {responseText}");
+            _logger.LogWarning($"An error occured sending an activity: {responseText}");
+        }
+        catch (HttpRequestException httpRequestException)
+        {
+            _logger.LogError(httpRequestException, "Sending an activity failed");
+        }        
+        catch (TimeoutException httpRequestException)
+        {
+            _logger.LogError(httpRequestException, "Sending an activity timed out");
+        }        
+        catch (TaskCanceledException httpRequestException)
+        {
+            _logger.LogError(httpRequestException, "Sending an activity was canceled");
+        }
 
         return false;
     }

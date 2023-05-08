@@ -1,7 +1,7 @@
 using Fedodo.BE.ActivityPub.APIs;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Handlers;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Repositories;
@@ -95,6 +95,7 @@ public class Startup
             c.OAuthClientSecret("test");
             c.OAuthAppName("Swagger API");
             c.OAuthScopeSeparator(",");
+            c.ConfigObject.AdditionalItems.Add("syntaxHighlight", false);
             // c.OAuthUsePkce();
         });
         app.UseCors(x => x.AllowAnyHeader()
@@ -125,7 +126,7 @@ public class Startup
         builder.Services.AddSingleton<IMongoClient>(mongoClient1);
         builder.Services.AddSingleton<IAuthenticationHandler, AuthenticationHandler>();
         builder.Services.AddSingleton<IActorAPI, ActorApi>();
-        builder.Services.AddSingleton<IActivityAPI, ActivityAPI>();
+        builder.Services.AddSingleton<IActivityAPI, ActivityApi>();
         builder.Services.AddSingleton<IKnownSharedInboxHandler, KnownSharedInboxHandler>();
         builder.Services.AddSingleton<ICollectionApi, CollectionApi>();
     }
@@ -135,8 +136,7 @@ public class Startup
         BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
         BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));
         var objectSerializer = new ObjectSerializer(type =>
-            ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo.BE.ActivityPub"));
+            ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Fedodo"));
         BsonSerializer.RegisterSerializer(objectSerializer);
-        BsonSerializer.RegisterDiscriminator(typeof(Post), "Post");
     }
 }

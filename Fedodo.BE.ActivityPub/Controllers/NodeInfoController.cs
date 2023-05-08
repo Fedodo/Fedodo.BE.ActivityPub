@@ -1,14 +1,13 @@
-using CommonExtensions;
 using Fedodo.BE.ActivityPub.Model;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.NodeInfo;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
 
+[Produces("application/json")]
 public class NodeInfoController : ControllerBase
 {
     private readonly ILogger<NodeInfoController> _logger;
@@ -39,7 +38,7 @@ public class NodeInfoController : ControllerBase
 
         return Ok(wrapper);
     }
-    
+
     [HttpGet("nodeinfo/2.1")]
     public async Task<ActionResult<NodeInfo>> GetNodeInfo2_1()
     {

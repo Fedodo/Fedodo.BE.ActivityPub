@@ -1,16 +1,19 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.BE.ActivityPub.Model.ActivityPub;
 using Fedodo.BE.ActivityPub.Model.DTOs;
+using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
+using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
 [Route("Outbox")]
+[Produces("application/json")]
 public class OutboxController : ControllerBase
 {
     private readonly IActivityHandler _activityHandler;
@@ -28,40 +31,51 @@ public class OutboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<OrderedPagedCollection>> GetPublicPostsPageInformation(Guid userId)
+    public async Task<ActionResult<OrderedCollection>> GetPublicPostsPageInformation(Guid userId)
     {
         // This filter can not use the extensions method IsPostPublic
         var filterDefinitionBuilder = Builders<Activity>.Filter;
         // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
-        var filter = filterDefinitionBuilder.Where(i => i.To.Any(item =>
-            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
-            item == "as:Public") || i.To.Any(item => item == "public"));
+        var filter = filterDefinitionBuilder.Where(i => i.To.StringLinks.Any(item =>
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.StringLinks.Any(item =>
+            item == "as:Public") || i.To.StringLinks.Any(item => item == "public"));
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, filter);
 
-        var orderedCollection = new OrderedPagedCollection
+        var orderedCollection = new OrderedCollection
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
-            TotalItems = postCount,
-            First = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0"),
-            Last = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}")
+            First = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/0"
+                }
+            },
+            Last = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{postCount / 20}"
+                }
+            },
+            TotalItems = postCount
         };
 
         return Ok(orderedCollection);
     }
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
-    public async Task<ActionResult<OrderedCollectionPage<Activity>>> GetPublicPage(Guid userId, int pageId)
+    public async Task<ActionResult<OrderedCollectionPage>> GetPublicPage(Guid userId, int pageId)
     {
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.To.Any(item =>
-            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.Any(item =>
-            item == "as:Public") || i.To.Any(item => item == "public"));
+        var filter = filterBuilder.Where(i => i.To.StringLinks.Any(item =>
+            item == "https://www.w3.org/ns/activitystreams#Public") || i.To.StringLinks.Any(item =>
+            item == "as:Public") || i.To.StringLinks.Any(item => item == "public"));
 
         var createPage = await _repository.GetSpecificPaged(DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection, pageId, 20, sort, filter);
@@ -77,27 +91,50 @@ public class OutboxController : ControllerBase
         var nextPageId = pageId + 1;
         // TODO if (nextPageId > ) nextPageId = 
 
-        var orderedCollectionPage = new OrderedCollectionPage<Activity>
+        var orderedCollectionPage = new OrderedCollectionPage
         {
             Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{pageId}"),
-            PartOf = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"),
-            OrderedItems = page,
-            Prev = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"),
-            Next = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}")
+            PartOf = new TripleSet<OrderedCollection>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}"
+                }
+            },
+            Prev = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{previousPageId}"
+                }
+            },
+            Next = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}"
+                }
+            },
+            Items = new TripleSet<Object>()
+            {
+                Objects = page
+            },
+            TotalItems = page.Count
         };
 
         return Ok(orderedCollectionPage);
     }
 
     [HttpPost("{userId:guid}")]
-    [Authorize]
+#if !DEBUG
+        [Authorize]
+#endif
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-
+#if !DEBUG
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+#endif
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
         var user = await _userHandler.GetUserByIdAsync(userId);
