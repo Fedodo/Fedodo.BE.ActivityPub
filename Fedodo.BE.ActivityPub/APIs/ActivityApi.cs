@@ -64,6 +64,14 @@ public class ActivityApi : IActivityAPI
         catch (HttpRequestException httpRequestException)
         {
             _logger.LogError(httpRequestException, "Sending an activity failed");
+        }        
+        catch (TimeoutException httpRequestException)
+        {
+            _logger.LogError(httpRequestException, "Sending an activity timed out");
+        }        
+        catch (TaskCanceledException httpRequestException)
+        {
+            _logger.LogError(httpRequestException, "Sending an activity was canceled");
         }
 
         return false;

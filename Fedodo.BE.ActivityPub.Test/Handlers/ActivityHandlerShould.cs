@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Handlers;
@@ -116,7 +117,7 @@ public class ActivityHandlerShould
 
         var dto = new CreateActivityDto
         {
-            Object = obj,
+            Object = JsonSerializer.SerializeToElement(obj),
             Type = type
         };
 

@@ -32,13 +32,13 @@ public class SharesController : ControllerBase
 
         if (page.IsNull()) return Ok(await GetSharesSummary(postIdUrlEncoded));
 
-        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
 
         var sharesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
             DatabaseLocations.OutboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
@@ -80,7 +80,8 @@ public class SharesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}" // TODO
                 }
-            }
+            },
+            TotalItems = shares.Count
         };
 
         return Ok(orderedCollection);
@@ -90,10 +91,10 @@ public class SharesController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetSharesSummary)} in {nameof(SharesController)}");
 
-        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxAnnounce.Database,
             DatabaseLocations.InboxAnnounce.Collection, filter);
@@ -117,7 +118,8 @@ public class SharesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}" // TODO
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return orderedCollection;

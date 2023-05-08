@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces;
@@ -86,10 +87,10 @@ public class ActivityHandler : IActivityHandler
             Object = new TripleSet<Object>()
         };
 
-        if (activityDto.Object is string dtoObject)
+        if (activityDto.Object.ValueKind == JsonValueKind.String)
         {
             var tempList = activity.Object.StringLinks?.ToList() ?? new List<string>();
-            tempList.Add(dtoObject);
+            tempList.Add(activityDto.Object.GetString()!);
             activity.Object.StringLinks = tempList;
         }
 
@@ -97,7 +98,7 @@ public class ActivityHandler : IActivityHandler
         {
             case "Create":
             {
-                var createPostDto = activityDto.Object as Note;
+                var createPostDto = activityDto.Object.Deserialize<Note>();
 
                 activity.Object = new TripleSet<Object>
                 {
@@ -277,7 +278,7 @@ public class ActivityHandler : IActivityHandler
 
                 if (i == 4) everythingSuccessful = false;
 
-                Thread.Sleep(10000);
+                Thread.Sleep(10000); // This should be done in another way
             }
         }
         

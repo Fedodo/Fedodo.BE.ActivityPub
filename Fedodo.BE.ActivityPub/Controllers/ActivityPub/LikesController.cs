@@ -6,6 +6,7 @@ using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
@@ -26,10 +27,10 @@ public class LikesController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetLikes)} in {nameof(LikesController)}");
 
-        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
 
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxLike.Database,
             DatabaseLocations.InboxLike.Collection, filter);
@@ -53,7 +54,8 @@ public class LikesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}"
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return orderedCollection;
@@ -68,13 +70,13 @@ public class LikesController : ControllerBase
 
         if (page.IsNull()) return Ok(await GetLikes(postIdUrlEncoded));
 
-        var postId = new Uri(HttpUtility.UrlDecode(postIdUrlEncoded));
+        var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object.Objects.First().Id == postId);
+        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
 
         var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
             DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();
@@ -92,6 +94,10 @@ public class LikesController : ControllerBase
 
         var orderedCollection = new OrderedCollectionPage
         {
+            Items = new TripleSet<Object>()
+            {
+              Objects  = likes
+            },
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
@@ -114,7 +120,8 @@ public class LikesController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}"
                 }
-            }
+            },
+            TotalItems = likes.Count
         };
 
         return Ok(orderedCollection);

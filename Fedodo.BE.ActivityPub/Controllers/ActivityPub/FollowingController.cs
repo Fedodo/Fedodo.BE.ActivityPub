@@ -106,7 +106,8 @@ public class FollowingController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/following/{userId}" // TODO
                 }
-            }
+            },
+            TotalItems = followings.Count
         };
 
         return Ok(orderedCollection);
