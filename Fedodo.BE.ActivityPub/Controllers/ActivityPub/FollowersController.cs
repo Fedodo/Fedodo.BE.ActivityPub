@@ -76,7 +76,7 @@ public class FollowersController : ControllerBase
 
         var follows = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
             DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
-        
+
         var orderedCollection = new OrderedCollectionPage
         {
             Items = new TripleSet<Object>

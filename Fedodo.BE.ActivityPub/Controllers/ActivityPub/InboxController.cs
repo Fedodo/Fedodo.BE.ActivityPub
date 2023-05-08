@@ -107,7 +107,7 @@ public class InboxController : ControllerBase
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"
                 }
             },
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
                 Objects = page
             }
@@ -155,9 +155,7 @@ public class InboxController : ControllerBase
             activity.Published = DateTime.Now;
 
         if (activity.Actor?.StringLinks?.FirstOrDefault().IsNotNull() ?? false)
-        {
             await _activityHandler.GetServerNameInboxPairAsync(new Uri(activity.Actor.StringLinks.First()), true);
-        }
 
         switch (activity.Type)
         {
@@ -198,15 +196,9 @@ public class InboxController : ControllerBase
 
                         if (updateItem.Object?.Objects?.First().Replies?.Items?.Links.IsNull() ?? true)
                         {
-                            if (updateItem.Object.IsNull())
-                            {
-                                updateItem.Object = new TripleSet<Object>();
-                            }
+                            if (updateItem.Object.IsNull()) updateItem.Object = new TripleSet<Object>();
 
-                            if (updateItem.Object.Objects.IsNull())
-                            {
-                                updateItem.Object.Objects = new List<Object>();
-                            }
+                            if (updateItem.Object.Objects.IsNull()) updateItem.Object.Objects = new List<Object>();
 
                             updateItem.Object.Objects.First().Replies = new Collection
                             {
@@ -256,15 +248,9 @@ public class InboxController : ControllerBase
 
                         if (updateItem.Object?.Objects?.First().Replies.IsNull() ?? true)
                         {
-                            if (updateItem.Object.IsNull())
-                            {
-                                updateItem.Object = new TripleSet<Object>();
-                            }
+                            if (updateItem.Object.IsNull()) updateItem.Object = new TripleSet<Object>();
 
-                            if (updateItem.Object.Objects.IsNull())
-                            {
-                                updateItem.Object.Objects = new List<Object>();
-                            }
+                            if (updateItem.Object.Objects.IsNull()) updateItem.Object.Objects = new List<Object>();
 
                             updateItem.Object.Objects.First().Replies = new CollectionPage();
                         }
@@ -272,25 +258,17 @@ public class InboxController : ControllerBase
                         if (updateItem.Object.Objects.First().Replies?.Items.IsNull() ?? true)
                         {
                             if (updateItem.Object.Objects.First().Replies.IsNull())
-                            {
                                 updateItem.Object.Objects.First().Replies = new Collection();
-                            }
-                            
+
                             updateItem.Object.Objects.First().Replies!.Items = new TripleSet<Object>();
                         }
 
                         var replies = updateItem.Object.Objects.First().Replies;
 
-                        if (replies.IsNull())
-                        {
-                            replies = new Collection();
-                        }
+                        if (replies.IsNull()) replies = new Collection();
 
-                        if (replies.Items.IsNull())
-                        {
-                            replies.Items = new TripleSet<Object>();
-                        }
-                        
+                        if (replies.Items.IsNull()) replies.Items = new TripleSet<Object>();
+
                         var repliesItems = replies.Items?.Links?.ToList();
                         repliesItems?.Add(new Link
                         {

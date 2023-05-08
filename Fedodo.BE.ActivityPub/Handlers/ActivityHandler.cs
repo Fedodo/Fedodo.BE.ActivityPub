@@ -192,7 +192,7 @@ public class ActivityHandler : IActivityHandler
     public async Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor)
     {
         _logger.LogTrace($"Entered {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
-        
+
         var everythingSuccessful = true;
 
         var targets = new HashSet<ServerNameInboxPair>();
@@ -201,7 +201,8 @@ public class ActivityHandler : IActivityHandler
 
         if (activity.To?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.To.StringLinks);
         if (activity.Bcc?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Bcc.StringLinks);
-        if (activity.Audience?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Audience.StringLinks);
+        if (activity.Audience?.StringLinks.IsNotNullOrEmpty() ?? false)
+            receivers.AddRange(activity.Audience.StringLinks);
         if (activity.Bto?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Bto.StringLinks);
         if (activity.Cc?.StringLinks.IsNotNullOrEmpty() ?? false) receivers.AddRange(activity.Cc.StringLinks);
 
@@ -210,7 +211,7 @@ public class ActivityHandler : IActivityHandler
             // Send to all receivers and to all known SharedInboxes
 
             _logger.LogDebug("Is public post");
-            
+
             foreach (var item in receivers)
             {
                 if (item is "https://www.w3.org/ns/activitystreams#Public" or "as:Public" or "public") continue;
@@ -237,7 +238,7 @@ public class ActivityHandler : IActivityHandler
         else // Private Post
         {
             // Send to all receivers
-            
+
             _logger.LogDebug("Is private post");
 
             foreach (var item in receivers)
@@ -256,7 +257,7 @@ public class ActivityHandler : IActivityHandler
         }
 
         _logger.LogDebug("Generated targets");
-        
+
         // This List is only needed to make sure the HashSet works as expected
         // If you are sure it works you can remove it
         var inboxes = new List<Uri>();
@@ -281,10 +282,45 @@ public class ActivityHandler : IActivityHandler
                 Thread.Sleep(10000); // This should be done in another way
             }
         }
-        
+
         _logger.LogTrace($"Left {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
 
         return everythingSuccessful;
+    }
+
+    public async Task<ServerNameInboxPair?> GetServerNameInboxPairAsync(Uri actorUri, bool isPublic)
+    {
+        var actor = await _actorApi.GetActor(actorUri);
+
+        if (actor.IsNull()) return null;
+        if (actor.Inbox.IsNull()) return null;
+
+        if (isPublic) // Public Activity
+        {
+            var sharedInbox = actor?.Endpoints?.SharedInbox;
+
+            if (sharedInbox.IsNull())
+                return new ServerNameInboxPair
+                {
+                    Inbox = actor.Inbox,
+                    ServerName = actor.Inbox.Host
+                };
+
+            await _sharedInboxHandler.AddSharedInboxAsync(sharedInbox);
+
+            return new ServerNameInboxPair
+            {
+                Inbox = sharedInbox,
+                ServerName = sharedInbox.Host
+            };
+        }
+
+        // Private Activity
+        return new ServerNameInboxPair
+        {
+            Inbox = actor.Inbox,
+            ServerName = actor.Inbox.Host
+        };
     }
 
     public async Task<IEnumerable<ServerNameInboxPair>> GetServerNameInboxPairsAsync(Uri target, bool isPublic)
@@ -334,40 +370,5 @@ public class ActivityHandler : IActivityHandler
         }
 
         return serverNameInboxPairs;
-    }
-
-    public async Task<ServerNameInboxPair?> GetServerNameInboxPairAsync(Uri actorUri, bool isPublic)
-    {
-        var actor = await _actorApi.GetActor(actorUri);
-
-        if (actor.IsNull()) return null;
-        if (actor.Inbox.IsNull()) return null;
-
-        if (isPublic) // Public Activity
-        {
-            var sharedInbox = actor?.Endpoints?.SharedInbox;
-
-            if (sharedInbox.IsNull())
-                return new ServerNameInboxPair
-                {
-                    Inbox = actor.Inbox,
-                    ServerName = actor.Inbox.Host
-                };
-
-            await _sharedInboxHandler.AddSharedInboxAsync(sharedInbox);
-
-            return new ServerNameInboxPair
-            {
-                Inbox = sharedInbox,
-                ServerName = sharedInbox.Host
-            };
-        }
-
-        // Private Activity
-        return new ServerNameInboxPair
-        {
-            Inbox = actor.Inbox,
-            ServerName = actor.Inbox.Host
-        };
     }
 }

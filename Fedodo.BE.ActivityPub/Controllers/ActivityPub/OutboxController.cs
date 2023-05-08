@@ -5,7 +5,6 @@ using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
@@ -115,7 +114,7 @@ public class OutboxController : ControllerBase
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{userId}/page/{nextPageId}"
                 }
             },
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
                 Objects = page
             },

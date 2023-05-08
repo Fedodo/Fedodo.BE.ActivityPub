@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fedodo.BE.ActivityPub;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
