@@ -169,13 +169,16 @@ public class InboxController : ControllerBase
                     DatabaseLocations.InboxCreate.Collection);
 
                 if (fItem.IsNotNullOrEmpty())
+                {
+                    _logger.LogWarning("Returning BadRequest Activity already existed");
+                    
                     return BadRequest("Activity already exists");
+                }
 
                 await _repository.Create(activity, DatabaseLocations.InboxCreate.Database,
                     DatabaseLocations.InboxCreate.Collection);
 
                 _logger.LogDebug("Handling Reply Logic");
-                // TODO Extract this two if parts into one function
                 if (activity.Object!.Objects!.First().InReplyTo.IsNotNull())
                 {
                     _logger.LogDebug("InReply is not null");
@@ -183,109 +186,22 @@ public class InboxController : ControllerBase
                     if (new Uri(activity.Object.Objects?.First().InReplyTo?.StringLinks?.First() ?? "").Host ==
                         Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
-                        var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter =
-                            updateFilterBuilder.Eq(i => i.Object!.Objects!.First().Id,
-                                new Uri(activity.Object.Objects!.First().InReplyTo!.StringLinks!.First()));
+                        _logger.LogDebug("Entering Outbox reply logic");
 
-                        var updateItem = await _repository.GetSpecificItem(updateFilter,
-                            DatabaseLocations.OutboxCreate.Database,
+                        await ReplyLogic(activity, DatabaseLocations.OutboxCreate.Database,
                             DatabaseLocations.OutboxCreate.Collection);
-
-                        if (updateItem.IsNull()) break;
-
-                        if (updateItem.Object?.Objects?.First().Replies?.Items?.Links.IsNull() ?? true)
-                        {
-                            if (updateItem.Object.IsNull()) updateItem.Object = new TripleSet<Object>();
-
-                            if (updateItem.Object.Objects.IsNull()) updateItem.Object.Objects = new List<Object>();
-
-                            updateItem.Object.Objects.First().Replies = new Collection
-                            {
-                                Items = new TripleSet<Object>()
-                            };
-                        }
-
-
-                        var tempLinks = updateItem.Object.Objects.First().Replies?.Items?.Links?.ToList();
-
-                        tempLinks?.Add(new Link
-                        {
-                            Href = activity.Id
-                        });
-
-                        if (updateItem.Object.Objects.First().Replies?.Items?.Links.IsNotNull() ?? false)
-                        {
-                            updateItem.Object.Objects.First().Replies!.Items!.Links = tempLinks;
-
-                            await _repository.Update(updateItem, updateFilter, DatabaseLocations.OutboxCreate.Database,
-                                DatabaseLocations.OutboxCreate.Collection);
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"Can not assign to {nameof(tempLinks)}");
-                        }
                     }
                     else
                     {
-                        _logger.LogDebug("Entering Outbox reply logic");
+                        _logger.LogDebug("Entering Inbox reply logic");
 
-                        var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter =
-                            updateFilterBuilder.Eq(i => i.Object!.Objects!.First().Id,
-                                new Uri(activity!.Object!.Objects!.First().InReplyTo!.StringLinks!.First()));
-
-                        var updateItem = await _repository.GetSpecificItem(updateFilter,
-                            DatabaseLocations.InboxCreate.Database,
-                            DatabaseLocations.InboxCreate.Collection);
-
-                        if (updateItem.IsNull())
-                        {
-                            _logger.LogWarning("Update Item is null");
-
-                            break;
-                        }
-
-                        if (updateItem.Object?.Objects?.First().Replies.IsNull() ?? true)
-                        {
-                            if (updateItem.Object.IsNull()) updateItem.Object = new TripleSet<Object>();
-
-                            if (updateItem.Object.Objects.IsNull()) updateItem.Object.Objects = new List<Object>();
-
-                            updateItem.Object.Objects.First().Replies = new CollectionPage();
-                        }
-
-                        if (updateItem.Object.Objects.First().Replies?.Items.IsNull() ?? true)
-                        {
-                            if (updateItem.Object.Objects.First().Replies.IsNull())
-                                updateItem.Object.Objects.First().Replies = new Collection();
-
-                            updateItem.Object.Objects.First().Replies!.Items = new TripleSet<Object>();
-                        }
-
-                        var replies = updateItem.Object.Objects.First().Replies;
-
-                        if (replies.IsNull()) replies = new Collection();
-
-                        if (replies.Items.IsNull()) replies.Items = new TripleSet<Object>();
-
-                        var repliesItems = replies.Items?.Links?.ToList();
-                        repliesItems?.Add(new Link
-                        {
-                            Href = activity.Id
-                        });
-                        replies.Items!.Links = repliesItems;
-                        updateItem.Object.Objects.First().Replies = replies;
-
-                        _logger.LogDebug("Sending Update to database");
-
-                        await _repository.Update(updateItem, updateFilter, DatabaseLocations.InboxCreate.Database,
+                        await ReplyLogic(activity, DatabaseLocations.InboxCreate.Database,
                             DatabaseLocations.InboxCreate.Collection);
                     }
                 }
                 else
                 {
-                    _logger.LogDebug("In Reply is null");
+                    _logger.LogDebug("InReplyTo is null");
                 }
 
                 break;
@@ -478,5 +394,59 @@ public class InboxController : ControllerBase
         }
 
         return Ok();
+    }
+
+    private async Task ReplyLogic(Activity activity, string database, string collection)
+    {
+        var updateFilterBuilder = Builders<Activity>.Filter;
+        var updateFilter =
+            updateFilterBuilder.Eq(i => i.Object!.Objects!.First().Id,
+                new Uri(activity.Object!.Objects!.First().InReplyTo!.StringLinks!.First()));
+
+        var updateItem = await _repository.GetSpecificItem(updateFilter, database, collection);
+
+        if (updateItem.IsNull())
+        {
+            _logger.LogWarning($"{nameof(updateItem)} is null");
+            return;
+        }
+
+        if (updateItem.Object?.Objects?.First().Replies?.Items?.Links.IsNull() ?? true)
+        {
+            if (updateItem.Object.IsNull()) updateItem.Object = new TripleSet<Object>();
+
+            if (updateItem.Object.Objects.IsNull()) updateItem.Object.Objects = new List<Object>();
+
+            updateItem.Object.Objects.First().Replies = new Collection
+            {
+                Items = new TripleSet<Object>()
+                {
+                    StringLinks = new List<string>()
+                }
+            };
+        }
+
+        if (activity.Id.IsNull())
+        {
+            _logger.LogWarning($"{nameof(activity.Id)} is null");
+            return;
+        }
+
+        var tempLinks = updateItem.Object.Objects.First().Replies?.Items?.StringLinks?.ToList();
+
+        tempLinks?.Add(activity.Id.ToString());
+
+        if (updateItem.Object.Objects.First().Replies?.Items?.StringLinks.IsNotNull() ?? false)
+        {
+            updateItem.Object.Objects.First().Replies!.Items!.StringLinks = tempLinks;
+
+            _logger.LogDebug($"Writing {nameof(updateItem)} into database");
+
+            await _repository.Update(updateItem, updateFilter, database, collection);
+        }
+        else
+        {
+            _logger.LogWarning($"Can not assign to {nameof(tempLinks)}");
+        }
     }
 }
