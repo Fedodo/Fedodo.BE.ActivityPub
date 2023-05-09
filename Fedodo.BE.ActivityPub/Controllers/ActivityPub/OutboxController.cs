@@ -5,6 +5,7 @@ using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
@@ -125,15 +126,12 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{userId:guid}")]
-#if !DEBUG
-        [Authorize]
-#endif
+    [Authorize]
     public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-#if !DEBUG
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
-#endif
+        
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
         var user = await _userHandler.GetUserByIdAsync(userId);

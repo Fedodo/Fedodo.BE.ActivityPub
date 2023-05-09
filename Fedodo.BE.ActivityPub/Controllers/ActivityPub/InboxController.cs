@@ -63,14 +63,10 @@ public class InboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
-#if !DEBUG
     [Authorize]
-#endif
     public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid userId, int pageId)
     {
-#if !DEBUG
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
-#endif
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
@@ -139,10 +135,8 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
 
-#if !DEBUG
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
-#endif
 
         if (activity.IsNull())
         {
@@ -171,7 +165,7 @@ public class InboxController : ControllerBase
                 if (fItem.IsNotNullOrEmpty())
                 {
                     _logger.LogWarning("Returning BadRequest Activity already existed");
-                    
+
                     return BadRequest("Activity already exists");
                 }
 
