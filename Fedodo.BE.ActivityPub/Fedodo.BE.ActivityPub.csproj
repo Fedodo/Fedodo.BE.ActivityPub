@@ -30,12 +30,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="xunit.core">
-            <HintPath>..\..\..\.nuget\packages\xunit.extensibility.core\2.4.2\lib\netstandard1.1\xunit.core.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
         <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml"/>
         <_ContentIncludedByDefault Remove="Views\Account\Login.cshtml"/>
         <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml"/>
