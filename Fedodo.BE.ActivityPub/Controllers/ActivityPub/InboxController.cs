@@ -63,14 +63,10 @@ public class InboxController : ControllerBase
     }
 
     [HttpGet("{userId:guid}/page/{pageId:int}")]
-#if !DEBUG
     [Authorize]
-#endif
     public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid userId, int pageId)
     {
-#if !DEBUG
         if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
-#endif
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
@@ -107,7 +103,7 @@ public class InboxController : ControllerBase
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"
                 }
             },
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
                 Objects = page
             }
@@ -139,10 +135,8 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
 
-#if !DEBUG
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
             return BadRequest("Invalid Signature");
-#endif
 
         if (activity.IsNull())
         {
@@ -155,10 +149,8 @@ public class InboxController : ControllerBase
             activity.Published = DateTime.Now;
 
         if (activity.Actor?.StringLinks?.FirstOrDefault().IsNotNull() ?? false)
-        {
             await _activityHandler.GetServerNameInboxPairAsync(new Uri(activity.Actor.StringLinks.First()), true);
-        }
-        
+
         switch (activity.Type)
         {
             case "Create":
@@ -171,90 +163,39 @@ public class InboxController : ControllerBase
                     DatabaseLocations.InboxCreate.Collection);
 
                 if (fItem.IsNotNullOrEmpty())
+                {
+                    _logger.LogWarning("Returning BadRequest Activity already existed");
+
                     return BadRequest("Activity already exists");
+                }
 
                 await _repository.Create(activity, DatabaseLocations.InboxCreate.Database,
                     DatabaseLocations.InboxCreate.Collection);
 
                 _logger.LogDebug("Handling Reply Logic");
-                // TODO Extract this two if parts into one function
-                if (activity.Object.Objects.First().InReplyTo.IsNotNull())
+                if (activity.Object!.Objects!.First().InReplyTo.IsNotNull())
                 {
                     _logger.LogDebug("InReply is not null");
 
-                    if (new Uri(activity.Object.Objects.First().InReplyTo?.StringLinks.First()).Host ==
+                    if (new Uri(activity.Object.Objects?.First().InReplyTo?.StringLinks?.First() ?? "").Host ==
                         Environment.GetEnvironmentVariable("DOMAINNAME"))
                     {
-                        var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter =
-                            updateFilterBuilder.Eq(i => i.Object.Objects.First().Id,
-                                new Uri(activity.Object.Objects.First().InReplyTo.StringLinks.First()));
+                        _logger.LogDebug("Entering Outbox reply logic");
 
-                        var updateItem = await _repository.GetSpecificItem(updateFilter,
-                            DatabaseLocations.OutboxCreate.Database,
-                            DatabaseLocations.OutboxCreate.Collection);
-
-                        if (updateItem.IsNull()) break;
-
-                        if (updateItem.Object.Objects.First().Replies.Items.Links.IsNull())
-                            updateItem.Object.Objects.First().Replies.Items = new TripleSet<Object>();
-
-                        var tempLinks = updateItem.Object.Objects.First().Replies.Items.Links.ToList();
-
-                        tempLinks.Add(new Link
-                        {
-                            Href = activity.Id
-                        });
-
-                        updateItem.Object.Objects.First().Replies.Items.Links = tempLinks;
-
-                        await _repository.Update(updateItem, updateFilter, DatabaseLocations.OutboxCreate.Database,
+                        await ReplyLogic(activity, DatabaseLocations.OutboxCreate.Database,
                             DatabaseLocations.OutboxCreate.Collection);
                     }
                     else
                     {
-                        _logger.LogDebug("Entering Outbox reply logic");
+                        _logger.LogDebug("Entering Inbox reply logic");
 
-                        var updateFilterBuilder = Builders<Activity>.Filter;
-                        var updateFilter =
-                            updateFilterBuilder.Eq(i => i.Object.Objects.First().Id,
-                                new Uri(activity.Object.Objects.First().InReplyTo.StringLinks.First()));
-
-                        var updateItem = await _repository.GetSpecificItem(updateFilter,
-                            DatabaseLocations.InboxCreate.Database,
-                            DatabaseLocations.InboxCreate.Collection);
-
-                        if (updateItem.IsNull())
-                        {
-                            _logger.LogWarning("Update Item is null");
-
-                            break;
-                        }
-
-                        if (updateItem.Object.Objects.First().Replies.IsNull())
-                            updateItem.Object.Objects.First().Replies = new CollectionPage();
-
-                        if (updateItem.Object.Objects.First().Replies.Items.IsNull())
-                            updateItem.Object.Objects.First().Replies.Items = new TripleSet<Object>();
-
-                        var replies = updateItem.Object.Objects.First().Replies;
-                        var repliesItems = replies.Items.Links.ToList();
-                        repliesItems.Add(new Link
-                        {
-                            Href = activity.Id
-                        });
-                        replies.Items.Links = repliesItems;
-                        updateItem.Object.Objects.First().Replies = replies;
-
-                        _logger.LogDebug("Sending Update to database");
-
-                        await _repository.Update(updateItem, updateFilter, DatabaseLocations.InboxCreate.Database,
+                        await ReplyLogic(activity, DatabaseLocations.InboxCreate.Database,
                             DatabaseLocations.InboxCreate.Collection);
                     }
                 }
                 else
                 {
-                    _logger.LogDebug("In Reply is null");
+                    _logger.LogDebug("InReplyTo is null");
                 }
 
                 break;
@@ -279,11 +220,12 @@ public class InboxController : ControllerBase
 
                 if (actor.IsNull() || actor.Id.IsNull())
                 {
-                    _logger.LogWarning($"{nameof(actor)} or the id of this actor was null in {nameof(InboxController)}");
+                    _logger.LogWarning(
+                        $"{nameof(actor)} or the id of this actor was null in {nameof(InboxController)}");
 
                     return BadRequest("User not found");
                 }
-                
+
                 var acceptActivity = new Activity
                 {
                     Id = new Uri($"https://{domainName}/accepts/{Guid.NewGuid()}"),
@@ -312,7 +254,7 @@ public class InboxController : ControllerBase
                 };
 
                 await _activityHandler.SendActivitiesAsync(acceptActivity, user, actor);
-                
+
                 _logger.LogDebug("Completed Follow activity");
 
                 break;
@@ -320,7 +262,7 @@ public class InboxController : ControllerBase
             case "Accept":
             {
                 _logger.LogTrace("Got an Accept activity");
-                
+
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
                 var filter = actorDefinitionBuilder.Eq(i => i.Id, activity.Object?.Objects?.FirstOrDefault()?.Id);
                 var sendActivity = await _repository.GetSpecificItem(filter, DatabaseLocations.OutboxFollow.Database,
@@ -446,5 +388,59 @@ public class InboxController : ControllerBase
         }
 
         return Ok();
+    }
+
+    private async Task ReplyLogic(Activity activity, string database, string collection)
+    {
+        var updateFilterBuilder = Builders<Activity>.Filter;
+        var updateFilter =
+            updateFilterBuilder.Eq(i => i.Object!.Objects!.First().Id,
+                new Uri(activity.Object!.Objects!.First().InReplyTo!.StringLinks!.First()));
+
+        var updateItem = await _repository.GetSpecificItem(updateFilter, database, collection);
+
+        if (updateItem.IsNull())
+        {
+            _logger.LogWarning($"{nameof(updateItem)} is null");
+            return;
+        }
+
+        if (updateItem.Object?.Objects?.First().Replies?.Items?.Links.IsNull() ?? true)
+        {
+            if (updateItem.Object.IsNull()) updateItem.Object = new TripleSet<Object>();
+
+            if (updateItem.Object.Objects.IsNull()) updateItem.Object.Objects = new List<Object>();
+
+            updateItem.Object.Objects.First().Replies = new Collection
+            {
+                Items = new TripleSet<Object>()
+                {
+                    StringLinks = new List<string>()
+                }
+            };
+        }
+
+        if (activity.Id.IsNull())
+        {
+            _logger.LogWarning($"{nameof(activity.Id)} is null");
+            return;
+        }
+
+        var tempLinks = updateItem.Object.Objects.First().Replies?.Items?.StringLinks?.ToList();
+
+        tempLinks?.Add(activity.Id.ToString());
+
+        if (updateItem.Object.Objects.First().Replies?.Items?.StringLinks.IsNotNull() ?? false)
+        {
+            updateItem.Object.Objects.First().Replies!.Items!.StringLinks = tempLinks;
+
+            _logger.LogDebug($"Writing {nameof(updateItem)} into database");
+
+            await _repository.Update(updateItem, updateFilter, database, collection);
+        }
+        else
+        {
+            _logger.LogWarning($"Can not assign to {nameof(tempLinks)}");
+        }
     }
 }

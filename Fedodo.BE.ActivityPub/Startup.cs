@@ -1,7 +1,6 @@
 using Fedodo.BE.ActivityPub.APIs;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
-using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Handlers;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Repositories;

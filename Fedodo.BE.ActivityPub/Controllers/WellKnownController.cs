@@ -34,9 +34,8 @@ public class WellKnownController : ControllerBase
             DatabaseLocations.Webfinger.Collection);
 
         if (finger.IsNotNull()) return Ok(finger);
-        
+
         _logger.LogWarning($"{nameof(finger)} is null");
         return BadRequest("Not found WebFinger.");
-
     }
 }

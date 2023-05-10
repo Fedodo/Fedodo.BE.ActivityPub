@@ -22,7 +22,7 @@ public class ActivityApi : IActivityAPI
     public async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor)
     {
         _logger.LogTrace($"Entered {nameof(SendActivity)} in {nameof(ActivityApi)}");
-        
+
         // Set Http Signature
         var jsonData = JsonSerializer.Serialize(activity, new JsonSerializerOptions
         {
@@ -56,7 +56,7 @@ public class ActivityApi : IActivityAPI
             var httpResponse = await http.PostAsync(serverInboxPair.Inbox, contentData);
 
             if (httpResponse.IsSuccessStatusCode) return true;
-            
+
             var responseText = await httpResponse.Content.ReadAsStringAsync();
 
             _logger.LogWarning($"An error occured sending an activity: {responseText}");
@@ -64,11 +64,11 @@ public class ActivityApi : IActivityAPI
         catch (HttpRequestException httpRequestException)
         {
             _logger.LogError(httpRequestException, "Sending an activity failed");
-        }        
+        }
         catch (TimeoutException httpRequestException)
         {
             _logger.LogError(httpRequestException, "Sending an activity timed out");
-        }        
+        }
         catch (TaskCanceledException httpRequestException)
         {
             _logger.LogError(httpRequestException, "Sending an activity was canceled");

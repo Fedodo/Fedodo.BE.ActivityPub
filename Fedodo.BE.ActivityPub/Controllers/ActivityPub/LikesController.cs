@@ -40,19 +40,19 @@ public class LikesController : ControllerBase
         var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}"),
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page=0"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page=0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId.ToString())}?page={postCount / 20}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -90,13 +90,13 @@ public class LikesController : ControllerBase
         if (likes.Count < 20) count = likes.Count;
         likes = likes.GetRange(0, count);
 
-        var encodedPostId = HttpUtility.UrlEncode(postId.ToString());
+        var encodedPostId = HttpUtility.UrlEncode(postId);
 
         var orderedCollection = new OrderedCollectionPage
         {
-            Items = new TripleSet<Object>()
+            Items = new TripleSet<Object>
             {
-              Objects  = likes
+                Objects = likes
             },
             Id = new Uri(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
