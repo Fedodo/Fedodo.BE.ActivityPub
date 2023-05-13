@@ -6,7 +6,7 @@ namespace Fedodo.BE.ActivityPub.Controllers;
 /// <summary>
 /// Controller for making an network call in behalf of an client.
 /// </summary>
-[Route("ImageProxy")]
+[Route("Proxy")]
 public class ProxyController : ControllerBase
 {
     private readonly ILogger<ProxyController> _logger;
@@ -21,7 +21,7 @@ public class ProxyController : ControllerBase
     /// </summary>
     /// <param name="imageUrl">The image URL.</param>
     /// <returns>The image as stream.</returns>
-    [HttpGet]
+    [HttpGet("Image")]
     public async Task<ActionResult> GetImage(Uri imageUrl)
     {
         HttpClient http = new();
