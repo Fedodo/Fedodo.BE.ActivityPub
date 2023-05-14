@@ -17,15 +17,15 @@ public class ProxyController : ControllerBase
     }
 
     /// <summary>
-    /// Gets an image in behalf of an client.
+    /// Gets an item in behalf of an client.
     /// </summary>
-    /// <param name="imageUrl">The image URL.</param>
-    /// <returns>The image as stream.</returns>
-    [HttpGet("Image")]
-    public async Task<ActionResult> GetImage(Uri imageUrl)
+    /// <param name="url">The request URL.</param>
+    /// <returns>The content as stream.</returns>
+    [HttpGet]
+    public async Task<ActionResult> GetItem(Uri url)
     {
         HttpClient http = new();
-        var result = await http.GetAsync(imageUrl);
+        var result = await http.GetAsync(url);
 
         if (result.IsSuccessStatusCode)
         {
