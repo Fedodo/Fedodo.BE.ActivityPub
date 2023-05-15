@@ -25,7 +25,7 @@ public class ProxyController : ControllerBase
     {
         HttpClient http = new();
 
-        foreach (var item in HttpContext.Request.Headers)
+        foreach (var item in HttpContext.Request.Headers.Where(i => i.Key == "Accept"))
             http.DefaultRequestHeaders.Add(item.Key, item.Value.ToString());
 
         var result = await http.GetAsync(url);
