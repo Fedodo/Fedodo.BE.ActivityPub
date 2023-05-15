@@ -1,4 +1,5 @@
 using System.Net.Mime;
+using CommonExtensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
@@ -25,6 +26,12 @@ public class ProxyController : ControllerBase
     public async Task<ActionResult> GetItem(Uri url)
     {
         HttpClient http = new();
+
+        foreach (var item in HttpContext.Request.Headers)
+        {
+            http.DefaultRequestHeaders.Add(item.Key, item.Value.ToString());
+        }
+
         var result = await http.GetAsync(url);
 
         if (result.IsSuccessStatusCode)
@@ -33,7 +40,8 @@ public class ProxyController : ControllerBase
         }
         else
         {
-            return BadRequest($"Non successful status code.\nStatus-Code: {result.StatusCode}\nMessage: {await result.Content.ReadAsStringAsync()}");
+            return BadRequest(
+                $"Non successful status code.\nStatus-Code: {result.StatusCode}\nMessage: {await result.Content.ReadAsStringAsync()}");
         }
     }
 }
