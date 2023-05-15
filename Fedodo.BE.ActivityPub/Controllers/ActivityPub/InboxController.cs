@@ -413,7 +413,7 @@ public class InboxController : ControllerBase
 
             updateItem.Object.Objects.First().Replies = new Collection
             {
-                Items = new TripleSet<Object>()
+                Items = new TripleSet<Object>
                 {
                     StringLinks = new List<string>()
                 }

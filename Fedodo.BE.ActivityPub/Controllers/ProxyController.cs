@@ -1,10 +1,9 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
 
 /// <summary>
-/// Controller for making an network call in behalf of an client.
+///     Controller for making an network call in behalf of an client.
 /// </summary>
 [Route("Proxy")]
 public class ProxyController : ControllerBase
@@ -17,7 +16,7 @@ public class ProxyController : ControllerBase
     }
 
     /// <summary>
-    /// Gets an item in behalf of an client.
+    ///     Gets an item in behalf of an client.
     /// </summary>
     /// <param name="url">The request URL.</param>
     /// <returns>The content as stream.</returns>
@@ -25,15 +24,15 @@ public class ProxyController : ControllerBase
     public async Task<ActionResult> GetItem(Uri url)
     {
         HttpClient http = new();
+
+        foreach (var item in HttpContext.Request.Headers.Where(i => i.Key == "Accept"))
+            http.DefaultRequestHeaders.Add(item.Key, item.Value.ToString());
+
         var result = await http.GetAsync(url);
 
         if (result.IsSuccessStatusCode)
-        {
             return Ok(await result.Content.ReadAsStreamAsync());
-        }
-        else
-        {
-            return BadRequest($"Non successful status code.\nStatus-Code: {result.StatusCode}\nMessage: {await result.Content.ReadAsStringAsync()}");
-        }
+        return BadRequest(
+            $"Non successful status code.\nStatus-Code: {result.StatusCode}\nMessage: {await result.Content.ReadAsStringAsync()}");
     }
 }
