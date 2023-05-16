@@ -6,6 +6,7 @@ using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
+using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models;
@@ -32,19 +33,18 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Actor>> CreateUserAsync(CreateActorDto actorDto)
+    public async Task<ActionResult<Person>> CreateUserAsync(CreateActorDto actorDto)
     {
         // Create actor
         var userId = Guid.NewGuid();
         var domainName = Environment.GetEnvironmentVariable("DOMAINNAME");
 
-        Actor actor = new()
+        Person actor = new()
         {
             // Client generated
             Summary = actorDto.Summary,
             PreferredUsername = actorDto.PreferredUsername,
             Name = actorDto.Name,
-            Type = actorDto.Type,
 
             // Server generated
             Id = new Uri($"https://{domainName}/actor/{userId}"),
@@ -52,6 +52,14 @@ public class UserController : ControllerBase
             Outbox = new Uri($"https://{domainName}/outbox/{userId}"),
             Following = new Uri($"https://{domainName}/following/{userId}"),
             Followers = new Uri($"https://{domainName}/followers/{userId}"),
+            Published = DateTime.Now,
+            // Attachment = new TripleSet<Object>()
+            // {
+            //     Objects = new List<PropertyValue>()
+            //     {
+            //         
+            //     }
+            // },
 
             // Hardcoded
             Context = new TripleSet<Object>
