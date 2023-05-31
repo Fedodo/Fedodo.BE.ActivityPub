@@ -79,6 +79,16 @@ public class Startup
 
         app.Use(async (context, next) =>
         {
+            if (context.Request.Headers.Accept == "")
+            {
+                
+            }
+
+            await next(context);
+        });
+        
+        app.Use(async (context, next) =>
+        {
             await next();
             if (context.Response.StatusCode == 404)
             {
