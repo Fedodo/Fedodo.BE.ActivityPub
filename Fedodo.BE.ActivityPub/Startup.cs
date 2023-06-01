@@ -79,9 +79,10 @@ public class Startup
 
         app.Use(async (context, next) =>
         {
-            if (context.Request.Headers.Accept == "")
+            if ((context.Request.Headers.Accept.First()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
             {
-                
+                // TODO This does not work
+                context.Response.Redirect("/lolomat");
             }
 
             await next(context);
