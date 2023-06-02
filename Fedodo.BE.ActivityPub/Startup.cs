@@ -79,23 +79,22 @@ public class Startup
 
         app.Use(async (context, next) =>
         {
-            if ((context.Request.Headers.Accept.First()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
-            {
-                // TODO This does not work
-                context.Response.Redirect("/lolomat");
-            }
-
-            await next(context);
-        });
-        
-        app.Use(async (context, next) =>
-        {
             await next();
             if (context.Response.StatusCode == 404)
             {
                 context.Request.Path = "/NotFound";
                 await next();
             }
+        });
+        
+        app.Use(async (context, next) =>
+        {
+            if ((context.Request.Headers.Accept.First()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
+            {
+                context.Response.Redirect($"https://home.{Environment.GetEnvironmentVariable("DOMAINNAME")}");
+            }
+
+            await next(context);
         });
 
         app.UseSwagger();
