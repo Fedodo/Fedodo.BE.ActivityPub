@@ -86,6 +86,16 @@ public class Startup
                 await next();
             }
         });
+        
+        app.Use(async (context, next) =>
+        {
+            if ((context.Request.Headers.Accept.First()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
+            {
+                context.Response.Redirect($"https://home.{Environment.GetEnvironmentVariable("DOMAINNAME")}");
+            }
+
+            await next(context);
+        });
 
         app.UseSwagger();
         app.UseSwaggerUI(c =>

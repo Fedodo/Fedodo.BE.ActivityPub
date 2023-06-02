@@ -17,7 +17,7 @@ jobs:
           PROJECT_PATH: "Fedodo.BE.ActivityPub.Test/Fedodo.BE.ActivityPub.Test.csproj"
           DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
           REPO: "fedodo.be.activitypub"
-      - uses: Fedodo/Fedodo.Pipelines/DeployContainer.NET@main
+      - uses: Fedodo/Fedodo.Pipelines/DeployContainer@main
         with:
           KUBECTL_CONFIG: ${{ secrets.KUBECTL_CONFIG }}
           VALUES_FILE: "./Kubernetes/values.yaml"
