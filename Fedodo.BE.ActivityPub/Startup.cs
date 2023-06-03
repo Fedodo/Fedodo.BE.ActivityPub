@@ -89,7 +89,7 @@ public class Startup
         
         app.Use(async (context, next) =>
         {
-            if ((context.Request.Headers.Accept.First()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
+            if ((context.Request.Headers.Accept.FirstOrDefault()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
             {
                 context.Response.Redirect($"https://home.{Environment.GetEnvironmentVariable("DOMAINNAME")}");
             }
