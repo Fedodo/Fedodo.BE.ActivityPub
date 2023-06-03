@@ -4,6 +4,7 @@ using Fedodo.BE.ActivityPub.Controllers;
 using Fedodo.BE.ActivityPub.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
+using Fedodo.NuGet.Common.Models.Webfinger;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
