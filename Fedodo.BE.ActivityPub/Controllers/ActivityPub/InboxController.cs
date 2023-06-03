@@ -62,11 +62,11 @@ public class InboxController : ControllerBase
         return Ok(orderedCollection);
     }
 
-    [HttpGet("{userId:guid}/page/{pageId:int}")]
+    [HttpGet("{actorId:guid}/page/{pageId:int}")]
     [Authorize]
-    public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid userId, int pageId)
+    public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid actorId, int pageId)
     {
-        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
@@ -81,26 +81,26 @@ public class InboxController : ControllerBase
 
         var orderedCollectionPage = new OrderedCollectionPage
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{pageId}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{pageId}"),
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}"
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{previousPageId}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{previousPageId}"
                 }
             },
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{nextPageId}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{nextPageId}"
                 }
             },
             Items = new TripleSet<Object>

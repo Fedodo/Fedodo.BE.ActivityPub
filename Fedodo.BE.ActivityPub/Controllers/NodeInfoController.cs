@@ -3,6 +3,7 @@ using Fedodo.BE.ActivityPub.Model.NodeInfo;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
+using Fedodo.NuGet.Common.Models.Webfinger;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedodo.BE.ActivityPub.Controllers;
