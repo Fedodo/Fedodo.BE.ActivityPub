@@ -1,3 +1,7 @@
 name: "fedodo"
 namespace: "dev-fedodo"
 domainName: "dev.fedodo.social"
+
+microservices:
+  fedodo_be_auth:
+    version: "fedodo/fedodo.be.auth:dev_44"
