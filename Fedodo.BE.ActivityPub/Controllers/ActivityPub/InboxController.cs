@@ -78,7 +78,7 @@ public class InboxController : ControllerBase
 
         var filterBuilder = Builders<Activity>.Filter;
         var filter = filterBuilder.Where(i =>
-            i.Actor.StringLinks.FirstOrDefault() ==
+            i.Actor.StringLinks.ToList()[0] ==
             $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
 
         var page = await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
