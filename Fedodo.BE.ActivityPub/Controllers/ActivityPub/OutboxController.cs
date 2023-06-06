@@ -5,6 +5,7 @@ using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
+using Fedodo.NuGet.Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -127,24 +128,32 @@ public class OutboxController : ControllerBase
         return Ok(orderedCollectionPage);
     }
 
-    [HttpPost("{userId:guid}")]
-    [Authorize]
-    public async Task<ActionResult<Activity>> CreatePost(Guid userId, [FromBody] CreateActivityDto activityDto)
+    [HttpPost("{actorId:guid}")]
+    // [Authorize]
+    public async Task<ActionResult<Activity>> CreatePost(Guid actorId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+        // if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
-        var user = await _userHandler.GetUserByIdAsync(userId);
-        var actor = await _activityHandler.GetActorAsync(userId, Environment.GetEnvironmentVariable("DOMAINNAME"));
+        var domainName = Environment.GetEnvironmentVariable("DOMAINNAME")!;
+        
+        var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
+
+        if (actorSecrets.IsNull())
+        {
+            _logger.LogCritical($"{nameof(actorSecrets)} is null for {nameof(actorId)}: \"{actorId}\"");
+            return BadRequest("ActorId is not correct");
+        }
+        
+        var actor = await _activityHandler.GetActorAsync(actorId, domainName);
         var activity =
-            await _activityHandler.CreateActivity(userId, activityDto,
-                Environment.GetEnvironmentVariable("DOMAINNAME"));
+            await _activityHandler.CreateActivity(actorId, activityDto, domainName);
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 
-        await _activityHandler.SendActivitiesAsync(activity, user, actor);
+        await _activityHandler.SendActivitiesAsync(activity, actorSecrets, actor);
 
         return Created(activity.Id, activity);
     }

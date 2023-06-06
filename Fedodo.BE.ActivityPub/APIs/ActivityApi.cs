@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
@@ -19,7 +20,7 @@ public class ActivityApi : IActivityAPI
         _logger = logger;
     }
 
-    public async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor)
+    public async Task<bool> SendActivity(Activity activity, ActorSecrets actorSecrets, ServerNameInboxPair serverInboxPair, Actor actor)
     {
         _logger.LogTrace($"Entered {nameof(SendActivity)} in {nameof(ActivityApi)}");
 
@@ -30,8 +31,13 @@ public class ActivityApi : IActivityAPI
         });
         var digest = ComputeHash(jsonData);
 
+        if (actorSecrets.IsNull())
+        {
+            _logger.LogWarning($"{nameof(actorSecrets)} is null");
+        }
+
         var rsa = RSA.Create();
-        rsa.ImportFromPem(user.PrivateKeyActivityPub!.ToCharArray());
+        rsa.ImportFromPem(actorSecrets.PrivateKeyActivityPub!.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =

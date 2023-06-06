@@ -64,10 +64,10 @@ public class ActivityHandlerShould
 
         sharedInboxHandler.Setup(i => i.GetSharedInboxesAsync()).ReturnsAsync(sharedInboxes);
 
-        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(), It.Is<User>(i => i.UserName == "Fail"),
+        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(), It.Is<ActorSecrets>(i => i.PrivateKeyActivityPub == "Fail"),
             It.IsAny<ServerNameInboxPair>(), It.IsAny<Actor>())).ReturnsAsync(false);
 
-        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(), It.Is<User>(i => i.UserName != "Fail"),
+        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(), It.Is<ActorSecrets>(i => i.PrivateKeyActivityPub != "Fail"),
             It.IsAny<ServerNameInboxPair>(), It.IsAny<Actor>())).ReturnsAsync(true);
 
         collectionApi.Setup(i => i.GetOrderedCollection<Uri>(It.Is<Uri>(i => i != new Uri("https://example.com/null"))))
@@ -200,9 +200,9 @@ public class ActivityHandlerShould
                 }
             }
         };
-        var user = new User
+        var user = new ActorSecrets()
         {
-            UserName = userName
+            PrivateKeyActivityPub = userName
         };
 
         // Act
