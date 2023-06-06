@@ -31,30 +31,35 @@ public class InboxController : ControllerBase
         _userHandler = userHandler;
     }
 
-    [HttpGet("{userId:guid}")]
+    [HttpGet("{actorId:guid}")]
     [Authorize]
-    public async Task<ActionResult<OrderedCollection>> GetPageInformation(Guid userId)
+    public async Task<ActionResult<OrderedCollection>> GetPageInformation(Guid actorId)
     {
-        if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
-
-        var postCount = await _repository.CountAll<Activity>(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection);
+        if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
+        
+        var filterBuilder = Builders<Activity>.Filter;
+        var filter = filterBuilder.Where(i =>
+            i.Actor.StringLinks.FirstOrDefault() ==
+            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
+        
+        var postCount = await _repository.CountSpecific<Activity>(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection, filter);
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}"),
+            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/0"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{userId}/page/{postCount / 20}"
+                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{postCount / 20}"
                 }
             }
         };
@@ -71,8 +76,13 @@ public class InboxController : ControllerBase
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var page = await _repository.GetAllPagedFromCollections(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection);
+        var filterBuilder = Builders<Activity>.Filter;
+        var filter = filterBuilder.Where(i =>
+            i.Actor.StringLinks.ToList()[0] ==
+            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
+
+        var page = await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection, filter);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
