@@ -19,7 +19,7 @@ public class ActivityApi : IActivityAPI
         _logger = logger;
     }
 
-    public async Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor)
+    public async Task<bool> SendActivity(Activity activity, ActorSecrets actorSecrets, ServerNameInboxPair serverInboxPair, Actor actor)
     {
         _logger.LogTrace($"Entered {nameof(SendActivity)} in {nameof(ActivityApi)}");
 
@@ -31,7 +31,7 @@ public class ActivityApi : IActivityAPI
         var digest = ComputeHash(jsonData);
 
         var rsa = RSA.Create();
-        rsa.ImportFromPem(user.PrivateKeyActivityPub!.ToCharArray());
+        rsa.ImportFromPem(actorSecrets.PrivateKeyActivityPub!.ToCharArray());
 
         var date = DateTime.UtcNow.ToString("R");
         var signedString =

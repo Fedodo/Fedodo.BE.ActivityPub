@@ -45,6 +45,16 @@ public class ActivityHandler : IActivityHandler
             DatabaseLocations.Actors.Collection);
         return actor;
     }
+    
+    public async Task<ActorSecrets> GetActorSecretsAsync(Guid actorId, string domainName)
+    {
+        var filterActorDefinitionBuilder = Builders<ActorSecrets>.Filter;
+        var filterActor = filterActorDefinitionBuilder.Eq(i => i.ActorId,
+            new Uri($"https://{domainName}/actor/{actorId}"));
+        var actorSecrets = await _repository.GetSpecificItem(filterActor, DatabaseLocations.ActorSecrets.Database,
+            DatabaseLocations.ActorSecrets.Collection);
+        return actorSecrets;
+    }
 
     public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName)
     {
@@ -189,7 +199,7 @@ public class ActivityHandler : IActivityHandler
         return activity;
     }
 
-    public async Task<bool> SendActivitiesAsync(Activity activity, User user, Actor actor)
+    public async Task<bool> SendActivitiesAsync(Activity activity, ActorSecrets actorSecrets, Actor actor)
     {
         _logger.LogTrace($"Entered {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
 
@@ -275,7 +285,7 @@ public class ActivityHandler : IActivityHandler
 
             for (var i = 0; i < 5; i++)
             {
-                if (await _activityApi.SendActivity(activity, user, target, actor)) break;
+                if (await _activityApi.SendActivity(activity, actorSecrets, target, actor)) break;
 
                 if (i == 4) everythingSuccessful = false;
 

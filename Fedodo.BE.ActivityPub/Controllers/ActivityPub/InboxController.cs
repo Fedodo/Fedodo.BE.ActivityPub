@@ -140,12 +140,12 @@ public class InboxController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("{userId:guid}")]
-    public async Task<ActionResult> Inbox(Guid userId, [FromBody] Activity activity)
+    [HttpPost("{actorId:guid}")]
+    public async Task<ActionResult> Inbox(Guid actorId, [FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
 
-        if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{userId}"))
+        if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{actorId}"))
             return BadRequest("Invalid Signature");
 
         if (activity.IsNull())
@@ -225,8 +225,8 @@ public class InboxController : ControllerBase
                         DatabaseLocations.InboxFollow.Collection);
 
                 var domainName = Environment.GetEnvironmentVariable("DOMAINNAME")!;
-                var user = await _userHandler.GetUserByIdAsync(userId);
-                var actor = await _activityHandler.GetActorAsync(userId, domainName);
+                var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
+                var actor = await _activityHandler.GetActorAsync(actorId, domainName);
 
                 if (actor.IsNull() || actor.Id.IsNull())
                 {
@@ -263,7 +263,7 @@ public class InboxController : ControllerBase
                     }
                 };
 
-                await _activityHandler.SendActivitiesAsync(acceptActivity, user, actor);
+                await _activityHandler.SendActivitiesAsync(acceptActivity, actorSecrets, actor);
 
                 _logger.LogDebug("Completed Follow activity");
 

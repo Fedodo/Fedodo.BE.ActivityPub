@@ -9,5 +9,5 @@ public interface IActivityAPI
 {
     public string ComputeHash(string jsonData);
 
-    public Task<bool> SendActivity(Activity activity, User user, ServerNameInboxPair serverInboxPair, Actor actor);
+    public Task<bool> SendActivity(Activity activity, ActorSecrets actorSecrets, ServerNameInboxPair serverInboxPair, Actor actor);
 }
