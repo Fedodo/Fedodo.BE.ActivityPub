@@ -46,7 +46,7 @@ public class ActivityHandler : IActivityHandler
         return actor;
     }
     
-    public async Task<ActorSecrets> GetActorSecretsAsync(Guid actorId, string domainName)
+    public async Task<ActorSecrets?> GetActorSecretsAsync(Guid actorId, string domainName)
     {
         var filterActorDefinitionBuilder = Builders<ActorSecrets>.Filter;
         var filterActor = filterActorDefinitionBuilder.Eq(i => i.ActorId,
