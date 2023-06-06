@@ -128,19 +128,18 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{actorId:guid}")]
-    // [Authorize]
+    [Authorize]
     public async Task<ActionResult<Activity>> CreatePost(Guid actorId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-        // if (!_userHandler.VerifyUser(userId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
         var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, Environment.GetEnvironmentVariable("DOMAINNAME")); 
         var actor = await _activityHandler.GetActorAsync(actorId, Environment.GetEnvironmentVariable("DOMAINNAME"));
         var activity =
-            await _activityHandler.CreateActivity(actorId, activityDto,
-                Environment.GetEnvironmentVariable("DOMAINNAME"));
+            await _activityHandler.CreateActivity(actorId, activityDto, Environment.GetEnvironmentVariable("DOMAINNAME"));
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
@@ -29,6 +30,11 @@ public class ActivityApi : IActivityAPI
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         });
         var digest = ComputeHash(jsonData);
+
+        if (actorSecrets.IsNull())
+        {
+            _logger.LogWarning($"{nameof(actorSecrets)} is null");
+        }
 
         var rsa = RSA.Create();
         rsa.ImportFromPem(actorSecrets.PrivateKeyActivityPub!.ToCharArray());
