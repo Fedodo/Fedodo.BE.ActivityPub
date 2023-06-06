@@ -129,11 +129,11 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{actorId:guid}")]
-    [Authorize]
+    // [Authorize]
     public async Task<ActionResult<Activity>> CreatePost(Guid actorId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-        if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
+        // if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 

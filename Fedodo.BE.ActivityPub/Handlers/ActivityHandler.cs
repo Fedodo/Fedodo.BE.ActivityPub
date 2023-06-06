@@ -104,6 +104,9 @@ public class ActivityHandler : IActivityHandler
             activity.Object.StringLinks = tempList;
         }
 
+        var definitionBuilder = Builders<Activity>.Filter;
+        var filter = definitionBuilder.Where(i => i.Object == activity.Object && i.Actor == activity.Actor);
+        
         switch (activityDto.Type)
         {
             case "Create":
@@ -145,8 +148,6 @@ public class ActivityHandler : IActivityHandler
             }
             case "Like":
             {
-                var definitionBuilder = Builders<Activity>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxLike.Database,
                     DatabaseLocations.OutboxLike.Collection);
 
@@ -160,8 +161,6 @@ public class ActivityHandler : IActivityHandler
             }
             case "Follow":
             {
-                var definitionBuilder = Builders<Activity>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxFollow.Database,
                     DatabaseLocations.OutboxFollow.Collection);
 
@@ -175,8 +174,6 @@ public class ActivityHandler : IActivityHandler
             }
             case "Announce":
             {
-                var definitionBuilder = Builders<Activity>.Filter;
-                var filter = definitionBuilder.Eq(i => i.Object, activity.Object);
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxAnnounce.Database,
                     DatabaseLocations.OutboxAnnounce.Collection);
 
