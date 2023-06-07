@@ -58,7 +58,8 @@ public class InboxController : ControllerBase
                 {
                     $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{postCount / 20}"
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return Ok(orderedCollection);
@@ -75,9 +76,9 @@ public class InboxController : ControllerBase
 
         var filter = BuildAllPublicAndSelfFilter(actorId);
 
-        var page = await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
+        var page = (await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection,
-            filter);
+            filter)).ToList();
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
@@ -111,7 +112,8 @@ public class InboxController : ControllerBase
             Items = new TripleSet<Object>
             {
                 Objects = page
-            }
+            },
+            TotalItems = page.Count
         };
 
         return Ok(orderedCollectionPage);
@@ -121,11 +123,11 @@ public class InboxController : ControllerBase
     {
         var filterBuilder = Builders<Activity>.Filter;
         var filter = filterBuilder.Where(i =>
-            i.Actor.StringLinks.Contains(
+            i.To.StringLinks.Contains(
                 $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}") ||
-            i.Actor.StringLinks.Contains("public") ||
-            i.Actor.StringLinks.Contains("as:public") ||
-            i.Actor.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")
+            i.To.StringLinks.Contains("public") ||
+            i.To.StringLinks.Contains("as:public") ||
+            i.To.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")
         );
         return filter;
     }
