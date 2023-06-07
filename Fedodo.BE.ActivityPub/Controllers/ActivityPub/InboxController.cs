@@ -39,7 +39,7 @@ public class InboxController : ControllerBase
         if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
         var filter = await BuildAllPublicAndSelfFilter(actorId);
-        
+
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection, filter);
 
@@ -127,18 +127,25 @@ public class InboxController : ControllerBase
         var filterBuilderFollowing = new FilterDefinitionBuilder<Activity>();
         var filterFollowing = filterBuilderFollowing.Where(i =>
             i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.Contains(fullActorId));
-        
-        var followings = await _repository.GetSpecificItems(filter: filterFollowing, DatabaseLocations.OutboxFollow.Database,
+
+        var followings = await _repository.GetSpecificItems(filter: filterFollowing,
+            DatabaseLocations.OutboxFollow.Database,
             DatabaseLocations.OutboxFollow.Collection);
-        var followingStrings = followings.Select(s => s.Object.StringLinks.FirstOrDefault());
+
+        List<string> followingStrings = new();
+
+        foreach (var item in followings)
+        {
+            followingStrings.AddRange(item.Object?.StringLinks);
+        }
         
         var filterBuilder = Builders<Activity>.Filter;
         var filter = filterBuilder.Where(i =>
             (i.To.StringLinks.Contains(
-                $"https://{GeneralConstants.DomainName}/actor/{actorId}") ||
-            i.To.StringLinks.Contains("public") ||
-            i.To.StringLinks.Contains("as:public") ||
-            i.To.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")) &&
+                 $"https://{GeneralConstants.DomainName}/actor/{actorId}") ||
+             i.To.StringLinks.Contains("public") ||
+             i.To.StringLinks.Contains("as:public") ||
+             i.To.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")) &&
             i.Actor.StringLinks.Intersect(followingStrings).Any()
         );
         return filter;
