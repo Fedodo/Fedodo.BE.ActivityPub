@@ -36,13 +36,10 @@ public class InboxController : ControllerBase
     public async Task<ActionResult<OrderedCollection>> GetPageInformation(Guid actorId)
     {
         if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
+
+        var filter = BuildAllPublicAndSelfFilter(actorId);
         
-        var filterBuilder = Builders<Activity>.Filter;
-        var filter = filterBuilder.Where(i =>
-            i.Actor.StringLinks.FirstOrDefault() ==
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
-        
-        var postCount = await _repository.CountSpecific<Activity>(DatabaseLocations.InboxCreate.Database,
+        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection, filter);
 
         var orderedCollection = new OrderedCollection
@@ -76,13 +73,11 @@ public class InboxController : ControllerBase
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var filterBuilder = Builders<Activity>.Filter;
-        var filter = filterBuilder.Where(i =>
-            i.Actor.StringLinks.ToList()[0] ==
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
+        var filter = BuildAllPublicAndSelfFilter(actorId);
 
         var page = await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection, filter);
+            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection,
+            filter);
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
@@ -120,6 +115,19 @@ public class InboxController : ControllerBase
         };
 
         return Ok(orderedCollectionPage);
+    }
+
+    private FilterDefinition<Activity> BuildAllPublicAndSelfFilter(Guid actorId)
+    {
+        var filterBuilder = Builders<Activity>.Filter;
+        var filter = filterBuilder.Where(i =>
+            i.Actor.StringLinks.Contains(
+                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}") ||
+            i.Actor.StringLinks.Contains("public") ||
+            i.Actor.StringLinks.Contains("as:public") ||
+            i.Actor.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")
+        );
+        return filter;
     }
 
     [HttpPost("")]
