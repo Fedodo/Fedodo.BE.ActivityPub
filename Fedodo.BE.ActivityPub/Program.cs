@@ -20,10 +20,12 @@ if (useHttpLogging)
                                 HttpLoggingFields.RequestBody;
     });
 
-builder.Services.AddControllersWithViews().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
+builder.Services.AddControllersWithViews()
+    .AddControllersAsServices()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();

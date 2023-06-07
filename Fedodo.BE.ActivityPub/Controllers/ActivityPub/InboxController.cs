@@ -1,4 +1,5 @@
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
@@ -37,7 +38,7 @@ public class InboxController : ControllerBase
     {
         if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
-        var filter = BuildAllPublicAndSelfFilter(actorId);
+        var filter = await BuildAllPublicAndSelfFilter(actorId);
         
         var postCount = await _repository.CountSpecific(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection, filter);
@@ -74,7 +75,7 @@ public class InboxController : ControllerBase
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var filter = BuildAllPublicAndSelfFilter(actorId);
+        var filter = await BuildAllPublicAndSelfFilter(actorId);
 
         var page = (await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection,
@@ -119,15 +120,26 @@ public class InboxController : ControllerBase
         return Ok(orderedCollectionPage);
     }
 
-    private FilterDefinition<Activity> BuildAllPublicAndSelfFilter(Guid actorId)
+    private async Task<FilterDefinition<Activity>> BuildAllPublicAndSelfFilter(Guid actorId)
     {
+        var fullActorId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}";
+
+        var filterBuilderFollowing = new FilterDefinitionBuilder<Activity>();
+        var filterFollowing = filterBuilderFollowing.Where(i =>
+            i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.Contains(fullActorId));
+        
+        var followings = await _repository.GetSpecificItems(filter: filterFollowing, DatabaseLocations.OutboxFollow.Database,
+            DatabaseLocations.OutboxFollow.Collection);
+        var followingStrings = followings.Select(s => s.Object.StringLinks.FirstOrDefault());
+        
         var filterBuilder = Builders<Activity>.Filter;
         var filter = filterBuilder.Where(i =>
-            i.To.StringLinks.Contains(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}") ||
+            (i.To.StringLinks.Contains(
+                $"https://{GeneralConstants.DomainName}/actor/{actorId}") ||
             i.To.StringLinks.Contains("public") ||
             i.To.StringLinks.Contains("as:public") ||
-            i.To.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")
+            i.To.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")) &&
+            i.Actor.StringLinks.Intersect(followingStrings).Any()
         );
         return filter;
     }
