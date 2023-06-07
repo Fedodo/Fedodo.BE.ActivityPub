@@ -1,3 +1,4 @@
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Model;
 using Fedodo.BE.ActivityPub.Model.NodeInfo;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
@@ -32,7 +33,7 @@ public class NodeInfoController : ControllerBase
                 new()
                 {
                     Rel = "http://nodeinfo.diaspora.software/ns/schema/2.1",
-                    Href = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/nodeinfo/2.1")
+                    Href = new Uri($"https://{GeneralConstants.DomainName}/nodeinfo/2.1")
                 }
             }
         };

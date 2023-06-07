@@ -45,19 +45,19 @@ public class InboxController : ControllerBase
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorId}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/0"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -88,26 +88,26 @@ public class InboxController : ControllerBase
 
         var orderedCollectionPage = new OrderedCollectionPage
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{pageId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{pageId}"),
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}"
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{previousPageId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{previousPageId}"
                 }
             },
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{nextPageId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{nextPageId}"
                 }
             },
             Items = new TripleSet<Object>
@@ -122,7 +122,7 @@ public class InboxController : ControllerBase
 
     private async Task<FilterDefinition<Activity>> BuildAllPublicAndSelfFilter(Guid actorId)
     {
-        var fullActorId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}";
+        var fullActorId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
 
         var filterBuilderFollowing = new FilterDefinitionBuilder<Activity>();
         var filterFollowing = filterBuilderFollowing.Where(i =>
@@ -210,7 +210,7 @@ public class InboxController : ControllerBase
                     _logger.LogDebug("InReply is not null");
 
                     if (new Uri(activity.Object.Objects?.First().InReplyTo?.StringLinks?.First() ?? "").Host ==
-                        Environment.GetEnvironmentVariable("DOMAINNAME"))
+                        GeneralConstants.DomainName)
                     {
                         _logger.LogDebug("Entering Outbox reply logic");
 
@@ -246,7 +246,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(activity, DatabaseLocations.InboxFollow.Database,
                         DatabaseLocations.InboxFollow.Collection);
 
-                var domainName = Environment.GetEnvironmentVariable("DOMAINNAME")!;
+                var domainName = GeneralConstants.DomainName!;
                 var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
                 var actor = await _activityHandler.GetActorAsync(actorId, domainName);
 

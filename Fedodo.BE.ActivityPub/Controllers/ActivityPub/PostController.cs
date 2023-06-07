@@ -1,3 +1,4 @@
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
@@ -26,7 +27,7 @@ public class PostController : ControllerBase
     {
         var postDefinitionBuilder = Builders<Activity>.Filter;
         var postFilter = postDefinitionBuilder.Eq(i => i.Id,
-            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/activities/{activityId}"));
+            new Uri($"https://{GeneralConstants.DomainName}/activities/{activityId}"));
 
         var post = await _repository.GetSpecificItem(postFilter, DatabaseLocations.OutboxCreate.Database,
             DatabaseLocations.OutboxCreate.Collection);

@@ -1,4 +1,5 @@
 using Fedodo.BE.ActivityPub.APIs;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.NuGet.Common.Handlers;
@@ -19,9 +20,9 @@ public class Startup
     public void AddSwagger(WebApplicationBuilder webApplicationBuilder)
     {
         var tokenUrl = new Uri(
-            $"https://auth.{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/token");
+            $"https://auth.{GeneralConstants.DomainName}/oauth/token");
         var authUrl = new Uri(
-            $"https://auth.{Environment.GetEnvironmentVariable("DOMAINNAME")}/oauth/authorize");
+            $"https://auth.{GeneralConstants.DomainName}/oauth/authorize");
 
         webApplicationBuilder.Services.AddSwaggerGen(
             c =>
@@ -91,7 +92,7 @@ public class Startup
         {
             if ((context.Request.Headers.Accept.FirstOrDefault()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
             {
-                context.Response.Redirect($"https://home.{Environment.GetEnvironmentVariable("DOMAINNAME")}");
+                context.Response.Redirect($"https://home.{GeneralConstants.DomainName}");
             }
 
             await next(context);

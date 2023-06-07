@@ -1,4 +1,5 @@
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
@@ -33,7 +34,7 @@ public class ActorController : ControllerBase
 
         var filterDefinitionBuilder = Builders<Actor>.Filter;
         var filter = filterDefinitionBuilder.Eq(i => i.Id,
-            new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}"));
+            new Uri($"https://{GeneralConstants.DomainName}/actor/{actorId}"));
 
         var actor = await _repository.GetSpecificItem(filter, DatabaseLocations.Actors.Database,
             DatabaseLocations.Actors.Collection);
