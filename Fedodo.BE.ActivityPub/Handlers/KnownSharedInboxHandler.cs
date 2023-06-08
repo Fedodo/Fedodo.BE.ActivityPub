@@ -1,3 +1,4 @@
+using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.Common.Constants;
@@ -10,11 +11,24 @@ public class KnownSharedInboxHandler : IKnownSharedInboxHandler
 {
     private readonly ILogger<KnownSharedInboxHandler> _logger;
     private readonly IMongoDbRepository _repository;
+    private readonly IActorAPI _actorApi;
 
-    public KnownSharedInboxHandler(ILogger<KnownSharedInboxHandler> logger, IMongoDbRepository repository)
+    public KnownSharedInboxHandler(ILogger<KnownSharedInboxHandler> logger, IMongoDbRepository repository, IActorAPI actorApi)
     {
         _logger = logger;
         _repository = repository;
+        _actorApi = actorApi;
+    }
+
+    public async Task AddSharedInboxFromActorAsync(Uri actorId)
+    {
+        var actor = await _actorApi.GetActor(actorId);
+        var sharedInbox = actor?.Endpoints?.SharedInbox;
+
+        if (sharedInbox.IsNotNull())
+        {
+            await AddSharedInboxAsync(sharedInbox);
+        }
     }
 
     public async Task AddSharedInboxAsync(Uri sharedInbox)
