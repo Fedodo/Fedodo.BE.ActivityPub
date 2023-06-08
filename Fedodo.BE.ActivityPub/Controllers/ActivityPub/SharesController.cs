@@ -1,5 +1,6 @@
 using System.Web;
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
@@ -59,26 +60,26 @@ public class SharesController : ControllerBase
                 Objects = shares
             },
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}/?page={page}"),
+                $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}/?page={page + 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}/?page={page - 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}" // TODO
+                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}" // TODO
                 }
             },
             TotalItems = shares.Count
@@ -104,19 +105,19 @@ public class SharesController : ControllerBase
         var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}"),
+                $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}?page=0" // TODO
+                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}?page=0" // TODO
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/shares/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}" // TODO
+                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}" // TODO
                 }
             },
             TotalItems = postCount

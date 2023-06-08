@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Fedodo.BE.ActivityPub;
+using Fedodo.BE.ActivityPub.Constants;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
@@ -20,10 +21,12 @@ if (useHttpLogging)
                                 HttpLoggingFields.RequestBody;
     });
 
-builder.Services.AddControllersWithViews().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
+builder.Services.AddControllersWithViews()
+    .AddControllersAsServices()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -34,14 +37,14 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    options.Authority = "https://auth." + Environment.GetEnvironmentVariable("DOMAINNAME");
+    options.Authority = "https://auth." + GeneralConstants.DomainName;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "https://auth." + Environment.GetEnvironmentVariable("DOMAINNAME")
+        ValidIssuer = "https://auth." + GeneralConstants.DomainName
         // ValidAudience = builder.Configuration["Jwt:Issuer"],
     };
 });

@@ -1,4 +1,5 @@
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
@@ -36,32 +37,30 @@ public class InboxController : ControllerBase
     public async Task<ActionResult<OrderedCollection>> GetPageInformation(Guid actorId)
     {
         if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
-        
-        var filterBuilder = Builders<Activity>.Filter;
-        var filter = filterBuilder.Where(i =>
-            i.Actor.StringLinks.FirstOrDefault() ==
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
-        
-        var postCount = await _repository.CountSpecific<Activity>(DatabaseLocations.InboxCreate.Database,
+
+        var filter = await BuildAllPublicAndSelfFilter(actorId);
+
+        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxCreate.Database,
             DatabaseLocations.InboxCreate.Collection, filter);
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorId}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/0"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{postCount / 20}"
                 }
-            }
+            },
+            TotalItems = postCount
         };
 
         return Ok(orderedCollection);
@@ -76,13 +75,11 @@ public class InboxController : ControllerBase
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var filterBuilder = Builders<Activity>.Filter;
-        var filter = filterBuilder.Where(i =>
-            i.Actor.StringLinks.ToList()[0] ==
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}");
+        var filter = await BuildAllPublicAndSelfFilter(actorId);
 
-        var page = await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
-            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection, filter);
+        var page = (await _repository.GetSpecificPagedFromCollections(DatabaseLocations.InboxCreate.Database,
+            DatabaseLocations.InboxCreate.Collection, pageId, 20, sort, DatabaseLocations.InboxAnnounce.Collection,
+            filter)).ToList();
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
@@ -91,35 +88,67 @@ public class InboxController : ControllerBase
 
         var orderedCollectionPage = new OrderedCollectionPage
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{pageId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{pageId}"),
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}"
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{previousPageId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{previousPageId}"
                 }
             },
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/inbox/{actorId}/page/{nextPageId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{nextPageId}"
                 }
             },
             Items = new TripleSet<Object>
             {
                 Objects = page
-            }
+            },
+            TotalItems = page.Count
         };
 
         return Ok(orderedCollectionPage);
+    }
+
+    private async Task<FilterDefinition<Activity>> BuildAllPublicAndSelfFilter(Guid actorId)
+    {
+        var fullActorId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
+
+        var filterBuilderFollowing = new FilterDefinitionBuilder<Activity>();
+        var filterFollowing = filterBuilderFollowing.Where(i =>
+            i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.Contains(fullActorId));
+
+        var followings = await _repository.GetSpecificItems(filter: filterFollowing,
+            DatabaseLocations.OutboxFollow.Database,
+            DatabaseLocations.OutboxFollow.Collection);
+
+        List<string> followingStrings = new();
+
+        foreach (var item in followings)
+        {
+            followingStrings.AddRange(item.Object?.StringLinks);
+        }
+        
+        var filterBuilder = Builders<Activity>.Filter;
+        var filter = filterBuilder.Where(i =>
+            (i.To.StringLinks.Contains(
+                 $"https://{GeneralConstants.DomainName}/actor/{actorId}") ||
+             i.To.StringLinks.Contains("public") ||
+             i.To.StringLinks.Contains("as:public") ||
+             i.To.StringLinks.Contains("https://www.w3.org/ns/activitystreams#Public")) &&
+            i.Actor.StringLinks.Intersect(followingStrings).Any()
+        );
+        return filter;
     }
 
     [HttpPost("")]
@@ -188,7 +217,7 @@ public class InboxController : ControllerBase
                     _logger.LogDebug("InReply is not null");
 
                     if (new Uri(activity.Object.Objects?.First().InReplyTo?.StringLinks?.First() ?? "").Host ==
-                        Environment.GetEnvironmentVariable("DOMAINNAME"))
+                        GeneralConstants.DomainName)
                     {
                         _logger.LogDebug("Entering Outbox reply logic");
 
@@ -224,7 +253,7 @@ public class InboxController : ControllerBase
                     await _repository.Create(activity, DatabaseLocations.InboxFollow.Database,
                         DatabaseLocations.InboxFollow.Collection);
 
-                var domainName = Environment.GetEnvironmentVariable("DOMAINNAME")!;
+                var domainName = GeneralConstants.DomainName!;
                 var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
                 var actor = await _activityHandler.GetActorAsync(actorId, domainName);
 

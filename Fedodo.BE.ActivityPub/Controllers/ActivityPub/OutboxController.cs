@@ -1,4 +1,5 @@
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
@@ -38,7 +39,7 @@ public class OutboxController : ControllerBase
         var filterDefinitionBuilder = Builders<Activity>.Filter;
         // You have to do it like this because if you make everything in one call MongoDB does not like it anymore.
         var filter = filterDefinitionBuilder.Where(i => i.Actor.StringLinks.ToList()[0] == 
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}" && (i.To.StringLinks.Any(item =>
+            $"https://{GeneralConstants.DomainName}/actor/{actorId}" && (i.To.StringLinks.Any(item =>
             item == "https://www.w3.org/ns/activitystreams#Public") || i.To.StringLinks.Any(item =>
             item == "as:Public") || i.To.StringLinks.Any(item => item == "public")));
 
@@ -47,19 +48,19 @@ public class OutboxController : ControllerBase
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/outbox/{actorId}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}/page/0"
+                    $"https://{GeneralConstants.DomainName}/outbox/{actorId}/page/0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}/page/{postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/outbox/{actorId}/page/{postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -76,7 +77,7 @@ public class OutboxController : ControllerBase
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => i.Actor.StringLinks.ToList()[0] == 
-            $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{actorId}" && (i.To.StringLinks.Any(item =>
+            $"https://{GeneralConstants.DomainName}/actor/{actorId}" && (i.To.StringLinks.Any(item =>
                 item == "https://www.w3.org/ns/activitystreams#Public") || i.To.StringLinks.Any(item =>
                 item == "as:Public") || i.To.StringLinks.Any(item => item == "public")));
 
@@ -96,26 +97,26 @@ public class OutboxController : ControllerBase
 
         var orderedCollectionPage = new OrderedCollectionPage
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}/page/{pageId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/outbox/{actorId}/page/{pageId}"),
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}"
+                    $"https://{GeneralConstants.DomainName}/outbox/{actorId}"
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}/page/{previousPageId}"
+                    $"https://{GeneralConstants.DomainName}/outbox/{actorId}/page/{previousPageId}"
                 }
             },
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/outbox/{actorId}/page/{nextPageId}"
+                    $"https://{GeneralConstants.DomainName}/outbox/{actorId}/page/{nextPageId}"
                 }
             },
             Items = new TripleSet<Object>
@@ -129,15 +130,15 @@ public class OutboxController : ControllerBase
     }
 
     [HttpPost("{actorId:guid}")]
-    // [Authorize]
+    [Authorize]
     public async Task<ActionResult<Activity>> CreatePost(Guid actorId, [FromBody] CreateActivityDto activityDto)
     {
         _logger.LogTrace($"Entered {nameof(CreatePost)} in {nameof(OutboxController)}");
-        // if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyUser(actorId, HttpContext)) return Forbid();
 
         if (activityDto.IsNull()) return BadRequest("Activity can not be null");
 
-        var domainName = Environment.GetEnvironmentVariable("DOMAINNAME")!;
+        var domainName = GeneralConstants.DomainName!;
         
         var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
 

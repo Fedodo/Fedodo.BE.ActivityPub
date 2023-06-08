@@ -1,4 +1,5 @@
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
@@ -26,7 +27,7 @@ public class FollowersController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
-        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
+        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{userId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == fullUserId);
@@ -36,19 +37,19 @@ public class FollowersController : ControllerBase
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{userId}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page=0"
+                    $"https://{GeneralConstants.DomainName}/followers/{userId}?page=0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}?page={postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/followers/{userId}?page={postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -64,7 +65,7 @@ public class FollowersController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
 
-        var fullUserId = $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/actor/{userId}";
+        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{userId}";
 
         if (page.IsNull()) return Ok(await GetFollowers(userId));
 
@@ -83,26 +84,26 @@ public class FollowersController : ControllerBase
             {
                 Objects = follows
             },
-            Id = new Uri($"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{userId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page + 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{userId}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}/?page={page - 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{userId}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/followers/{userId}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{userId}" // TODO
                 }
             },
             TotalItems = follows.Count

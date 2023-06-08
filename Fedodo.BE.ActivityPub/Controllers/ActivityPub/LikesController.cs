@@ -1,5 +1,6 @@
 using System.Web;
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
@@ -40,19 +41,19 @@ public class LikesController : ControllerBase
         var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}"),
+                $"https://{GeneralConstants.DomainName}/likes/{HttpUtility.UrlEncode(postId)}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page=0"
+                    $"https://{GeneralConstants.DomainName}/likes/{HttpUtility.UrlEncode(postId)}?page=0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/likes/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -99,26 +100,26 @@ public class LikesController : ControllerBase
                 Objects = likes
             },
             Id = new Uri(
-                $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page}"),
+                $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page + 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}/?page={page - 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{Environment.GetEnvironmentVariable("DOMAINNAME")}/likes/{encodedPostId}"
+                    $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}"
                 }
             },
             TotalItems = likes.Count

@@ -45,7 +45,7 @@ public class ActivityHandler : IActivityHandler
             DatabaseLocations.Actors.Collection);
         return actor;
     }
-    
+
     public async Task<ActorSecrets?> GetActorSecretsAsync(Guid actorId, string domainName)
     {
         var filterActorDefinitionBuilder = Builders<ActorSecrets>.Filter;
@@ -106,7 +106,7 @@ public class ActivityHandler : IActivityHandler
 
         var definitionBuilder = Builders<Activity>.Filter;
         var filter = definitionBuilder.Where(i => i.Object == activity.Object && i.Actor == activity.Actor);
-        
+
         switch (activityDto.Type)
         {
             case "Create":
@@ -161,6 +161,12 @@ public class ActivityHandler : IActivityHandler
             }
             case "Follow":
             {
+                if (activity.Object.StringLinks?.FirstOrDefault().IsNotNullOrEmpty() ?? false)
+                {
+                    await _sharedInboxHandler.AddSharedInboxFromActorAsync(
+                        new Uri(activity.Object.StringLinks.FirstOrDefault()!));
+                }
+
                 var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxFollow.Database,
                     DatabaseLocations.OutboxFollow.Collection);
 
