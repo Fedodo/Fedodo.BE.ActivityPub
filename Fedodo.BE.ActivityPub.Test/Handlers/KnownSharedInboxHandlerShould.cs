@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fedodo.BE.ActivityPub.Handlers;
+using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
@@ -22,6 +23,7 @@ public class KnownSharedInboxHandlerShould
     {
         var logger = new Mock<ILogger<KnownSharedInboxHandler>>();
         var repository = new Mock<IMongoDbRepository>();
+        var actorApi = new Mock<IActorAPI>();
 
         _sharedInboxes = new List<SharedInbox>
         {
@@ -42,7 +44,7 @@ public class KnownSharedInboxHandlerShould
         repository.Setup(i => i.GetAll<SharedInbox>(DatabaseLocations.KnownSharedInbox.Database,
             DatabaseLocations.KnownSharedInbox.Collection)).ReturnsAsync(_sharedInboxes);
 
-        _handler = new KnownSharedInboxHandler(logger.Object, repository.Object);
+        _handler = new KnownSharedInboxHandler(logger.Object, repository.Object, actorApi.Object);
     }
 
     [Theory]
