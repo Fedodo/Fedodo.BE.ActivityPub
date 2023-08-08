@@ -7,6 +7,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <LangVersion>default</LangVersion>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,10 +18,10 @@
 
     <ItemGroup>
         <PackageReference Include="Fedodo.ActivityPub.Model" Version="2.0.27" />
-        <PackageReference Include="Fedodo.NuGet.Common" Version="1.0.24" />
+        <PackageReference Include="Fedodo.NuGet.Common" Version="1.0.27" />
         <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.13" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9" />
-        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.10" />
         <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.32.1" />
         <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.32.1" />
         <PackageReference Include="MongoDB.Driver" Version="2.20.0" />

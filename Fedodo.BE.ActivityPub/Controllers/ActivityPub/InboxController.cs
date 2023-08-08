@@ -22,44 +22,49 @@ public class InboxController : ControllerBase
     private readonly ILogger<InboxController> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IUserHandler _userHandler;
+    private readonly FollowingController _followingController;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
-        IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler)
+        IMongoDbRepository repository, IActivityHandler activityHandler, IUserHandler userHandler,
+        FollowingController followingController)
     {
         _logger = logger;
         _httpSignatureHandler = httpSignatureHandler;
         _repository = repository;
         _activityHandler = activityHandler;
         _userHandler = userHandler;
+        _followingController = followingController;
     }
 
-    [HttpGet("{actorId:guid}")]
+    [HttpGet("{actorGuid:guid}")]
     [Authorize]
-    public async Task<ActionResult<OrderedCollection>> GetPageInformation(Guid actorId)
+    public async Task<ActionResult<OrderedCollection>> GetInboxPageInformation(Guid actorGuid)
     {
-        if (!_userHandler.VerifyActorId(actorId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyActorId(actorGuid, HttpContext)) return Forbid();
 
         var filterBuilder = Builders<Activity>.Filter;
         var filter = filterBuilder.Where(i => i.Type == "Create" || i.Type == "Announce");
 
+        var followings = await _followingController.GetAllFollowings(actorGuid);
+
         var postCount =
-            await _repository.CountSpecific(DatabaseLocations.Inbox.Database, actorId.ToFullActorId(), filter);
+            await _repository.CountSpecificFromCollections(DatabaseLocations.Activity.Database, followings, filter);
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorGuid}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/0"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorGuid}/page/0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorGuid}/page/{postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -68,20 +73,23 @@ public class InboxController : ControllerBase
         return Ok(orderedCollection);
     }
 
-    [HttpGet("{actorId:guid}/page/{pageId:int}")]
+    [HttpGet("{actorGuid:guid}/page/{pageId:int}")]
     [Authorize]
-    public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid actorId, int pageId)
+    public async Task<ActionResult<OrderedCollectionPage>> GetPageInInbox(Guid actorGuid, int pageId)
     {
-        if (!_userHandler.VerifyActorId(actorId, HttpContext)) return Forbid();
+        if (!_userHandler.VerifyActorId(actorGuid, HttpContext)) return Forbid();
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = Builders<Activity>.Filter;
-        var filter = filterBuilder.Where(i => i.Type == "Create" || i.Type == "Announce");
+        var filter = filterBuilder.Where(i => i.To == "public" && (i.Type == "Create" || i.Type == "Announce"));
 
-        var page = (await _repository.GetSpecificPaged(filter: filter, databaseName: DatabaseLocations.Inbox.Database,
-            collectionName: actorId.ToFullActorId(), pageId: pageId, pageSize: 20, sortDefinition: sort)).ToList();
+        var followings = await _followingController.GetAllFollowings(actorGuid);
+
+        var page = (await _repository.GetSpecificPagedFromCollections(filter: filter,
+            databaseName: DatabaseLocations.Activity.Database,
+            collectionNames: followings, pageId: pageId, pageSize: 20, sortDefinition: sort)).ToList();
 
         var previousPageId = pageId - 1;
         if (previousPageId < 0) previousPageId = 0;
@@ -90,26 +98,26 @@ public class InboxController : ControllerBase
 
         var orderedCollectionPage = new OrderedCollectionPage
         {
-            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{pageId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/inbox/{actorGuid}/page/{pageId}"),
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorGuid}"
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{previousPageId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorGuid}/page/{previousPageId}"
                 }
             },
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/inbox/{actorId}/page/{nextPageId}"
+                    $"https://{GeneralConstants.DomainName}/inbox/{actorGuid}/page/{nextPageId}"
                 }
             },
             Items = new TripleSet<Object>
@@ -148,8 +156,6 @@ public class InboxController : ControllerBase
         if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{actorId}"))
             return BadRequest("Invalid Signature");
 
-        var fullActorId = actorId.ToFullActorId();
-
         if (activity.IsNull())
         {
             _logger.LogWarning($"Activity is NULL in {nameof(Inbox)}");
@@ -160,8 +166,17 @@ public class InboxController : ControllerBase
         if (activity.Published.IsNull() || activity.Published <= DateTime.Parse("2000-01-01"))
             activity.Published = DateTime.Now;
 
+        var activitySender = "";
+
         if (activity.Actor?.StringLinks?.FirstOrDefault().IsNotNull() ?? false)
+        {
+            activitySender = activity.Actor.StringLinks.FirstOrDefault()!;
             await _activityHandler.GetServerNameInboxPairAsync(new Uri(activity.Actor.StringLinks.First()), true);
+        }
+        else
+        {
+            return BadRequest("Actor can not be null");
+        }
 
         switch (activity.Type)
         {
@@ -171,8 +186,8 @@ public class InboxController : ControllerBase
 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Where(i => i.Type == "Create" && i.Id == activity.Id);
-                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.Inbox.Database,
-                    fullActorId);
+                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.Activity.Database,
+                    activitySender);
 
                 if (fItem.IsNotNullOrEmpty())
                 {
@@ -181,7 +196,7 @@ public class InboxController : ControllerBase
                     return BadRequest("Activity already exists");
                 }
 
-                await _repository.Create(activity, DatabaseLocations.Inbox.Database, fullActorId);
+                await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
 
                 _logger.LogDebug("Handling Reply Logic");
                 if (activity.Object!.Objects!.First().InReplyTo.IsNotNull())
@@ -193,13 +208,13 @@ public class InboxController : ControllerBase
                     {
                         _logger.LogDebug("Entering Outbox reply logic");
 
-                        await ReplyLogic(activity, DatabaseLocations.Outbox.Database, fullActorId);
+                        await ReplyLogic(activity, DatabaseLocations.Activity.Database, activitySender);
                     }
                     else
                     {
                         _logger.LogDebug("Entering Inbox reply logic");
 
-                        await ReplyLogic(activity, DatabaseLocations.Inbox.Database, fullActorId);
+                        await ReplyLogic(activity, DatabaseLocations.Activity.Database, activitySender);
                     }
                 }
                 else
@@ -216,10 +231,11 @@ public class InboxController : ControllerBase
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var helperFilter = definitionBuilder.Where(i => i.Type == "Follow" && i.Id == activity.Id);
-                var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.Inbox.Database, fullActorId);
+                var fItem = await _repository.GetSpecificItems(helperFilter, DatabaseLocations.Activity.Database,
+                    activitySender);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(activity, DatabaseLocations.Inbox.Database, fullActorId);
+                    await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
 
                 var domainName = GeneralConstants.DomainName!;
                 var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
@@ -276,14 +292,16 @@ public class InboxController : ControllerBase
                 }
 
                 var actorDefinitionBuilder = Builders<Activity>.Filter;
-                var filter = actorDefinitionBuilder.Where(i => i.Type == "Accept" && i.Id == activity.Object.Objects.FirstOrDefault()!.Id);
-                var sendActivity = await _repository.GetSpecificItem(filter, DatabaseLocations.Outbox.Database, fullActorId);
+                var filter = actorDefinitionBuilder.Where(i =>
+                    i.Type == "Accept" && i.Id == activity.Object.Objects.FirstOrDefault()!.Id);
+                var sendActivity =
+                    await _repository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
 
                 if (sendActivity.IsNotNull())
                 {
                     _logger.LogDebug("Found activity which was accepted");
 
-                    await _repository.Create(activity, DatabaseLocations.Inbox.Database, fullActorId);
+                    await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
                 }
                 else
                 {
@@ -298,12 +316,13 @@ public class InboxController : ControllerBase
 
                 var activityDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = activityDefinitionBuilder.Where(i => i.Type == "Announce" && i.Id == activity.Id);
-                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.Inbox.Database, fullActorId);
+                var fItem = await _repository.GetSpecificItems(postFilter, DatabaseLocations.Activity.Database,
+                    activitySender);
 
                 if (fItem.IsNotNullOrEmpty())
                     return BadRequest("Activity already exists");
 
-                await _repository.Create(activity, DatabaseLocations.Inbox.Database, fullActorId);
+                await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
 
                 break;
             }
@@ -313,10 +332,11 @@ public class InboxController : ControllerBase
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Where(i => i.Type == "Like" && i.Id == activity.Id);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                    activitySender);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(activity, DatabaseLocations.Inbox.Database, fullActorId);
+                    await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
                 else
                     _logger.LogWarning("Got another like of the same actor.");
 
@@ -327,7 +347,7 @@ public class InboxController : ControllerBase
                 var postDefinitionBuilder = Builders<Activity>.Filter;
                 var postFilter = postDefinitionBuilder.Where(i => i.Type == "Create" && i.Id == activity.Id);
 
-                await _repository.Update(activity, postFilter, DatabaseLocations.Inbox.Database, fullActorId);
+                await _repository.Update(activity, postFilter, DatabaseLocations.Activity.Database, activitySender);
 
                 break;
             }
@@ -344,10 +364,11 @@ public class InboxController : ControllerBase
 
                         var definitionBuilder = Builders<Activity>.Filter;
                         var filter = definitionBuilder.Where(i => i.Type == "Like" && i.Actor == activity.Actor);
-                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                            activitySender);
 
                         if (fItem.IsNotNullOrEmpty())
-                            await _repository.Delete(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                            await _repository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
                         else
                             _logger.LogWarning("Got no like of the same actor.");
 
@@ -359,10 +380,11 @@ public class InboxController : ControllerBase
 
                         var definitionBuilder = Builders<Activity>.Filter;
                         var filter = definitionBuilder.Where(i => i.Type == "Announce" && i.Id == activity.Id);
-                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                            activitySender);
 
                         if (fItem.IsNotNullOrEmpty())
-                            await _repository.Delete(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                            await _repository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
                         else
                             _logger.LogWarning("Found no share of this actor to undo.");
 
@@ -377,10 +399,11 @@ public class InboxController : ControllerBase
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Where(i => i.Type == "Create" && i.Id == activity.Id);
 
-                var specificItem = await _repository.GetSpecificItem(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                var specificItem =
+                    await _repository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
 
                 if (activity.Actor == specificItem.Actor)
-                    await _repository.Delete(filter, DatabaseLocations.Inbox.Database, fullActorId);
+                    await _repository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
 
                 break;
             }
