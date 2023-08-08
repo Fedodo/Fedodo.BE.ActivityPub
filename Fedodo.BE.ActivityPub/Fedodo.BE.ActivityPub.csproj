@@ -17,16 +17,16 @@
 
     <ItemGroup>
         <PackageReference Include="Fedodo.ActivityPub.Model" Version="2.0.27" />
-        <PackageReference Include="Fedodo.NuGet.Common" Version="1.0.21" />
+        <PackageReference Include="Fedodo.NuGet.Common" Version="1.0.23" />
         <PackageReference Include="LNA-DEV.CommonExtensions" Version="1.2.13" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
-        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.5" />
-        <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.30.1" />
-        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.30.1" />
-        <PackageReference Include="MongoDB.Driver" Version="2.19.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="7.0.9" />
+        <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.32.1" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.32.1" />
+        <PackageReference Include="MongoDB.Driver" Version="2.20.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.8" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
     </ItemGroup>
 
     <ItemGroup>
