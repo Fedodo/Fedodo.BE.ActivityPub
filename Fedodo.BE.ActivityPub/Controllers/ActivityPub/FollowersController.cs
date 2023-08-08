@@ -23,33 +23,32 @@ public class FollowersController : ControllerBase
         _repository = repository;
     }
 
-    private async Task<OrderedCollection> GetFollowers(Guid userId)
+    private async Task<OrderedCollection> GetFollowers(Guid actorId)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
 
-        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{userId}";
+        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == fullUserId);
+        var filter = filterBuilder.Where(i => i.Type == "Follow" && i.Object!.StringLinks!.First() == fullUserId);
 
-        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxFollow.Database,
-            DatabaseLocations.InboxFollow.Collection, filter);
+        var postCount = await _repository.CountSpecific(DatabaseLocations.Inbox.Database, fullUserId, filter);
 
         var orderedCollection = new OrderedCollection
         {
-            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{userId}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{actorId}"),
             First = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{userId}?page=0"
+                    $"https://{GeneralConstants.DomainName}/followers/{actorId}?page=0"
                 }
             },
             Last = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{userId}?page={postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/followers/{actorId}?page={postCount / 20}"
                 }
             },
             TotalItems = postCount
@@ -59,24 +58,24 @@ public class FollowersController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{userId}")]
-    public async Task<ActionResult<OrderedCollectionPage>> GetFollowersPage(Guid userId,
+    [Route("{actorId}")]
+    public async Task<ActionResult<OrderedCollectionPage>> GetFollowersPage(Guid actorId,
         [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
 
-        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{userId}";
+        var fullActorId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
 
-        if (page.IsNull()) return Ok(await GetFollowers(userId));
+        if (page.IsNull()) return Ok(await GetFollowers(actorId));
 
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == fullUserId);
+        var filter = filterBuilder.Where(i => i.Type == "Follow" && i.Object!.StringLinks!.First() == fullActorId);
 
-        var follows = (await _repository.GetSpecificPaged(DatabaseLocations.InboxFollow.Database,
-            DatabaseLocations.InboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
+        var follows = (await _repository.GetSpecificPaged(DatabaseLocations.Inbox.Database,
+            fullActorId, (int)page, 20, sort, filter)).ToList();
 
         var orderedCollection = new OrderedCollectionPage
         {
@@ -84,26 +83,26 @@ public class FollowersController : ControllerBase
             {
                 Objects = follows
             },
-            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{userId}/?page={page}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{actorId}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{userId}/?page={page + 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{actorId}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{userId}/?page={page - 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{actorId}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{userId}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{actorId}" // TODO
                 }
             },
             TotalItems = follows.Count

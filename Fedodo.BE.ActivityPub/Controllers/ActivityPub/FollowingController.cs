@@ -31,10 +31,10 @@ public class FollowingController : ControllerBase
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i =>
-            i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
+            i.Type == "Follow" && i.Actor != null && i.Actor.StringLinks != null &&
+            i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
 
-        var postCount = await _repository.CountSpecific(DatabaseLocations.OutboxFollow.Database,
-            DatabaseLocations.OutboxFollow.Collection, filter);
+        var postCount = await _repository.CountSpecific(DatabaseLocations.Outbox.Database, fullUserId, filter);
 
         var orderedCollection = new OrderedCollection
         {
@@ -75,10 +75,11 @@ public class FollowingController : ControllerBase
 
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         var filter = filterBuilder.Where(i =>
-            i.Actor != null && i.Actor.StringLinks != null && i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
+            i.Type == "Follow" && i.Actor != null && i.Actor.StringLinks != null &&
+            i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
 
-        var followings = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxFollow.Database,
-            DatabaseLocations.OutboxFollow.Collection, (int)page, 20, sort, filter)).ToList();
+        var followings = (await _repository.GetSpecificPaged(DatabaseLocations.Outbox.Database,
+            fullUserId, (int)page, 20, sort, filter)).ToList();
 
         var orderedCollection = new OrderedCollectionPage
         {
