@@ -1,3 +1,4 @@
+using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
@@ -28,8 +29,10 @@ public class FollowerRepository : IFollowerRepository
 
         var accepts = await _repository.GetSpecificPaged(DatabaseLocations.Activity.Database,
             actorId, page, 20, sort, _filterDefinition);
-        
-        return follows;
+
+        var temp = accepts.Select(i => i.Object?.Objects?.FirstOrDefault());
+
+        return from item in temp where !item.IsNull() where item.GetType() == typeof(Activity) select (Activity)item;
     }
 
     public async Task<long> CountFollowersAsync(string actorId)
