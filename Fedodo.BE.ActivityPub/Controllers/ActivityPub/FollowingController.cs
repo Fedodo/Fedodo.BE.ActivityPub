@@ -1,5 +1,6 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
+using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
@@ -24,60 +25,22 @@ public class FollowingController : ControllerBase
         _followingRepository = followingRepository;
     }
 
-    private async Task<OrderedCollection> GetFollowings(Guid actorId)
-    {
-        _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
-
-        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
-
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i =>
-            i.Type == "Follow" && i.Actor != null && i.Actor.StringLinks != null &&
-            i.Actor.StringLinks.ToList()[0].ToString() == fullUserId);
-
-        var postCount = await _repository.CountSpecific(DatabaseLocations.Activity.Database, fullUserId, filter);
-
-        var orderedCollection = new OrderedCollection
-        {
-            Id = new Uri($"https://{GeneralConstants.DomainName}/following/{actorId}"),
-            First = new TripleSet<OrderedCollectionPage>
-            {
-                StringLinks = new[]
-                {
-                    $"https://{GeneralConstants.DomainName}/following/{actorId}?page=0"
-                }
-            },
-            Last = new TripleSet<OrderedCollectionPage>
-            {
-                StringLinks = new[]
-                {
-                    $"https://{GeneralConstants.DomainName}/following/{actorId}?page={postCount / 20}"
-                }
-            },
-            TotalItems = postCount
-        };
-
-        return orderedCollection;
-    }
-
     [HttpGet]
     [Route("{actorGuid}")]
-    public async Task<ActionResult<OrderedCollectionPage>> GetFollowingsPage(Guid actorGuid,
-        [FromQuery] int? page = null)
+    public async Task<ActionResult<OrderedCollectionPage>> GetFollowingsPage(Guid actorGuid, [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowingsPage)} in {nameof(FollowingController)}");
-
-        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{actorGuid}";
-
+        
         if (page.IsNull()) return Ok(await GetFollowings(actorGuid));
 
-        var followings = await _followingRepository.GetFollowingsPage(fullUserId, (int)page);
-
+        var followings = await _followingRepository.GetFollowingsPageAsync(actorGuid.ToFullActorId(), (int)page);
+        var activities = followings.ToList();
+        
         var orderedCollection = new OrderedCollectionPage
         {
             Items = new TripleSet<Object>
             {
-                Objects = followings
+                Objects = activities
             },
             Id = new Uri($"https://{GeneralConstants.DomainName}/following/{actorGuid}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
@@ -101,34 +64,38 @@ public class FollowingController : ControllerBase
                     $"https://{GeneralConstants.DomainName}/following/{actorGuid}" // TODO
                 }
             },
-            TotalItems = followings.Count
+            TotalItems = activities.Count
         };
 
         return Ok(orderedCollection);
     }
-
-    internal async Task<List<string>> GetAllFollowings(Guid actorGuid)
+    
+    private async Task<OrderedCollection> GetFollowings(Guid actorGuid)
     {
-        List<string> links = new();
+        _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
         
-        var followingsInfo = await GetFollowings(actorGuid);
-        var totalItems = followingsInfo.TotalItems;
+        var postCount = await _followingRepository.CountFollowingsAsync(actorGuid.ToFullActorId());
 
-        var counter = 0;
-        while (totalItems > links.Count)
+        var orderedCollection = new OrderedCollection
         {
-            var followingPage = (await GetFollowingsPage(actorGuid, counter)).Value;
-
-            if (followingPage?.Items?.StringLinks.IsNullOrEmpty() ?? true)
+            Id = new Uri($"https://{GeneralConstants.DomainName}/following/{actorGuid}"),
+            First = new TripleSet<OrderedCollectionPage>
             {
-                continue;
-            }
-            
-            links.AddRange(followingPage.Items.StringLinks);
+                StringLinks = new[]
+                {
+                    $"https://{GeneralConstants.DomainName}/following/{actorGuid}?page=0"
+                }
+            },
+            Last = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{GeneralConstants.DomainName}/following/{actorGuid}?page={postCount / 20}"
+                }
+            },
+            TotalItems = postCount
+        };
 
-            counter++;
-        }
-
-        return links;
+        return orderedCollection;
     }
 }

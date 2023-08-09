@@ -4,5 +4,7 @@ namespace Fedodo.BE.ActivityPub.Interfaces.Repositories;
 
 public interface IFollowingRepository
 {
-    public Task<List<Activity>> GetFollowingsPage(string actorId, int page);
+    public Task<IEnumerable<Activity>> GetFollowingsPageAsync(string actorId, int page);
+    public Task<long> CountFollowingsAsync(string actorId);
+    public Task<IEnumerable<string>> GetAllFollowingsAsync(string actorId);
 }
