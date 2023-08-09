@@ -1,5 +1,7 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
+using Fedodo.BE.ActivityPub.Extensions;
+using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
@@ -15,67 +17,23 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 public class FollowersController : ControllerBase
 {
     private readonly ILogger<FollowersController> _logger;
-    private readonly IMongoDbRepository _repository;
+    private readonly IFollowerRepository _followerRepository;
 
-    public FollowersController(ILogger<FollowersController> logger, IMongoDbRepository repository)
+    public FollowersController(ILogger<FollowersController> logger, IFollowerRepository followerRepository)
     {
         _logger = logger;
-        _repository = repository;
-    }
-
-    private async Task<OrderedCollection> GetFollowers(Guid actorId)
-    {
-        _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
-
-        var fullUserId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
-
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Type == "Follow" && i.Object!.StringLinks!.First() == fullUserId);
-
-        var postCount = await _repository.CountSpecific(DatabaseLocations.Inbox.Database, fullUserId, filter);
-
-        var orderedCollection = new OrderedCollection
-        {
-            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{actorId}"),
-            First = new TripleSet<OrderedCollectionPage>
-            {
-                StringLinks = new[]
-                {
-                    $"https://{GeneralConstants.DomainName}/followers/{actorId}?page=0"
-                }
-            },
-            Last = new TripleSet<OrderedCollectionPage>
-            {
-                StringLinks = new[]
-                {
-                    $"https://{GeneralConstants.DomainName}/followers/{actorId}?page={postCount / 20}"
-                }
-            },
-            TotalItems = postCount
-        };
-
-        return orderedCollection;
+        _followerRepository = followerRepository;
     }
 
     [HttpGet]
-    [Route("{actorId}")]
-    public async Task<ActionResult<OrderedCollectionPage>> GetFollowersPage(Guid actorId,
-        [FromQuery] int? page = null)
+    [Route("{actorGuid}")]
+    public async Task<ActionResult<OrderedCollectionPage>> GetFollowersPage(Guid actorGuid, [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
+        
+        if (page.IsNull()) return Ok(await GetFollowers(actorGuid));
 
-        var fullActorId = $"https://{GeneralConstants.DomainName}/actor/{actorId}";
-
-        if (page.IsNull()) return Ok(await GetFollowers(actorId));
-
-        var builder = Builders<Activity>.Sort;
-        var sort = builder.Descending(i => i.Published);
-
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Type == "Follow" && i.Object!.StringLinks!.First() == fullActorId);
-
-        var follows = (await _repository.GetSpecificPaged(DatabaseLocations.Inbox.Database,
-            fullActorId, (int)page, 20, sort, filter)).ToList();
+        var follows = (await _followerRepository.GetFollowersPagedAsync(actorGuid.ToFullActorId(), (int)page)).ToList();
 
         var orderedCollection = new OrderedCollectionPage
         {
@@ -83,31 +41,60 @@ public class FollowersController : ControllerBase
             {
                 Objects = follows
             },
-            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{actorId}/?page={page}"),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{actorGuid}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{actorId}/?page={page + 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{actorGuid}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{actorId}/?page={page - 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{actorGuid}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/followers/{actorId}" // TODO
+                    $"https://{GeneralConstants.DomainName}/followers/{actorGuid}" // TODO
                 }
             },
             TotalItems = follows.Count
         };
 
         return Ok(orderedCollection);
+    }
+    
+    private async Task<OrderedCollection> GetFollowers(Guid actorGuid)
+    {
+        _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");
+
+        var postCount = await _followerRepository.CountFollowersAsync(actorGuid.ToFullActorId());
+
+        var orderedCollection = new OrderedCollection
+        {
+            Id = new Uri($"https://{GeneralConstants.DomainName}/followers/{actorGuid}"),
+            First = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{GeneralConstants.DomainName}/followers/{actorGuid}?page=0"
+                }
+            },
+            Last = new TripleSet<OrderedCollectionPage>
+            {
+                StringLinks = new[]
+                {
+                    $"https://{GeneralConstants.DomainName}/followers/{actorGuid}?page={postCount / 20}"
+                }
+            },
+            TotalItems = postCount
+        };
+
+        return orderedCollection;
     }
 }

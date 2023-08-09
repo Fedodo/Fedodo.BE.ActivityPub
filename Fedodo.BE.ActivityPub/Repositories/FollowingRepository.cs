@@ -10,12 +10,14 @@ namespace Fedodo.BE.ActivityPub.Repositories;
 public class FollowingRepository : IFollowingRepository
 {
     private readonly IMongoDbRepository _mongoDbRepository;
+    private readonly ILogger _logger;
     private readonly FilterDefinition<Activity> _filterDefinition;
 
-    public FollowingRepository(IMongoDbRepository mongoDbRepository)
+    public FollowingRepository(IMongoDbRepository mongoDbRepository, ILogger logger)
     {
         _mongoDbRepository = mongoDbRepository;
-        
+        _logger = logger;
+
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         _filterDefinition = filterBuilder.Where(i => i.Type == "Follow");
     }
