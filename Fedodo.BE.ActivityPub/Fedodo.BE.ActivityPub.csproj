@@ -36,10 +36,12 @@
         <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />
         <_ContentIncludedByDefault Remove="Views\_ViewImports.cshtml" />
         <_ContentIncludedByDefault Remove="Views\_ViewStart.cshtml" />
+        <_ContentIncludedByDefault Remove="Views\Error\NotFoundPage.cshtml" />
+        <_ContentIncludedByDefault Remove="wwwroot\css\site.css" />
+        <_ContentIncludedByDefault Remove="wwwroot\Images\Fedodo.svg" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="wwwroot\Images\Fedodo.svg" />
         <None Remove="Properties\launchSettings.json" />
     </ItemGroup>
 
