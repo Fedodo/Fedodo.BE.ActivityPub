@@ -8,13 +8,13 @@ namespace Fedodo.BE.ActivityPub.Services;
 public class InboxService : IInboxService
 {
     private readonly ILogger<InboxService> _logger;
-    private readonly IActivityHandler _activityHandler;
+    private readonly ICreateActivityService _createActivityService;
     private readonly IImportActivityService _importActivityService;
 
-    public InboxService(ILogger<InboxService> logger, IActivityHandler activityHandler, IImportActivityService importActivityService)
+    public InboxService(ILogger<InboxService> logger, ICreateActivityService createActivityService, IImportActivityService importActivityService)
     {
         _logger = logger;
-        _activityHandler = activityHandler;
+        _createActivityService = createActivityService;
         _importActivityService = importActivityService;
     }
 
@@ -33,7 +33,7 @@ public class InboxService : IInboxService
         if (activity.Actor?.StringLinks?.FirstOrDefault().IsNotNull() ?? false)
         {
             activitySender = activity.Actor.StringLinks.FirstOrDefault()!;
-            await _activityHandler.GetServerNameInboxPairAsync(new Uri(activity.Actor.StringLinks.First()), true);
+            await _createActivityService.GetServerNameInboxPairAsync(new Uri(activity.Actor.StringLinks.First()), true);
         }
         else
         {

@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CommonExtensions;
-using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
+using Fedodo.BE.ActivityPub.Services;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
@@ -30,11 +30,11 @@ namespace Fedodo.BE.ActivityPub.Test.Handlers;
 public class ActivityHandlerShould
 {
     private readonly Actor _actor;
-    private readonly ActivityHandler _handler;
+    private readonly CreateActivityService _service;
 
     public ActivityHandlerShould()
     {
-        var logger = new Mock<ILogger<ActivityHandler>>();
+        var logger = new Mock<ILogger<CreateActivityService>>();
         var repository = new Mock<IMongoDbRepository>();
         var actorApi = new Mock<IActorAPI>();
         var activityApi = new Mock<IActivityAPI>();
@@ -99,7 +99,7 @@ public class ActivityHandlerShould
 
         actorApi.Setup(i => i.GetActor(It.Is<Uri>(i => i != new Uri("https://example.com/fail")))).ReturnsAsync(_actor);
 
-        _handler = new ActivityHandler(logger.Object, repository.Object, actorApi.Object,
+        _service = new CreateActivityService(logger.Object, repository.Object, actorApi.Object,
             activityApi.Object, sharedInboxHandler.Object, collectionApi.Object);
     }
 
@@ -124,7 +124,7 @@ public class ActivityHandlerShould
         };
 
         // Act
-        var result = await _handler.CreateActivity(new Guid(userId), dto, "example.com");
+        var result = await _service.CreateActivity(new Guid(userId), dto, "example.com");
 
         // Assert
         result.ShouldNotBeNull();
@@ -143,7 +143,7 @@ public class ActivityHandlerShould
         // Arrange
 
         // Act
-        var result = await _handler.GetActorAsync(new Guid(userId), domainName);
+        var result = await _service.GetActorAsync(new Guid(userId), domainName);
 
         // Assert
         result.ShouldNotBeNull();
@@ -208,7 +208,7 @@ public class ActivityHandlerShould
         };
 
         // Act
-        var result = await _handler.SendActivitiesAsync(activity, user, _actor);
+        var result = await _service.SendActivitiesAsync(activity, user, _actor);
 
         // Assert
         result.ShouldNotBe(userName == "Fail");
@@ -225,7 +225,7 @@ public class ActivityHandlerShould
         var target = new Uri(targetString);
 
         // Act
-        var result = await _handler.GetServerNameInboxPairsAsync(target, isPublic);
+        var result = await _service.GetServerNameInboxPairsAsync(target, isPublic);
 
         // Assert
         result.ShouldNotBeNull();

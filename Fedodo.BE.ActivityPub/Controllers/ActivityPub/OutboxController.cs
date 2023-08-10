@@ -1,6 +1,7 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
@@ -18,17 +19,17 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 [Produces("application/json")]
 public class OutboxController : ControllerBase
 {
-    private readonly IActivityHandler _activityHandler;
+    private readonly ICreateActivityService _createActivityService;
     private readonly ILogger<OutboxController> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IUserHandler _userHandler;
 
     public OutboxController(ILogger<OutboxController> logger, IMongoDbRepository repository,
-        IActivityHandler activityHandler, IUserHandler userHandler)
+        ICreateActivityService createActivityService, IUserHandler userHandler)
     {
         _logger = logger;
         _repository = repository;
-        _activityHandler = activityHandler;
+        _createActivityService = createActivityService;
         _userHandler = userHandler;
     }
 
@@ -140,7 +141,7 @@ public class OutboxController : ControllerBase
 
         var domainName = GeneralConstants.DomainName!;
         
-        var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, domainName);
+        var actorSecrets = await _createActivityService.GetActorSecretsAsync(actorId, domainName);
 
         if (actorSecrets.IsNull())
         {
@@ -148,13 +149,13 @@ public class OutboxController : ControllerBase
             return BadRequest("ActorId is not correct");
         }
         
-        var actor = await _activityHandler.GetActorAsync(actorId, domainName);
+        var actor = await _createActivityService.GetActorAsync(actorId, domainName);
         var activity =
-            await _activityHandler.CreateActivity(actorId, activityDto, domainName);
+            await _createActivityService.CreateActivity(actorId, activityDto, domainName);
 
         if (activity.IsNull()) return BadRequest("Activity could not be created. Check if Activity Type is supported.");
 
-        await _activityHandler.SendActivitiesAsync(activity, actorSecrets, actor);
+        await _createActivityService.SendActivitiesAsync(activity, actorSecrets, actor);
 
         return Created(activity.Id, activity);
     }

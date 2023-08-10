@@ -1,4 +1,5 @@
 using Fedodo.BE.ActivityPub.Constants;
+using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.BE.ActivityPub.Model;
 using Fedodo.BE.ActivityPub.Model.NodeInfo;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
@@ -13,12 +14,12 @@ namespace Fedodo.BE.ActivityPub.Controllers;
 public class NodeInfoController : ControllerBase
 {
     private readonly ILogger<NodeInfoController> _logger;
-    private readonly IMongoDbRepository _repository;
+    private readonly INodeInfoRepository _nodeInfoRepository;
 
-    public NodeInfoController(ILogger<NodeInfoController> logger, IMongoDbRepository repository)
+    public NodeInfoController(ILogger<NodeInfoController> logger, INodeInfoRepository nodeInfoRepository)
     {
         _logger = logger;
-        _repository = repository;
+        _nodeInfoRepository = nodeInfoRepository;
     }
 
     [HttpGet(".well-known/nodeinfo")]
@@ -69,17 +70,13 @@ public class NodeInfoController : ControllerBase
             },
             Usage = new Usage
             {
-                LocalPosts =
-                    await _repository.CountAll<Activity>(DatabaseLocations.OutboxCreate.Database,
-                        DatabaseLocations.OutboxCreate.Collection) + await _repository.CountAll<Activity>(
-                        DatabaseLocations.OutboxAnnounce.Database, DatabaseLocations.OutboxAnnounce.Collection),
+                LocalPosts = await _nodeInfoRepository.CountLocalPostsAsync(),
                 LocalComments = 0, // TODO
                 Users = new Users
                 {
                     ActiveHalfyear = 1, // TODO
                     ActiveMonth = 1, // TODO
-                    Total = await _repository.CountAll<Activity>(DatabaseLocations.Actors.Database,
-                        DatabaseLocations.Actors.Collection)
+                    Total = await _nodeInfoRepository.CountLocalActorsAsync()
                 }
             },
             OpenRegistrations = true,

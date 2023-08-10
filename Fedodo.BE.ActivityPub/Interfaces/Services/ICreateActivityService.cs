@@ -4,13 +4,11 @@ using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Models;
 
-namespace Fedodo.BE.ActivityPub.Interfaces;
+namespace Fedodo.BE.ActivityPub.Interfaces.Services;
 
-public interface IActivityHandler
+public interface ICreateActivityService
 {
     public Task<bool> SendActivitiesAsync(Activity activity, ActorSecrets actorSecrets, Actor actor);
-    public Task<Actor> GetActorAsync(string actorId, string domainName);
-    public Task<Activity?> CreateActivity(string actorId, CreateActivityDto activityDto, string domainName);
+    public Task<Activity?> CreateActivity(string actorId, CreateActivityDto activityDto);
     public Task<ServerNameInboxPair?> GetServerNameInboxPairAsync(Uri actorUri, bool isPublic);
-    public Task<ActorSecrets> GetActorSecretsAsync(string actorId, string domainName);
 }

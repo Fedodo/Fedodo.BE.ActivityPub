@@ -1,8 +1,9 @@
 using System.Text.Json;
 using CommonExtensions;
+using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Extensions;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
@@ -16,52 +17,34 @@ using Fedodo.NuGet.Common.Models;
 using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
-namespace Fedodo.BE.ActivityPub.Handlers;
+namespace Fedodo.BE.ActivityPub.Services;
 
-public class ActivityHandler : IActivityHandler
+public class CreateActivityService : ICreateActivityService
 {
     private readonly IActivityAPI _activityApi;
     private readonly IActorAPI _actorApi;
     private readonly ICollectionApi _collectionApi;
-    private readonly ILogger<ActivityHandler> _logger;
-    private readonly IMongoDbRepository _repository;
+    private readonly IActivityRepository _activityRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IMongoDbRepository _mongoDbRepository;
+    private readonly ILogger<CreateActivityService> _logger;
     private readonly IKnownSharedInboxService _sharedInboxService;
 
-    public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi,
-        IActivityAPI activityApi, IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi)
+    public CreateActivityService(ILogger<CreateActivityService> logger, IActorAPI actorApi, IActivityAPI activityApi,
+        IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi,
+        IActivityRepository activityRepository, IUserRepository userRepository, IMongoDbRepository mongoDbRepository)
     {
         _logger = logger;
-        _repository = repository;
         _actorApi = actorApi;
         _activityApi = activityApi;
         _sharedInboxService = sharedInboxService;
         _collectionApi = collectionApi;
+        _activityRepository = activityRepository;
+        _userRepository = userRepository;
+        _mongoDbRepository = mongoDbRepository;
     }
 
-    public async Task<Actor> GetActorAsync(string actorId, string domainName)
-    {
-        var filterActorDefinitionBuilder = Builders<Actor>.Filter;
-        var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id, new Uri(actorId));
-        var actor = await _repository.GetSpecificItem(filterActor, DatabaseLocations.Actors.Database, DatabaseLocations.Actors.Collection);
-
-        if (actor.IsNull())
-        {
-            // In this case a 500 response is correct
-            throw new ApplicationException("Actor was null but should not be");
-        }
-        
-        return actor;
-    }
-
-    public async Task<ActorSecrets?> GetActorSecretsAsync(string actorId, string domainName)
-    {
-        var filterActorDefinitionBuilder = Builders<ActorSecrets>.Filter;
-        var filterActor = filterActorDefinitionBuilder.Eq(i => i.ActorId, new Uri(actorId));
-        var actorSecrets = await _repository.GetSpecificItem(filterActor, DatabaseLocations.ActorSecrets.Database, DatabaseLocations.ActorSecrets.Collection);
-        return actorSecrets;
-    }
-
-    public async Task<Activity?> CreateActivity(string actorId, CreateActivityDto activityDto, string domainName)
+    public async Task<Activity?> CreateActivity(string actorId, CreateActivityDto activityDto)
     {
         var activityId = Guid.NewGuid();
         object? obj;
@@ -75,7 +58,7 @@ public class ActivityHandler : IActivityHandler
                     actorId
                 }
             },
-            Id = new Uri($"https://{domainName}/outbox/{activityDto.Type}/{activityId}".ToLower()),
+            Id = new Uri($"https://{GeneralConstants.DomainName}/outbox/{activityDto.Type}/{activityId}".ToLower()),
             Type = activityDto.Type,
             To = new TripleSet<Object>
             {
@@ -129,7 +112,7 @@ public class ActivityHandler : IActivityHandler
                             Sensitive = createPostDto?.Sensitive,
                             InReplyTo = createPostDto?.InReplyTo,
                             Content = createPostDto?.Content,
-                            Id = new Uri($"https://{domainName}/posts/{activityId}"),
+                            Id = new Uri($"https://{GeneralConstants.DomainName}/posts/{activityId}"),
                             Type = createPostDto?.Type,
                             Published = createPostDto?.Published,
                             AttributedTo = new TripleSet<Object>
@@ -139,14 +122,13 @@ public class ActivityHandler : IActivityHandler
                                     actorId
                                 }
                             },
-                            Shares = new Uri($"https://{domainName}/shares/{activityId}"),
-                            Likes = new Uri($"https://{domainName}/likes/{activityId}")
+                            Shares = new Uri($"https://{GeneralConstants.DomainName}/shares/{activityId}"),
+                            Likes = new Uri($"https://{GeneralConstants.DomainName}/likes/{activityId}")
                         }
                     }
                 };
 
-                await _repository.Create(activity, DatabaseLocations.OutboxCreate.Database,
-                    DatabaseLocations.OutboxCreate.Collection);
+                await _mongoDbRepository.Create(activity, DatabaseLocations.Activity.Database, actorId);
 
                 break;
             }
@@ -197,7 +179,7 @@ public class ActivityHandler : IActivityHandler
             }
             default:
             {
-                _logger.LogWarning($"Entered default case in {nameof(CreateActivity)} in {nameof(ActivityHandler)}");
+                _logger.LogWarning($"Entered default case in {nameof(CreateActivity)} in {nameof(CreateActivityService)}");
 
                 return null;
             }
@@ -208,7 +190,7 @@ public class ActivityHandler : IActivityHandler
 
     public async Task<bool> SendActivitiesAsync(Activity activity, ActorSecrets actorSecrets, Actor actor)
     {
-        _logger.LogTrace($"Entered {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
+        _logger.LogTrace($"Entered {nameof(SendActivitiesAsync)} in {nameof(CreateActivityService)}");
 
         var everythingSuccessful = true;
 
@@ -300,7 +282,7 @@ public class ActivityHandler : IActivityHandler
             }
         }
 
-        _logger.LogTrace($"Left {nameof(SendActivitiesAsync)} in {nameof(ActivityHandler)}");
+        _logger.LogTrace($"Left {nameof(SendActivitiesAsync)} in {nameof(CreateActivityService)}");
 
         return everythingSuccessful;
     }
@@ -352,7 +334,7 @@ public class ActivityHandler : IActivityHandler
 
             if (collection.IsNull() || collection.Items.IsNull() || collection.Items.StringLinks.IsNull())
                 _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
-                                   $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
+                                   $"{nameof(CreateActivityService)} with {nameof(target)}=\"{target}\"");
             else
                 foreach (var item in collection.Items.StringLinks)
                 {
@@ -371,7 +353,7 @@ public class ActivityHandler : IActivityHandler
             if (orderedCollection.IsNull() || orderedCollection.Items.IsNull() ||
                 orderedCollection.Items.StringLinks.IsNull())
                 _logger.LogWarning($"Could not retrieve an object in {nameof(GetServerNameInboxPairsAsync)} -> " +
-                                   $"{nameof(ActivityHandler)} with {nameof(target)}=\"{target}\"");
+                                   $"{nameof(CreateActivityService)} with {nameof(target)}=\"{target}\"");
             else
                 foreach (var item in orderedCollection.Items.StringLinks)
                 {

@@ -16,25 +16,28 @@ public class ImportActivityService : IImportActivityService
 {
     private readonly ILogger<ImportActivityService> _logger;
     private readonly IInboxRepository _inboxRepository;
-    private readonly IActivityHandler _activityHandler;
+    private readonly ICreateActivityService _createActivityService;
     private readonly IMongoDbRepository _mongoDbRepository;
+    private readonly IUserRepository _userRepository;
 
-    public ImportActivityService(ILogger<ImportActivityService> logger, IInboxRepository inboxRepository, IActivityHandler activityHandler, IMongoDbRepository mongoDbRepository)
+    public ImportActivityService(ILogger<ImportActivityService> logger, IInboxRepository inboxRepository,
+        ICreateActivityService createActivityService, IMongoDbRepository mongoDbRepository, IUserRepository userRepository)
     {
         _logger = logger;
         _inboxRepository = inboxRepository;
-        _activityHandler = activityHandler;
+        _createActivityService = createActivityService;
         _mongoDbRepository = mongoDbRepository;
+        _userRepository = userRepository;
     }
 
     public async Task Create(Activity activity, string activitySender)
     {
         _logger.LogTrace($"Entered {nameof(Create)}");
-        
+
         await _inboxRepository.AddAsync(activity, activitySender);
 
         _logger.LogDebug("Handling Reply Logic");
-        
+
         if (activity.Object!.Objects!.First().InReplyTo.IsNotNull())
         {
             _logger.LogDebug("InReply is not null");
@@ -68,18 +71,19 @@ public class ImportActivityService : IImportActivityService
 
     public async Task Follow(Activity activity, string activitySender, string actorId)
     {
-        _logger.LogDebug($"Got follow for \"{activity.Object?.StringLinks?.FirstOrDefault()}\" from \"{activity.Actor}\"");
+        _logger.LogDebug(
+            $"Got follow for \"{activity.Object?.StringLinks?.FirstOrDefault()}\" from \"{activity.Actor}\"");
 
         await _inboxRepository.AddAsync(activity, activitySender);
 
-        var actorSecrets = await _activityHandler.GetActorSecretsAsync(actorId, GeneralConstants.DomainName);
-        var actor = await _activityHandler.GetActorAsync(actorId, GeneralConstants.DomainName);
+        var actorSecrets = await _userRepository.GetActorSecretsAsync(actorId);
+        var actor = await _userRepository.GetActorByIdAsync(actorId);
 
         if (actor.IsNull() || actor.Id.IsNull())
         {
             throw new ArgumentNullException($"{nameof(actor)} or {nameof(actor.Id)}");
         }
-        
+
         var acceptActivity = new Activity
         {
             Id = new Uri($"https://{GeneralConstants.DomainName}/accepts/{Guid.NewGuid()}"),
@@ -107,7 +111,7 @@ public class ImportActivityService : IImportActivityService
             }
         };
 
-        await _activityHandler.SendActivitiesAsync(acceptActivity, actorSecrets, actor);
+        await _createActivityService.SendActivitiesAsync(acceptActivity, actorSecrets, actor);
 
         _logger.LogDebug("Completed Follow activity");
     }
@@ -129,12 +133,13 @@ public class ImportActivityService : IImportActivityService
         }
 
         // Gets the follow activity which the actor should have sent before the Accept was received
-        var sendActivity = await _inboxRepository.GetActivityByIdAsync(activity.Object.Objects.FirstOrDefault()!.Id!, actorId);
+        var sendActivity =
+            await _inboxRepository.GetActivityByIdAsync(activity.Object.Objects.FirstOrDefault()!.Id!, actorId);
 
         if (sendActivity.IsNotNull())
         {
             _logger.LogDebug("Found activity which was accepted");
-            
+
             await _inboxRepository.AddAsync(activity, activitySender);
         }
         else
@@ -142,11 +147,11 @@ public class ImportActivityService : IImportActivityService
             _logger.LogWarning("Not found activity which was accepted");
         }
     }
-    
+
     public async Task Update(Activity activity, string activitySender)
     {
         _logger.LogTrace("Got a update");
-        
+
         await _inboxRepository.UpdateAsync(activity, activitySender);
     }
 
@@ -156,7 +161,7 @@ public class ImportActivityService : IImportActivityService
         {
             throw new ArgumentNullException(nameof(activity.Id));
         }
-        
+
         var specificItem = await _inboxRepository.GetActivityByIdAsync(activity.Id, activitySender);
 
         if (activity.Actor == specificItem?.Actor)
@@ -204,7 +209,7 @@ public class ImportActivityService : IImportActivityService
             }
         }
     }
-    
+
     private async Task ReplyLogic(Activity activity, string database, string collection)
     {
         var updateFilterBuilder = Builders<Activity>.Filter;
@@ -258,5 +263,4 @@ public class ImportActivityService : IImportActivityService
             _logger.LogWarning($"Can not assign to {nameof(tempLinks)}");
         }
     }
-
 }

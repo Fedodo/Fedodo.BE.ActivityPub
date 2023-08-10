@@ -1,6 +1,5 @@
 using Fedodo.BE.ActivityPub.APIs;
 using Fedodo.BE.ActivityPub.Constants;
-using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
@@ -134,7 +133,7 @@ public class Startup
     {
         builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
         builder.Services.AddSingleton<IHttpSignatureService, HttpSignatureService>();
-        builder.Services.AddSingleton<IActivityHandler, ActivityHandler>();
+        builder.Services.AddSingleton<ICreateActivityService, CreateActivityService>();
         builder.Services.AddSingleton<IUserHandler, UserHandler>();
         builder.Services.AddSingleton<IMongoClient>(mongoClient1);
         builder.Services.AddSingleton<IAuthenticationHandler, AuthenticationHandler>();
