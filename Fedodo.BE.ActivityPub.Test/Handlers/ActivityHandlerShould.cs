@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
@@ -36,7 +38,7 @@ public class ActivityHandlerShould
         var repository = new Mock<IMongoDbRepository>();
         var actorApi = new Mock<IActorAPI>();
         var activityApi = new Mock<IActivityAPI>();
-        var sharedInboxHandler = new Mock<IKnownSharedInboxHandler>();
+        var sharedInboxHandler = new Mock<IKnownSharedInboxService>();
         var collectionApi = new Mock<ICollectionApi>();
 
         _actor = new Actor

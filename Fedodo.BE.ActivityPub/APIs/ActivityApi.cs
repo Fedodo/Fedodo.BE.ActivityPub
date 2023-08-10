@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;

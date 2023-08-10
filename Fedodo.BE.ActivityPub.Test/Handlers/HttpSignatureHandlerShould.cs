@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CommonExtensions.Cryptography;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Services;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes.SubTypes;
 using Microsoft.AspNetCore.Http;
@@ -18,11 +20,11 @@ namespace Fedodo.BE.ActivityPub.Test.Handlers;
 public class HttpSignatureHandlerShould
 {
     private readonly RSA _rsa = RSA.Create();
-    private readonly HttpSignatureHandler _signatureHandler;
+    private readonly HttpSignatureService _signatureService;
 
     public HttpSignatureHandlerShould()
     {
-        var logger = new Mock<ILogger<HttpSignatureHandler>>();
+        var logger = new Mock<ILogger<HttpSignatureService>>();
         var actorApi = new Mock<IActorAPI>();
         var actor = new Actor
         {
@@ -37,7 +39,7 @@ public class HttpSignatureHandlerShould
         actorApi.Setup(i => i.GetActor(new Uri("https://example.com/key")))
             .ReturnsAsync(actor);
 
-        _signatureHandler = new HttpSignatureHandler(logger.Object, actorApi.Object);
+        _signatureService = new HttpSignatureService(logger.Object, actorApi.Object);
     }
 
     [Theory]
@@ -87,7 +89,7 @@ public class HttpSignatureHandlerShould
         }
 
         // Act
-        var result = await _signatureHandler.VerifySignature(headers, currentPath);
+        var result = await _signatureService.VerifySignature(headers, currentPath);
 
         // Assert
         result.ShouldBe(isSuccessful);

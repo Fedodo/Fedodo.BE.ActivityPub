@@ -2,6 +2,9 @@ using Fedodo.BE.ActivityPub.APIs;
 using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Interfaces.Services;
+using Fedodo.BE.ActivityPub.Services;
 using Fedodo.NuGet.Common.Handlers;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Repositories;
@@ -130,14 +133,14 @@ public class Startup
     public void AddCustomServices(WebApplicationBuilder builder, MongoClient mongoClient1)
     {
         builder.Services.AddSingleton<IMongoDbRepository, MongoDbRepository>();
-        builder.Services.AddSingleton<IHttpSignatureHandler, HttpSignatureHandler>();
+        builder.Services.AddSingleton<IHttpSignatureService, HttpSignatureService>();
         builder.Services.AddSingleton<IActivityHandler, ActivityHandler>();
         builder.Services.AddSingleton<IUserHandler, UserHandler>();
         builder.Services.AddSingleton<IMongoClient>(mongoClient1);
         builder.Services.AddSingleton<IAuthenticationHandler, AuthenticationHandler>();
         builder.Services.AddSingleton<IActorAPI, ActorApi>();
         builder.Services.AddSingleton<IActivityAPI, ActivityApi>();
-        builder.Services.AddSingleton<IKnownSharedInboxHandler, KnownSharedInboxHandler>();
+        builder.Services.AddSingleton<IKnownSharedInboxService, KnownSharedInboxService>();
         builder.Services.AddSingleton<ICollectionApi, CollectionApi>();
     }
 

@@ -62,7 +62,7 @@ public class NodeInfoController : ControllerBase
             {
                 "activitypub"
             },
-            Services = new Services
+            Services = new Model.NodeInfo.Services
             {
                 Outbound = Array.Empty<object>(),
                 Inbound = Array.Empty<object>()

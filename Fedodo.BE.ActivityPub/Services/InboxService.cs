@@ -18,7 +18,7 @@ public class InboxService : IInboxService
         _importActivityService = importActivityService;
     }
 
-    public async Task ActivityReceived(Activity activity)
+    public async Task ActivityReceived(Activity activity, string actorId)
     {
         if (activity.IsNull())
         {
@@ -49,12 +49,12 @@ public class InboxService : IInboxService
             }
             case "Follow":
             {
-                await _importActivityService.Follow(activity, activitySender);
+                await _importActivityService.Follow(activity, activitySender, actorId);
                 break;
             }
             case "Accept":
             {
-                await _importActivityService.Accept(activity, activitySender);
+                await _importActivityService.Accept(activity, activitySender, actorId);
                 break;
             }
             case "Announce":

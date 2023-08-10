@@ -2,6 +2,8 @@ using System.Text.Json;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.DTOs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
@@ -23,43 +25,45 @@ public class ActivityHandler : IActivityHandler
     private readonly ICollectionApi _collectionApi;
     private readonly ILogger<ActivityHandler> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly IKnownSharedInboxHandler _sharedInboxHandler;
+    private readonly IKnownSharedInboxService _sharedInboxService;
 
     public ActivityHandler(ILogger<ActivityHandler> logger, IMongoDbRepository repository, IActorAPI actorApi,
-        IActivityAPI activityApi, IKnownSharedInboxHandler sharedInboxHandler, ICollectionApi collectionApi)
+        IActivityAPI activityApi, IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi)
     {
         _logger = logger;
         _repository = repository;
         _actorApi = actorApi;
         _activityApi = activityApi;
-        _sharedInboxHandler = sharedInboxHandler;
+        _sharedInboxService = sharedInboxService;
         _collectionApi = collectionApi;
     }
 
-    public async Task<Actor> GetActorAsync(Guid userId, string domainName)
+    public async Task<Actor> GetActorAsync(string actorId, string domainName)
     {
         var filterActorDefinitionBuilder = Builders<Actor>.Filter;
-        var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id,
-            new Uri($"https://{domainName}/actor/{userId}"));
-        var actor = await _repository.GetSpecificItem(filterActor, DatabaseLocations.Actors.Database,
-            DatabaseLocations.Actors.Collection);
+        var filterActor = filterActorDefinitionBuilder.Eq(i => i.Id, new Uri(actorId));
+        var actor = await _repository.GetSpecificItem(filterActor, DatabaseLocations.Actors.Database, DatabaseLocations.Actors.Collection);
+
+        if (actor.IsNull())
+        {
+            // In this case a 500 response is correct
+            throw new ApplicationException("Actor was null but should not be");
+        }
+        
         return actor;
     }
 
-    public async Task<ActorSecrets?> GetActorSecretsAsync(Guid actorId, string domainName)
+    public async Task<ActorSecrets?> GetActorSecretsAsync(string actorId, string domainName)
     {
         var filterActorDefinitionBuilder = Builders<ActorSecrets>.Filter;
-        var filterActor = filterActorDefinitionBuilder.Eq(i => i.ActorId,
-            new Uri($"https://{domainName}/actor/{actorId}"));
-        var actorSecrets = await _repository.GetSpecificItem(filterActor, DatabaseLocations.ActorSecrets.Database,
-            DatabaseLocations.ActorSecrets.Collection);
+        var filterActor = filterActorDefinitionBuilder.Eq(i => i.ActorId, new Uri(actorId));
+        var actorSecrets = await _repository.GetSpecificItem(filterActor, DatabaseLocations.ActorSecrets.Database, DatabaseLocations.ActorSecrets.Collection);
         return actorSecrets;
     }
 
-    public async Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName)
+    public async Task<Activity?> CreateActivity(string actorId, CreateActivityDto activityDto, string domainName)
     {
         var activityId = Guid.NewGuid();
-        var actorId = $"https://{domainName}/actor/{userId}";
         object? obj;
 
         var activity = new Activity
@@ -163,7 +167,7 @@ public class ActivityHandler : IActivityHandler
             {
                 if (activity.Object.StringLinks?.FirstOrDefault().IsNotNullOrEmpty() ?? false)
                 {
-                    await _sharedInboxHandler.AddSharedInboxFromActorAsync(
+                    await _sharedInboxService.AddSharedInboxFromActorAsync(
                         new Uri(activity.Object.StringLinks.FirstOrDefault()!));
                 }
 
@@ -241,7 +245,7 @@ public class ActivityHandler : IActivityHandler
                 }
             }
 
-            foreach (var item in await _sharedInboxHandler.GetSharedInboxesAsync())
+            foreach (var item in await _sharedInboxService.GetSharedInboxesAsync())
                 targets.Add(new ServerNameInboxPair
                 {
                     Inbox = item,
@@ -319,7 +323,7 @@ public class ActivityHandler : IActivityHandler
                     ServerName = actor.Inbox.Host
                 };
 
-            await _sharedInboxHandler.AddSharedInboxAsync(sharedInbox);
+            await _sharedInboxService.AddSharedInboxAsync(sharedInbox);
 
             return new ServerNameInboxPair
             {

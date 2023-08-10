@@ -1,6 +1,6 @@
-namespace Fedodo.BE.ActivityPub.Interfaces;
+namespace Fedodo.BE.ActivityPub.Interfaces.Services;
 
-public interface IKnownSharedInboxHandler
+public interface IKnownSharedInboxService
 {
     public Task AddSharedInboxAsync(Uri sharedInbox);
     public Task<IEnumerable<Uri>> GetSharedInboxesAsync();

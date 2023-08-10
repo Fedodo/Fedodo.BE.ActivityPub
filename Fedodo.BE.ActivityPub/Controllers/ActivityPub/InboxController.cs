@@ -19,17 +19,17 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 [Produces("application/json")]
 public class InboxController : ControllerBase
 {
-    private readonly IHttpSignatureHandler _httpSignatureHandler;
+    private readonly IHttpSignatureService _httpSignatureService;
     private readonly ILogger<InboxController> _logger;
     private readonly IUserHandler _userHandler;
     private readonly IInboxRepository _inboxRepository;
     private readonly IInboxService _inboxService;
 
-    public InboxController(ILogger<InboxController> logger, IHttpSignatureHandler httpSignatureHandler,
+    public InboxController(ILogger<InboxController> logger, IHttpSignatureService httpSignatureService,
         IUserHandler userHandler, IInboxRepository inboxRepository, IInboxService inboxService)
     {
         _logger = logger;
-        _httpSignatureHandler = httpSignatureHandler;
+        _httpSignatureService = httpSignatureService;
         _userHandler = userHandler;
         _inboxRepository = inboxRepository;
         _inboxService = inboxService;
@@ -118,7 +118,7 @@ public class InboxController : ControllerBase
     {
         _logger.LogTrace($"Entered {nameof(SharedInbox)} in {nameof(InboxController)}");
 
-        if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, "/inbox"))
+        if (!await _httpSignatureService.VerifySignature(HttpContext.Request.Headers, "/inbox"))
             return BadRequest("Invalid Signature");
 
         if (!activity.IsNull()) return Ok();
@@ -127,17 +127,17 @@ public class InboxController : ControllerBase
         return BadRequest("Activity can not be null!");
     }
 
-    [HttpPost("{actorId:guid}")]
-    public async Task<ActionResult> Inbox(Guid actorId, [FromBody] Activity activity)
+    [HttpPost("{actorGuid:guid}")]
+    public async Task<ActionResult> Inbox(Guid actorGuid, [FromBody] Activity activity)
     {
         _logger.LogTrace($"Entered {nameof(Inbox)} in {nameof(InboxController)}");
 
-        if (!await _httpSignatureHandler.VerifySignature(HttpContext.Request.Headers, $"/inbox/{actorId}"))
+        if (!await _httpSignatureService.VerifySignature(HttpContext.Request.Headers, $"/inbox/{actorGuid}"))
             return BadRequest("Invalid Signature");
 
         try
         {
-            await _inboxService.ActivityReceived(activity);
+            await _inboxService.ActivityReceived(activity, actorGuid.ToFullActorId());
         }
         catch (ArgumentNullException ex)
         {

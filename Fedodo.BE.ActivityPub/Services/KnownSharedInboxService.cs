@@ -1,19 +1,21 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using MongoDB.Driver;
 
-namespace Fedodo.BE.ActivityPub.Handlers;
+namespace Fedodo.BE.ActivityPub.Services;
 
-public class KnownSharedInboxHandler : IKnownSharedInboxHandler
+public class KnownSharedInboxService : IKnownSharedInboxService
 {
-    private readonly ILogger<KnownSharedInboxHandler> _logger;
+    private readonly ILogger<KnownSharedInboxService> _logger;
     private readonly IMongoDbRepository _repository;
     private readonly IActorAPI _actorApi;
 
-    public KnownSharedInboxHandler(ILogger<KnownSharedInboxHandler> logger, IMongoDbRepository repository, IActorAPI actorApi)
+    public KnownSharedInboxService(ILogger<KnownSharedInboxService> logger, IMongoDbRepository repository, IActorAPI actorApi)
     {
         _logger = logger;
         _repository = repository;

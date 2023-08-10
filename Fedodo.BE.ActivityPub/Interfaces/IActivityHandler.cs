@@ -9,8 +9,8 @@ namespace Fedodo.BE.ActivityPub.Interfaces;
 public interface IActivityHandler
 {
     public Task<bool> SendActivitiesAsync(Activity activity, ActorSecrets actorSecrets, Actor actor);
-    public Task<Actor> GetActorAsync(Guid userId, string domainName);
-    public Task<Activity?> CreateActivity(Guid userId, CreateActivityDto activityDto, string domainName);
+    public Task<Actor> GetActorAsync(string actorId, string domainName);
+    public Task<Activity?> CreateActivity(string actorId, CreateActivityDto activityDto, string domainName);
     public Task<ServerNameInboxPair?> GetServerNameInboxPairAsync(Uri actorUri, bool isPublic);
-    public Task<ActorSecrets?> GetActorSecretsAsync(Guid actorId, string domainName);
+    public Task<ActorSecrets> GetActorSecretsAsync(string actorId, string domainName);
 }

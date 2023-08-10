@@ -1,5 +1,6 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
+using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
@@ -15,11 +16,15 @@ public class ImportActivityService : IImportActivityService
 {
     private readonly ILogger<ImportActivityService> _logger;
     private readonly IInboxRepository _inboxRepository;
+    private readonly IActivityHandler _activityHandler;
+    private readonly IMongoDbRepository _mongoDbRepository;
 
-    public ImportActivityService(ILogger<ImportActivityService> logger, IInboxRepository inboxRepository)
+    public ImportActivityService(ILogger<ImportActivityService> logger, IInboxRepository inboxRepository, IActivityHandler activityHandler, IMongoDbRepository mongoDbRepository)
     {
         _logger = logger;
         _inboxRepository = inboxRepository;
+        _activityHandler = activityHandler;
+        _mongoDbRepository = mongoDbRepository;
     }
 
     public async Task Create(Activity activity, string activitySender)
@@ -61,7 +66,7 @@ public class ImportActivityService : IImportActivityService
         await _inboxRepository.AddAsync(activity, activitySender);
     }
 
-    public async Task Follow(Activity activity, string activitySender)
+    public async Task Follow(Activity activity, string activitySender, string actorId)
     {
         _logger.LogDebug($"Got follow for \"{activity.Object?.StringLinks?.FirstOrDefault()}\" from \"{activity.Actor}\"");
 
@@ -72,12 +77,9 @@ public class ImportActivityService : IImportActivityService
 
         if (actor.IsNull() || actor.Id.IsNull())
         {
-            _logger.LogWarning(
-                $"{nameof(actor)} or the id of this actor was null in {nameof(InboxController)}");
-
-            return BadRequest("User not found");
+            throw new ArgumentNullException($"{nameof(actor)} or {nameof(actor.Id)}");
         }
-
+        
         var acceptActivity = new Activity
         {
             Id = new Uri($"https://{GeneralConstants.DomainName}/accepts/{Guid.NewGuid()}"),
@@ -114,18 +116,10 @@ public class ImportActivityService : IImportActivityService
     {
         _logger.LogTrace("Got an Like Activity");
 
-        var definitionBuilder = Builders<Activity>.Filter;
-        var filter = definitionBuilder.Where(i => i.Type == "Like" && i.Id == activity.Id);
-        var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
-            activitySender);
-
-        if (fItem.IsNullOrEmpty())
-            await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
-        else
-            _logger.LogWarning("Got another like of the same actor.");
+        await _inboxRepository.AddAsync(activity, activitySender);
     }
 
-    public async Task Accept(Activity activity, string activitySender)
+    public async Task Accept(Activity activity, string activitySender, string actorId)
     {
         _logger.LogTrace("Got an Accept activity");
 
@@ -134,17 +128,14 @@ public class ImportActivityService : IImportActivityService
             return;
         }
 
-        var actorDefinitionBuilder = Builders<Activity>.Filter;
-        var filter = actorDefinitionBuilder.Where(i =>
-            i.Type == "Accept" && i.Id == activity.Object.Objects.FirstOrDefault()!.Id);
-        var sendActivity =
-            await _repository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
+        // Gets the follow activity which the actor should have sent before the Accept was received
+        var sendActivity = await _inboxRepository.GetActivityByIdAsync(activity.Object.Objects.FirstOrDefault()!.Id!, actorId);
 
         if (sendActivity.IsNotNull())
         {
             _logger.LogDebug("Found activity which was accepted");
-
-            await _repository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
+            
+            await _inboxRepository.AddAsync(activity, activitySender);
         }
         else
         {
@@ -154,22 +145,22 @@ public class ImportActivityService : IImportActivityService
     
     public async Task Update(Activity activity, string activitySender)
     {
-        var postDefinitionBuilder = Builders<Activity>.Filter;
-        var postFilter = postDefinitionBuilder.Where(i => i.Type == "Create" && i.Id == activity.Id);
-
-        await _repository.Update(activity, postFilter, DatabaseLocations.Activity.Database, activitySender);
+        _logger.LogTrace("Got a update");
+        
+        await _inboxRepository.UpdateAsync(activity, activitySender);
     }
 
     public async Task Delete(Activity activity, string activitySender)
     {
-        var definitionBuilder = Builders<Activity>.Filter;
-        var filter = definitionBuilder.Where(i => i.Type == "Create" && i.Id == activity.Id);
+        if (activity.Id.IsNull())
+        {
+            throw new ArgumentNullException(nameof(activity.Id));
+        }
+        
+        var specificItem = await _inboxRepository.GetActivityByIdAsync(activity.Id, activitySender);
 
-        var specificItem =
-            await _repository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
-
-        if (activity.Actor == specificItem.Actor)
-            await _repository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
+        if (activity.Actor == specificItem?.Actor)
+            await _inboxRepository.DeleteActivityByIdAsync(activity.Id, activitySender);
     }
 
     public async Task Undo(Activity activity, string activitySender)
@@ -185,11 +176,11 @@ public class ImportActivityService : IImportActivityService
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Where(i => i.Type == "Like" && i.Actor == activity.Actor);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                var fItem = await _mongoDbRepository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
                     activitySender);
 
                 if (fItem.IsNotNullOrEmpty())
-                    await _repository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
+                    await _mongoDbRepository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
                 else
                     _logger.LogWarning("Got no like of the same actor.");
 
@@ -201,11 +192,11 @@ public class ImportActivityService : IImportActivityService
 
                 var definitionBuilder = Builders<Activity>.Filter;
                 var filter = definitionBuilder.Where(i => i.Type == "Announce" && i.Id == activity.Id);
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                var fItem = await _mongoDbRepository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
                     activitySender);
 
                 if (fItem.IsNotNullOrEmpty())
-                    await _repository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
+                    await _mongoDbRepository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
                 else
                     _logger.LogWarning("Found no share of this actor to undo.");
 
@@ -221,7 +212,7 @@ public class ImportActivityService : IImportActivityService
             updateFilterBuilder.Where(i => i.Type == "Create" && i.Object!.Objects!.First().Id ==
                 new Uri(activity.Object!.Objects!.First().InReplyTo!.StringLinks!.First()));
 
-        var updateItem = await _repository.GetSpecificItem(updateFilter, database, collection);
+        var updateItem = await _mongoDbRepository.GetSpecificItem(updateFilter, database, collection);
 
         if (updateItem.IsNull())
         {
@@ -260,7 +251,7 @@ public class ImportActivityService : IImportActivityService
 
             _logger.LogDebug($"Writing {nameof(updateItem)} into database");
 
-            await _repository.Update(updateItem, updateFilter, database, collection);
+            await _mongoDbRepository.Update(updateItem, updateFilter, database, collection);
         }
         else
         {

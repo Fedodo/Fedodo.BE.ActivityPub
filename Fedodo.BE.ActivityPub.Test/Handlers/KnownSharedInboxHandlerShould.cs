@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fedodo.BE.ActivityPub.Handlers;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
+using Fedodo.BE.ActivityPub.Services;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -16,12 +18,12 @@ namespace Fedodo.BE.ActivityPub.Test.Handlers;
 
 public class KnownSharedInboxHandlerShould
 {
-    private readonly KnownSharedInboxHandler _handler;
+    private readonly KnownSharedInboxService _service;
     private readonly List<SharedInbox> _sharedInboxes;
 
     public KnownSharedInboxHandlerShould()
     {
-        var logger = new Mock<ILogger<KnownSharedInboxHandler>>();
+        var logger = new Mock<ILogger<KnownSharedInboxService>>();
         var repository = new Mock<IMongoDbRepository>();
         var actorApi = new Mock<IActorAPI>();
 
@@ -44,7 +46,7 @@ public class KnownSharedInboxHandlerShould
         repository.Setup(i => i.GetAll<SharedInbox>(DatabaseLocations.KnownSharedInbox.Database,
             DatabaseLocations.KnownSharedInbox.Collection)).ReturnsAsync(_sharedInboxes);
 
-        _handler = new KnownSharedInboxHandler(logger.Object, repository.Object, actorApi.Object);
+        _service = new KnownSharedInboxService(logger.Object, repository.Object, actorApi.Object);
     }
 
     [Theory]
@@ -54,7 +56,7 @@ public class KnownSharedInboxHandlerShould
         // Arrange
 
         // Act
-        await _handler.AddSharedInboxAsync(new Uri(sharedInbox));
+        await _service.AddSharedInboxAsync(new Uri(sharedInbox));
 
         // Assert
     }
@@ -65,7 +67,7 @@ public class KnownSharedInboxHandlerShould
         // Arrange
 
         // Act
-        var result = await _handler.GetSharedInboxesAsync();
+        var result = await _service.GetSharedInboxesAsync();
 
         // Assert
         result.ShouldNotBeNull();

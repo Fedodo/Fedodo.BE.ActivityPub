@@ -2,15 +2,17 @@ using System.Security.Cryptography;
 using System.Text;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Interfaces;
+using Fedodo.BE.ActivityPub.Interfaces.APIs;
+using Fedodo.BE.ActivityPub.Interfaces.Services;
 
-namespace Fedodo.BE.ActivityPub.Handlers;
+namespace Fedodo.BE.ActivityPub.Services;
 
-public class HttpSignatureHandler : IHttpSignatureHandler
+public class HttpSignatureService : IHttpSignatureService
 {
     private readonly IActorAPI _actorApi;
-    private readonly ILogger<HttpSignatureHandler> _logger;
+    private readonly ILogger<HttpSignatureService> _logger;
 
-    public HttpSignatureHandler(ILogger<HttpSignatureHandler> logger, IActorAPI actorApi)
+    public HttpSignatureService(ILogger<HttpSignatureService> logger, IActorAPI actorApi)
     {
         _logger = logger;
         _actorApi = actorApi;
@@ -23,7 +25,7 @@ public class HttpSignatureHandler : IHttpSignatureHandler
         if (requestHeaders["Signature"].IsNullOrEmpty())
         {
             _logger.LogWarning(
-                $"Signature Header is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
+                $"Signature Header is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureService)}");
 
             return false;
         }
@@ -38,7 +40,7 @@ public class HttpSignatureHandler : IHttpSignatureHandler
         if (keyIdString.IsNullOrEmpty())
         {
             _logger.LogWarning(
-                $"{nameof(keyIdString)} is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureHandler)}");
+                $"{nameof(keyIdString)} is NullOrEmpty in {nameof(VerifySignature)} in {nameof(HttpSignatureService)}");
 
             return false;
         }

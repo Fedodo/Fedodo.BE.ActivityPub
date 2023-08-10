@@ -1,6 +1,6 @@
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 
-namespace Fedodo.BE.ActivityPub.Interfaces;
+namespace Fedodo.BE.ActivityPub.Interfaces.APIs;
 
 public interface IActorAPI
 {

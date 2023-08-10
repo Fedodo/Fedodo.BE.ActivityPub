@@ -1,6 +1,6 @@
-namespace Fedodo.BE.ActivityPub.Interfaces;
+namespace Fedodo.BE.ActivityPub.Interfaces.Services;
 
-public interface IHttpSignatureHandler
+public interface IHttpSignatureService
 {
     public Task<bool> VerifySignature(IHeaderDictionary requestHeaders, string currentPath);
 }

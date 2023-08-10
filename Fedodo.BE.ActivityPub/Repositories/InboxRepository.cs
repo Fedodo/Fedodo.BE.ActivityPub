@@ -67,4 +67,27 @@ public class InboxRepository : IInboxRepository
 
         await _mongoDbRepository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
     }
+
+    public async Task UpdateAsync(Activity activity, string activitySender)
+    {
+        var definitionBuilder = Builders<Activity>.Filter;
+        var postFilter = definitionBuilder.Where(i => i.Id == activity.Id);
+
+        await _mongoDbRepository.Update(activity, postFilter, DatabaseLocations.Activity.Database, activitySender);
+    }
+
+    public async Task<Activity?> GetActivityByIdAsync(Uri id, string activitySender)
+    {
+        var actorDefinitionBuilder = Builders<Activity>.Filter;
+        var filter = actorDefinitionBuilder.Where(i => i.Id == id);
+        var sendActivity = await _mongoDbRepository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
+        return sendActivity;
+    }    
+    
+    public async Task DeleteActivityByIdAsync(Uri id, string activitySender)
+    {
+        var actorDefinitionBuilder = Builders<Activity>.Filter;
+        var filter = actorDefinitionBuilder.Where(i => i.Id == id);
+        await _mongoDbRepository.Delete(filter, DatabaseLocations.Activity.Database, activitySender);
+    }
 }
