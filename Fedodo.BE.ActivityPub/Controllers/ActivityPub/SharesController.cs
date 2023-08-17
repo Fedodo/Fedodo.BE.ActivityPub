@@ -1,12 +1,10 @@
 using System.Web;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
+using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
-using Fedodo.NuGet.Common.Constants;
-using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
@@ -16,12 +14,12 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 public class SharesController : ControllerBase
 {
     private readonly ILogger<SharesController> _logger;
-    private readonly IMongoDbRepository _repository;
+    private readonly ISharesRepository _sharesRepository;
 
-    public SharesController(ILogger<SharesController> logger, IMongoDbRepository repository)
+    public SharesController(ILogger<SharesController> logger, ISharesRepository sharesRepository)
     {
         _logger = logger;
-        _repository = repository;
+        _sharesRepository = sharesRepository;
     }
 
     [HttpGet]
@@ -35,23 +33,7 @@ public class SharesController : ControllerBase
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var builder = Builders<Activity>.Sort;
-        var sort = builder.Descending(i => i.Published);
-
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
-
-        var sharesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxAnnounce.Database,
-            DatabaseLocations.OutboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
-        var sharesInbox = (await _repository.GetSpecificPaged(DatabaseLocations.InboxAnnounce.Database,
-            DatabaseLocations.InboxAnnounce.Collection, (int)page, 20, sort, filter)).ToList();
-        var shares = new List<Activity>();
-        shares.AddRange(sharesOutbox);
-        shares.AddRange(sharesInbox);
-        shares.OrderByDescending(i => i.Published);
-        var count = 0;
-        if (shares.Count < 20) count = shares.Count;
-        shares = shares.GetRange(0, count);
+        var shares = await _sharesRepository.GetSharesAsync(postId, (int)page);
 
         var orderedCollection = new OrderedCollectionPage
         {
@@ -94,14 +76,8 @@ public class SharesController : ControllerBase
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
-
-        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxAnnounce.Database,
-            DatabaseLocations.InboxAnnounce.Collection, filter);
-        postCount += await _repository.CountSpecific(DatabaseLocations.OutboxAnnounce.Database,
-            DatabaseLocations.OutboxAnnounce.Collection, filter);
-
+        var count = await _sharesRepository.CountAsync(postId);
+        
         var orderedCollection = new OrderedCollection
         {
             Id = new Uri(
@@ -117,10 +93,10 @@ public class SharesController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}" // TODO
+                    $"https://{GeneralConstants.DomainName}/shares/{HttpUtility.UrlEncode(postId)}?page={count / 20}" // TODO
                 }
             },
-            TotalItems = postCount
+            TotalItems = count
         };
 
         return orderedCollection;
