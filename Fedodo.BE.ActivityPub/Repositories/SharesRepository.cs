@@ -22,23 +22,34 @@ public class SharesRepository : ISharesRepository
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
 
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == activityId);
+        var filter = GetFilter(activityId);
 
-        var shares = (await _mongoDbRepository.GetSpecificPaged(DatabaseLocations.Activity.Database,
-            DatabaseLocations.OutboxAnnounce.Collection, page, 20, sort, filter)).ToList();
-        
+        var collections = _mongoDbRepository.GetCollectionNames(DatabaseLocations.Activity.Database);
+
+        var shares = (await _mongoDbRepository.GetSpecificPagedFromCollections(DatabaseLocations.Activity.Database,
+            collections, page, 20, sort, filter)).ToList();
+
         return shares;
     }
 
     public async Task<long> CountAsync(string activityId)
     {
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == activityId);
+        var filter = GetFilter(activityId);
 
-        var postCount = await _mongoDbRepository.CountSpecific(DatabaseLocations.Activity.Database,
-            DatabaseLocations.InboxAnnounce.Collection, filter);
-       
+        var collections = _mongoDbRepository.GetCollectionNames(DatabaseLocations.Activity.Database);
+
+        var postCount = await _mongoDbRepository.CountSpecificFromCollections(DatabaseLocations.Activity.Database,
+            collections, filter);
+
         return postCount;
+    }
+
+    private FilterDefinition<Activity> GetFilter(string activityId)
+    {
+        var filterBuilder = new FilterDefinitionBuilder<Activity>();
+        var filter = filterBuilder.Where(i =>
+            i.Type == "Announce" && i.Object != null && i.Object.StringLinks != null &&
+            i.Object.StringLinks.FirstOrDefault() == activityId);
+        return filter;
     }
 }
