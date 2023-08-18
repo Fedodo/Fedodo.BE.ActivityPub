@@ -8,6 +8,4 @@ public interface IInboxRepository
     public Task<List<Activity>> GetPagedAsync(string actorId, int page);
     public Task AddAsync(Activity activity, string activitySender);
     public Task UpdateAsync(Activity activity, string activitySender);
-    public Task<Activity?> GetActivityByIdAsync(Uri id, string activitySender);
-    public Task DeleteActivityByIdAsync(Uri id, string activitySender);
 }

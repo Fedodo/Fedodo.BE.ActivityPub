@@ -19,15 +19,18 @@ public class ImportActivityService : IImportActivityService
     private readonly ICreateActivityService _createActivityService;
     private readonly IMongoDbRepository _mongoDbRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IActivityRepository _activityRepository;
 
     public ImportActivityService(ILogger<ImportActivityService> logger, IInboxRepository inboxRepository,
-        ICreateActivityService createActivityService, IMongoDbRepository mongoDbRepository, IUserRepository userRepository)
+        ICreateActivityService createActivityService, IMongoDbRepository mongoDbRepository,
+        IUserRepository userRepository, IActivityRepository activityRepository)
     {
         _logger = logger;
         _inboxRepository = inboxRepository;
         _createActivityService = createActivityService;
         _mongoDbRepository = mongoDbRepository;
         _userRepository = userRepository;
+        _activityRepository = activityRepository;
     }
 
     public async Task Create(Activity activity, string activitySender)
@@ -134,7 +137,7 @@ public class ImportActivityService : IImportActivityService
 
         // Gets the follow activity which the actor should have sent before the Accept was received
         var sendActivity =
-            await _inboxRepository.GetActivityByIdAsync(activity.Object.Objects.FirstOrDefault()!.Id!, actorId);
+            await _activityRepository.GetActivityByIdAsync(activity.Object.Objects.FirstOrDefault()!.Id!, actorId);
 
         if (sendActivity.IsNotNull())
         {
@@ -162,10 +165,10 @@ public class ImportActivityService : IImportActivityService
             throw new ArgumentNullException(nameof(activity.Id));
         }
 
-        var specificItem = await _inboxRepository.GetActivityByIdAsync(activity.Id, activitySender);
+        var specificItem = await _activityRepository.GetActivityByIdAsync(activity.Id, activitySender);
 
         if (activity.Actor == specificItem?.Actor)
-            await _inboxRepository.DeleteActivityByIdAsync(activity.Id, activitySender);
+            await _activityRepository.DeleteActivityByIdAsync(activity.Id, activitySender);
     }
 
     public async Task Undo(Activity activity, string activitySender)

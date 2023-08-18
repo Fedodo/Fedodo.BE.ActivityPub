@@ -1,6 +1,7 @@
 using System.Web;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
+using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
 using Fedodo.NuGet.Common.Constants;
@@ -16,12 +17,12 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 public class LikesController : ControllerBase
 {
     private readonly ILogger<LikesController> _logger;
-    private readonly IMongoDbRepository _repository;
+    private readonly ILikesRepository _likesRepository;
 
-    public LikesController(ILogger<LikesController> logger, IMongoDbRepository repository)
+    public LikesController(ILogger<LikesController> logger, ILikesRepository likesRepository)
     {
         _logger = logger;
-        _repository = repository;
+        _likesRepository = likesRepository;
     }
 
     private async Task<OrderedCollection> GetLikes(string postIdUrlEncoded)
@@ -30,13 +31,7 @@ public class LikesController : ControllerBase
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
-
-        var postCount = await _repository.CountSpecific(DatabaseLocations.InboxLike.Database,
-            DatabaseLocations.InboxLike.Collection, filter);
-        postCount += await _repository.CountSpecific(DatabaseLocations.OutboxLike.Database,
-            DatabaseLocations.OutboxLike.Collection, filter);
+        var count = await _likesRepository.CountLikesAsync(postId);
 
         var orderedCollection = new OrderedCollection
         {
@@ -53,10 +48,10 @@ public class LikesController : ControllerBase
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/likes/{HttpUtility.UrlEncode(postId)}?page={postCount / 20}"
+                    $"https://{GeneralConstants.DomainName}/likes/{HttpUtility.UrlEncode(postId)}?page={count / 20}"
                 }
             },
-            TotalItems = postCount
+            TotalItems = count
         };
 
         return orderedCollection;
@@ -73,25 +68,7 @@ public class LikesController : ControllerBase
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var builder = Builders<Activity>.Sort;
-        var sort = builder.Descending(i => i.Published);
-
-        var filterBuilder = new FilterDefinitionBuilder<Activity>();
-        var filter = filterBuilder.Where(i => i.Object!.StringLinks!.First() == postId);
-
-        var likesOutbox = (await _repository.GetSpecificPaged(DatabaseLocations.OutboxLike.Database,
-            DatabaseLocations.OutboxLike.Collection, (int)page, 20, sort, filter)).ToList();
-        var likesInbox = (await _repository.GetSpecificPaged(DatabaseLocations.InboxLike.Database,
-            DatabaseLocations.InboxLike.Collection, (int)page, 20, sort, filter)).ToList();
-        var likes = new List<Activity>();
-        likes.AddRange(likesOutbox);
-        likes.AddRange(likesInbox);
-        likes.OrderByDescending(i => i.Published);
-        var count = 0;
-        if (likes.Count < 20) count = likes.Count;
-        likes = likes.GetRange(0, count);
-
-        var encodedPostId = HttpUtility.UrlEncode(postId);
+        var likes = (await _likesRepository.GetLikesAsync(postId, (int)page)).ToList();
 
         var orderedCollection = new OrderedCollectionPage
         {
@@ -100,26 +77,26 @@ public class LikesController : ControllerBase
                 Objects = likes
             },
             Id = new Uri(
-                $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}/?page={page}"),
+                $"https://{GeneralConstants.DomainName}/likes/{postIdUrlEncoded}/?page={page}"),
             Next = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}/?page={page + 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/likes/{postIdUrlEncoded}/?page={page + 1}" // TODO
                 }
             },
             Prev = new TripleSet<OrderedCollectionPage>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}/?page={page - 1}" // TODO
+                    $"https://{GeneralConstants.DomainName}/likes/{postIdUrlEncoded}/?page={page - 1}" // TODO
                 }
             },
             PartOf = new TripleSet<OrderedCollection>
             {
                 StringLinks = new[]
                 {
-                    $"https://{GeneralConstants.DomainName}/likes/{encodedPostId}"
+                    $"https://{GeneralConstants.DomainName}/likes/{postIdUrlEncoded}"
                 }
             },
             TotalItems = likes.Count
