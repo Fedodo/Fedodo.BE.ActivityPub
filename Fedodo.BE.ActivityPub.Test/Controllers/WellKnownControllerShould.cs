@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Controllers;
-using Fedodo.BE.ActivityPub.Model;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Fedodo.NuGet.Common.Models.Webfinger;

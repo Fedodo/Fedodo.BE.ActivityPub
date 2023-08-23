@@ -9,15 +9,15 @@ namespace Fedodo.BE.ActivityPub.Repositories;
 
 public class FollowerRepository : IFollowerRepository
 {
+    private readonly FilterDefinition<Activity> _filterDefinition;
     private readonly ILogger<FollowerRepository> _logger;
     private readonly IMongoDbRepository _repository;
-    private readonly FilterDefinition<Activity> _filterDefinition;
 
     public FollowerRepository(ILogger<FollowerRepository> logger, IMongoDbRepository repository)
     {
         _logger = logger;
         _repository = repository;
-        
+
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         _filterDefinition = filterBuilder.Where(i => i.Type == "Accept");
     }
@@ -37,7 +37,8 @@ public class FollowerRepository : IFollowerRepository
 
     public async Task<long> CountFollowersAsync(string actorId)
     {
-        var postCount = await _repository.CountSpecific(DatabaseLocations.Activity.Database, actorId, _filterDefinition);
+        var postCount =
+            await _repository.CountSpecific(DatabaseLocations.Activity.Database, actorId, _filterDefinition);
 
         return postCount;
     }

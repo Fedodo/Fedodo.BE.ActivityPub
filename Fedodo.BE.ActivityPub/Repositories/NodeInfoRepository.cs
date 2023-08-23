@@ -2,7 +2,6 @@ using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
-using Fedodo.NuGet.Common.Models;
 using MongoDB.Driver;
 
 namespace Fedodo.BE.ActivityPub.Repositories;

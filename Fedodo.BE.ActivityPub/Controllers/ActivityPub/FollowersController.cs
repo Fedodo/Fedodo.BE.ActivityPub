@@ -4,10 +4,7 @@ using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
-using Fedodo.NuGet.Common.Constants;
-using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
@@ -16,8 +13,8 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 [Produces("application/json")]
 public class FollowersController : ControllerBase
 {
-    private readonly ILogger<FollowersController> _logger;
     private readonly IFollowerRepository _followerRepository;
+    private readonly ILogger<FollowersController> _logger;
 
     public FollowersController(ILogger<FollowersController> logger, IFollowerRepository followerRepository)
     {
@@ -27,10 +24,11 @@ public class FollowersController : ControllerBase
 
     [HttpGet]
     [Route("{actorGuid}")]
-    public async Task<ActionResult<OrderedCollectionPage>> GetFollowersPage(Guid actorGuid, [FromQuery] int? page = null)
+    public async Task<ActionResult<OrderedCollectionPage>> GetFollowersPage(Guid actorGuid,
+        [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowersPage)} in {nameof(FollowersController)}");
-        
+
         if (page.IsNull()) return Ok(await GetFollowers(actorGuid));
 
         var follows = (await _followerRepository.GetFollowersPagedAsync(actorGuid.ToFullActorId(), (int)page)).ToList();
@@ -68,7 +66,7 @@ public class FollowersController : ControllerBase
 
         return Ok(orderedCollection);
     }
-    
+
     private async Task<OrderedCollection> GetFollowers(Guid actorGuid)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowers)} in {nameof(FollowersController)}");

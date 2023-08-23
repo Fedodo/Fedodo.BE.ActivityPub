@@ -9,9 +9,9 @@ namespace Fedodo.BE.ActivityPub.Repositories;
 
 public class InboxRepository : IInboxRepository
 {
+    private readonly IFollowingRepository _followingRepository;
     private readonly ILogger<InboxRepository> _logger;
     private readonly IMongoDbRepository _mongoDbRepository;
-    private readonly IFollowingRepository _followingRepository;
 
     public InboxRepository(ILogger<InboxRepository> logger, IMongoDbRepository mongoDbRepository,
         IFollowingRepository followingRepository)
@@ -41,9 +41,11 @@ public class InboxRepository : IInboxRepository
         var sort = builder.Descending(i => i.Published);
 
         var filterBuilder = Builders<Activity>.Filter;
-        var filter = filterBuilder.Where(i => i.To != null && i.To.StringLinks != null && 
-            (i.To.StringLinks.Any(item => item == "https://www.w3.org/ns/activitystreams#Public") || 
-             i.To.StringLinks.Any(item => item == "as:Public")) && (i.Type == "Create" || i.Type == "Announce"));
+        var filter = filterBuilder.Where(i => i.To != null && i.To.StringLinks != null &&
+                                              (i.To.StringLinks.Any(item =>
+                                                   item == "https://www.w3.org/ns/activitystreams#Public") ||
+                                               i.To.StringLinks.Any(item => item == "as:Public")) &&
+                                              (i.Type == "Create" || i.Type == "Announce"));
 
         var followings = await _followingRepository.GetAllFollowingsAsync(actorId);
 
@@ -58,12 +60,10 @@ public class InboxRepository : IInboxRepository
     {
         var activityDefinitionBuilder = Builders<Activity>.Filter;
         var postFilter = activityDefinitionBuilder.Where(i => i.Id == activity.Id);
-        var fItem = await _mongoDbRepository.GetSpecificItems(postFilter, DatabaseLocations.Activity.Database, activitySender);
+        var fItem = await _mongoDbRepository.GetSpecificItems(postFilter, DatabaseLocations.Activity.Database,
+            activitySender);
 
-        if (fItem.IsNotNullOrEmpty())
-        {
-            throw new ArgumentException("Item already exists");
-        }
+        if (fItem.IsNotNullOrEmpty()) throw new ArgumentException("Item already exists");
 
         await _mongoDbRepository.Create(activity, DatabaseLocations.Activity.Database, activitySender);
     }

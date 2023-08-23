@@ -31,7 +31,7 @@ public class LikesRepository : ILikesRepository
         return postCount;
     }
 
-    public async Task<IEnumerable<Activity>> GetLikesAsync(string activityId, int page)
+    public async Task<IEnumerable<Activity>> GetLikesPagedAsync(string activityId, int page)
     {
         var builder = Builders<Activity>.Sort;
         var sort = builder.Descending(i => i.Published);
@@ -42,8 +42,8 @@ public class LikesRepository : ILikesRepository
         var collections = _mongoDbRepository.GetCollectionNames(DatabaseLocations.Activity.Database);
 
         var posts = await _mongoDbRepository.GetSpecificPagedFromCollections(
-            databaseName: DatabaseLocations.Activity.Database,
-            collectionNames: collections,
+            DatabaseLocations.Activity.Database,
+            collections,
             filter: filter,
             pageId: page,
             pageSize: 20,

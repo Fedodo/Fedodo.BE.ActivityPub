@@ -77,7 +77,7 @@ public class SharesController : ControllerBase
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
         var count = await _sharesRepository.CountAsync(postId);
-        
+
         var orderedCollection = new OrderedCollection
         {
             Id = new Uri(

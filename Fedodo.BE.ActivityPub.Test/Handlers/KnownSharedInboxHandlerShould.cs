@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Model.Helpers;
 using Fedodo.BE.ActivityPub.Services;

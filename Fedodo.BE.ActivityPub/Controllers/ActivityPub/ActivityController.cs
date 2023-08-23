@@ -1,12 +1,7 @@
-using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Extensions;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
-using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.ObjectTypes;
-using Fedodo.NuGet.Common.Constants;
-using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 
@@ -14,8 +9,8 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 [Produces("application/json")]
 public class ActivityController : ControllerBase
 {
-    private readonly ILogger<ActivityController> _logger;
     private readonly IActivityRepository _activityRepository;
+    private readonly ILogger<ActivityController> _logger;
 
     public ActivityController(ILogger<ActivityController> logger, IActivityRepository activityRepository)
     {

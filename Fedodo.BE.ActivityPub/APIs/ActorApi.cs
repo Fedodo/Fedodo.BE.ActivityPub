@@ -1,6 +1,5 @@
 using System.Text.Json;
 using CommonExtensions;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.NuGet.ActivityPub.Model.ActorTypes;
 

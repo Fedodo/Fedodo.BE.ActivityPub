@@ -22,16 +22,17 @@ namespace Fedodo.BE.ActivityPub.Services;
 public class CreateActivityService : ICreateActivityService
 {
     private readonly IActivityAPI _activityApi;
+    private readonly IActivityRepository _activityRepository;
     private readonly IActorAPI _actorApi;
     private readonly ICollectionApi _collectionApi;
-    private readonly IActivityRepository _activityRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IMongoDbRepository _mongoDbRepository;
+    private readonly ILikesRepository _likesRepository;
     private readonly ILogger<CreateActivityService> _logger;
+    private readonly IMongoDbRepository _mongoDbRepository;
     private readonly IKnownSharedInboxService _sharedInboxService;
+    private readonly IUserRepository _userRepository;
 
     public CreateActivityService(ILogger<CreateActivityService> logger, IActorAPI actorApi, IActivityAPI activityApi,
-        IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi,
+        IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi, ILikesRepository likesRepository,
         IActivityRepository activityRepository, IUserRepository userRepository, IMongoDbRepository mongoDbRepository)
     {
         _logger = logger;
@@ -39,6 +40,7 @@ public class CreateActivityService : ICreateActivityService
         _activityApi = activityApi;
         _sharedInboxService = sharedInboxService;
         _collectionApi = collectionApi;
+        _likesRepository = likesRepository;
         _activityRepository = activityRepository;
         _userRepository = userRepository;
         _mongoDbRepository = mongoDbRepository;
@@ -134,12 +136,11 @@ public class CreateActivityService : ICreateActivityService
             }
             case "Like":
             {
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxLike.Database,
-                    DatabaseLocations.OutboxLike.Collection);
+                var fItem = await _mongoDbRepository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                    actorId);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(activity, DatabaseLocations.OutboxLike.Database,
-                        DatabaseLocations.OutboxLike.Collection);
+                    await _mongoDbRepository.Create(activity, DatabaseLocations.Activity.Database, actorId);
                 else
                     _logger.LogWarning("Got another like of the same actor.");
 
@@ -148,17 +149,14 @@ public class CreateActivityService : ICreateActivityService
             case "Follow":
             {
                 if (activity.Object.StringLinks?.FirstOrDefault().IsNotNullOrEmpty() ?? false)
-                {
                     await _sharedInboxService.AddSharedInboxFromActorAsync(
                         new Uri(activity.Object.StringLinks.FirstOrDefault()!));
-                }
 
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxFollow.Database,
-                    DatabaseLocations.OutboxFollow.Collection);
+                var fItem = await _mongoDbRepository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                    actorId);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(activity, DatabaseLocations.OutboxFollow.Database,
-                        DatabaseLocations.OutboxFollow.Collection);
+                    await _mongoDbRepository.Create(activity, DatabaseLocations.Activity.Database, actorId);
                 else
                     _logger.LogWarning("Got another follow of the same actor.");
 
@@ -166,12 +164,11 @@ public class CreateActivityService : ICreateActivityService
             }
             case "Announce":
             {
-                var fItem = await _repository.GetSpecificItems(filter, DatabaseLocations.OutboxAnnounce.Database,
-                    DatabaseLocations.OutboxAnnounce.Collection);
+                var fItem = await _mongoDbRepository.GetSpecificItems(filter, DatabaseLocations.Activity.Database,
+                    actorId);
 
                 if (fItem.IsNullOrEmpty())
-                    await _repository.Create(activity, DatabaseLocations.OutboxAnnounce.Database,
-                        DatabaseLocations.OutboxAnnounce.Collection);
+                    await _mongoDbRepository.Create(activity, DatabaseLocations.Activity.Database, actorId);
                 else
                     _logger.LogWarning("Got another share of the same actor.");
 
@@ -179,7 +176,8 @@ public class CreateActivityService : ICreateActivityService
             }
             default:
             {
-                _logger.LogWarning($"Entered default case in {nameof(CreateActivity)} in {nameof(CreateActivityService)}");
+                _logger.LogWarning(
+                    $"Entered default case in {nameof(CreateActivity)} in {nameof(CreateActivityService)}");
 
                 return null;
             }

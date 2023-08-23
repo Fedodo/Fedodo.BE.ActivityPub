@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CommonExtensions;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Model.DTOs;
@@ -66,10 +65,12 @@ public class ActivityHandlerShould
 
         sharedInboxHandler.Setup(i => i.GetSharedInboxesAsync()).ReturnsAsync(sharedInboxes);
 
-        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(), It.Is<ActorSecrets>(i => i.PrivateKeyActivityPub == "Fail"),
+        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(),
+            It.Is<ActorSecrets>(i => i.PrivateKeyActivityPub == "Fail"),
             It.IsAny<ServerNameInboxPair>(), It.IsAny<Actor>())).ReturnsAsync(false);
 
-        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(), It.Is<ActorSecrets>(i => i.PrivateKeyActivityPub != "Fail"),
+        activityApi.Setup(i => i.SendActivity(It.IsAny<Activity>(),
+            It.Is<ActorSecrets>(i => i.PrivateKeyActivityPub != "Fail"),
             It.IsAny<ServerNameInboxPair>(), It.IsAny<Actor>())).ReturnsAsync(true);
 
         collectionApi.Setup(i => i.GetOrderedCollection<Uri>(It.Is<Uri>(i => i != new Uri("https://example.com/null"))))
@@ -202,7 +203,7 @@ public class ActivityHandlerShould
                 }
             }
         };
-        var user = new ActorSecrets()
+        var user = new ActorSecrets
         {
             PrivateKeyActivityPub = userName
         };

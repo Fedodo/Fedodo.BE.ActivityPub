@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using CommonExtensions;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 

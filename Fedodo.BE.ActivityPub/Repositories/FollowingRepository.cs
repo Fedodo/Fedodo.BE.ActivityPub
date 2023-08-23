@@ -9,9 +9,9 @@ namespace Fedodo.BE.ActivityPub.Repositories;
 
 public class FollowingRepository : IFollowingRepository
 {
-    private readonly IMongoDbRepository _mongoDbRepository;
-    private readonly ILogger _logger;
     private readonly FilterDefinition<Activity> _filterDefinition;
+    private readonly ILogger _logger;
+    private readonly IMongoDbRepository _mongoDbRepository;
 
     public FollowingRepository(IMongoDbRepository mongoDbRepository, ILogger logger)
     {
@@ -21,7 +21,7 @@ public class FollowingRepository : IFollowingRepository
         var filterBuilder = new FilterDefinitionBuilder<Activity>();
         _filterDefinition = filterBuilder.Where(i => i.Type == "Follow");
     }
-    
+
     public async Task<IEnumerable<Activity>> GetFollowingsPageAsync(string actorId, int page)
     {
         var builder = Builders<Activity>.Sort;
@@ -32,16 +32,18 @@ public class FollowingRepository : IFollowingRepository
 
         return followings;
     }
-    
+
     public async Task<long> CountFollowingsAsync(string actorId)
     {
-        var postCount = await _mongoDbRepository.CountSpecific(DatabaseLocations.Activity.Database, actorId, _filterDefinition);
+        var postCount =
+            await _mongoDbRepository.CountSpecific(DatabaseLocations.Activity.Database, actorId, _filterDefinition);
         return postCount;
     }
 
     public async Task<IEnumerable<string>> GetAllFollowingsAsync(string actorId)
     {
-        var items = await _mongoDbRepository.GetSpecificItems(_filterDefinition, DatabaseLocations.Activity.Database, actorId);
+        var items = await _mongoDbRepository.GetSpecificItems(_filterDefinition, DatabaseLocations.Activity.Database,
+            actorId);
         return items.Select(i => i.Object?.StringLinks?.FirstOrDefault()).Where(i => i.IsNotNullOrEmpty())!;
     }
 }

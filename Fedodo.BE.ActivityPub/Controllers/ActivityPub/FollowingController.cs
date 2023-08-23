@@ -13,8 +13,8 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 [Produces("application/json")]
 public class FollowingController : ControllerBase
 {
-    private readonly ILogger<FollowingController> _logger;
     private readonly IFollowingRepository _followingRepository;
+    private readonly ILogger<FollowingController> _logger;
 
     public FollowingController(ILogger<FollowingController> logger, IFollowingRepository followingRepository)
     {
@@ -24,15 +24,16 @@ public class FollowingController : ControllerBase
 
     [HttpGet]
     [Route("{actorGuid}")]
-    public async Task<ActionResult<OrderedCollectionPage>> GetFollowingsPage(Guid actorGuid, [FromQuery] int? page = null)
+    public async Task<ActionResult<OrderedCollectionPage>> GetFollowingsPage(Guid actorGuid,
+        [FromQuery] int? page = null)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowingsPage)} in {nameof(FollowingController)}");
-        
+
         if (page.IsNull()) return Ok(await GetFollowings(actorGuid));
 
         var followings = await _followingRepository.GetFollowingsPageAsync(actorGuid.ToFullActorId(), (int)page);
         var activities = followings.ToList();
-        
+
         var orderedCollection = new OrderedCollectionPage
         {
             Items = new TripleSet<Object>
@@ -66,11 +67,11 @@ public class FollowingController : ControllerBase
 
         return Ok(orderedCollection);
     }
-    
+
     private async Task<OrderedCollection> GetFollowings(Guid actorGuid)
     {
         _logger.LogTrace($"Entered {nameof(GetFollowings)} in {nameof(FollowingController)}");
-        
+
         var postCount = await _followingRepository.CountFollowingsAsync(actorGuid.ToFullActorId());
 
         var orderedCollection = new OrderedCollection

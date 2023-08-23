@@ -1,4 +1,3 @@
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 

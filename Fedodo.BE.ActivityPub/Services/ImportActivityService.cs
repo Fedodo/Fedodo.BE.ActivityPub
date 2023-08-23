@@ -1,6 +1,5 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
@@ -14,12 +13,12 @@ namespace Fedodo.BE.ActivityPub.Services;
 
 public class ImportActivityService : IImportActivityService
 {
-    private readonly ILogger<ImportActivityService> _logger;
-    private readonly IInboxRepository _inboxRepository;
+    private readonly IActivityRepository _activityRepository;
     private readonly ICreateActivityService _createActivityService;
+    private readonly IInboxRepository _inboxRepository;
+    private readonly ILogger<ImportActivityService> _logger;
     private readonly IMongoDbRepository _mongoDbRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IActivityRepository _activityRepository;
 
     public ImportActivityService(ILogger<ImportActivityService> logger, IInboxRepository inboxRepository,
         ICreateActivityService createActivityService, IMongoDbRepository mongoDbRepository,
@@ -83,9 +82,7 @@ public class ImportActivityService : IImportActivityService
         var actor = await _userRepository.GetActorByIdAsync(actorId);
 
         if (actor.IsNull() || actor.Id.IsNull())
-        {
             throw new ArgumentNullException($"{nameof(actor)} or {nameof(actor.Id)}");
-        }
 
         var acceptActivity = new Activity
         {
@@ -130,10 +127,7 @@ public class ImportActivityService : IImportActivityService
     {
         _logger.LogTrace("Got an Accept activity");
 
-        if (activity.Object?.Objects?.FirstOrDefault()?.Id.IsNull() ?? true)
-        {
-            return;
-        }
+        if (activity.Object?.Objects?.FirstOrDefault()?.Id.IsNull() ?? true) return;
 
         // Gets the follow activity which the actor should have sent before the Accept was received
         var sendActivity =
@@ -160,10 +154,7 @@ public class ImportActivityService : IImportActivityService
 
     public async Task Delete(Activity activity, string activitySender)
     {
-        if (activity.Id.IsNull())
-        {
-            throw new ArgumentNullException(nameof(activity.Id));
-        }
+        if (activity.Id.IsNull()) throw new ArgumentNullException(nameof(activity.Id));
 
         var specificItem = await _activityRepository.GetActivityByIdAsync(activity.Id, activitySender);
 

@@ -1,6 +1,5 @@
 using Fedodo.BE.ActivityPub.APIs;
 using Fedodo.BE.ActivityPub.Constants;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.APIs;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.BE.ActivityPub.Services;
@@ -89,13 +88,12 @@ public class Startup
                 await next();
             }
         });
-        
+
         app.Use(async (context, next) =>
         {
-            if ((context.Request.Headers.Accept.FirstOrDefault()?.Contains("html") ?? false) && context.Request.Path != "/swagger/index.html")
-            {
+            if ((context.Request.Headers.Accept.FirstOrDefault()?.Contains("html") ?? false) &&
+                context.Request.Path != "/swagger/index.html")
                 context.Response.Redirect($"https://home.{GeneralConstants.DomainName}");
-            }
 
             await next(context);
         });

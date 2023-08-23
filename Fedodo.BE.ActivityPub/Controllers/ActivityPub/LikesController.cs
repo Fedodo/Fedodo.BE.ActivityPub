@@ -4,10 +4,7 @@ using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
-using Fedodo.NuGet.Common.Constants;
-using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
@@ -16,8 +13,8 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 [Produces("application/json")]
 public class LikesController : ControllerBase
 {
-    private readonly ILogger<LikesController> _logger;
     private readonly ILikesRepository _likesRepository;
+    private readonly ILogger<LikesController> _logger;
 
     public LikesController(ILogger<LikesController> logger, ILikesRepository likesRepository)
     {
@@ -68,7 +65,7 @@ public class LikesController : ControllerBase
 
         var postId = HttpUtility.UrlDecode(postIdUrlEncoded);
 
-        var likes = (await _likesRepository.GetLikesAsync(postId, (int)page)).ToList();
+        var likes = (await _likesRepository.GetLikesPagedAsync(postId, (int)page)).ToList();
 
         var orderedCollection = new OrderedCollectionPage
         {

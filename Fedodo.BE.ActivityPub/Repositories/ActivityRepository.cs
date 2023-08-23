@@ -1,6 +1,4 @@
-using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
-using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
@@ -26,19 +24,21 @@ public class ActivityRepository : IActivityRepository
 
         var collections = _mongoDbRepository.GetCollectionNames(DatabaseLocations.Activity.Database);
 
-        var post = await _mongoDbRepository.GetSpecificItemFromCollections(filter, DatabaseLocations.Activity.Database, collections);
-        
+        var post = await _mongoDbRepository.GetSpecificItemFromCollections(filter, DatabaseLocations.Activity.Database,
+            collections);
+
         return post;
     }
-    
+
     public async Task<Activity?> GetActivityByIdAsync(Uri id, string activitySender)
     {
         var actorDefinitionBuilder = Builders<Activity>.Filter;
         var filter = actorDefinitionBuilder.Where(i => i.Id == id);
-        var sendActivity = await _mongoDbRepository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
+        var sendActivity =
+            await _mongoDbRepository.GetSpecificItem(filter, DatabaseLocations.Activity.Database, activitySender);
         return sendActivity;
-    }    
-    
+    }
+
     public async Task DeleteActivityByIdAsync(Uri id, string activitySender)
     {
         var actorDefinitionBuilder = Builders<Activity>.Filter;

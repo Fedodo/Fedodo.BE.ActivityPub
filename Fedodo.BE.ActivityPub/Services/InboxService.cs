@@ -1,5 +1,4 @@
 using CommonExtensions;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 
@@ -7,11 +6,12 @@ namespace Fedodo.BE.ActivityPub.Services;
 
 public class InboxService : IInboxService
 {
-    private readonly ILogger<InboxService> _logger;
     private readonly ICreateActivityService _createActivityService;
     private readonly IImportActivityService _importActivityService;
+    private readonly ILogger<InboxService> _logger;
 
-    public InboxService(ILogger<InboxService> logger, ICreateActivityService createActivityService, IImportActivityService importActivityService)
+    public InboxService(ILogger<InboxService> logger, ICreateActivityService createActivityService,
+        IImportActivityService importActivityService)
     {
         _logger = logger;
         _createActivityService = createActivityService;
@@ -20,10 +20,7 @@ public class InboxService : IInboxService
 
     public async Task ActivityReceived(Activity activity, string actorId)
     {
-        if (activity.IsNull())
-        {
-            throw new ArgumentNullException(nameof(activity));
-        }
+        if (activity.IsNull()) throw new ArgumentNullException(nameof(activity));
 
         if (activity.Published.IsNull() || activity.Published <= DateTime.Parse("2000-01-01"))
             activity.Published = DateTime.Now;

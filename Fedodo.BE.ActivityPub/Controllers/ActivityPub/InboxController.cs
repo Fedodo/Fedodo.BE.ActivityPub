@@ -1,16 +1,13 @@
 using CommonExtensions;
 using Fedodo.BE.ActivityPub.Constants;
 using Fedodo.BE.ActivityPub.Extensions;
-using Fedodo.BE.ActivityPub.Interfaces;
 using Fedodo.BE.ActivityPub.Interfaces.Repositories;
 using Fedodo.BE.ActivityPub.Interfaces.Services;
 using Fedodo.NuGet.ActivityPub.Model.CoreTypes;
 using Fedodo.NuGet.ActivityPub.Model.JsonConverters.Model;
-using Fedodo.NuGet.Common.Constants;
 using Fedodo.NuGet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
 namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
@@ -20,10 +17,10 @@ namespace Fedodo.BE.ActivityPub.Controllers.ActivityPub;
 public class InboxController : ControllerBase
 {
     private readonly IHttpSignatureService _httpSignatureService;
-    private readonly ILogger<InboxController> _logger;
-    private readonly IUserHandler _userHandler;
     private readonly IInboxRepository _inboxRepository;
     private readonly IInboxService _inboxService;
+    private readonly ILogger<InboxController> _logger;
+    private readonly IUserHandler _userHandler;
 
     public InboxController(ILogger<InboxController> logger, IHttpSignatureService httpSignatureService,
         IUserHandler userHandler, IInboxRepository inboxRepository, IInboxService inboxService)
