@@ -24,14 +24,14 @@ using Shouldly;
 using Xunit;
 using Object = Fedodo.NuGet.ActivityPub.Model.CoreTypes.Object;
 
-namespace Fedodo.BE.ActivityPub.Test.Handlers;
+namespace Fedodo.BE.ActivityPub.Test.Services;
 
-public class ActivityHandlerShould
+public class CreateActivityServiceShould
 {
     private readonly Actor _actor;
     private readonly CreateActivityService _service;
 
-    public ActivityHandlerShould()
+    public CreateActivityServiceShould()
     {
         var logger = new Mock<ILogger<CreateActivityService>>();
         var repository = new Mock<IMongoDbRepository>();
@@ -100,8 +100,8 @@ public class ActivityHandlerShould
 
         actorApi.Setup(i => i.GetActor(It.Is<Uri>(i => i != new Uri("https://example.com/fail")))).ReturnsAsync(_actor);
 
-        _service = new CreateActivityService(logger.Object, repository.Object, actorApi.Object,
-            activityApi.Object, sharedInboxHandler.Object, collectionApi.Object);
+        _service = new CreateActivityService(logger.Object, actorApi.Object,
+            activityApi.Object, sharedInboxHandler.Object, collectionApi.Object, repository.Object);
     }
 
     [Theory]
@@ -125,7 +125,7 @@ public class ActivityHandlerShould
         };
 
         // Act
-        var result = await _service.CreateActivity(new Guid(userId), dto, "example.com");
+        var result = await _service.CreateActivity(userId, dto);
 
         // Assert
         result.ShouldNotBeNull();
@@ -135,20 +135,6 @@ public class ActivityHandlerShould
             result.Object!.StringLinks!.First().ShouldBe(obj);
         else
             result.Object!.Objects!.First().ShouldBeOfType<Note>();
-    }
-
-    [Theory]
-    [InlineData("00E90526-288D-41E2-9B21-39BAC05ED5B6", "lna-dev.net")]
-    public async Task GetActor(string userId, string domainName)
-    {
-        // Arrange
-
-        // Act
-        var result = await _service.GetActorAsync(new Guid(userId), domainName);
-
-        // Assert
-        result.ShouldNotBeNull();
-        result.ShouldBeEquivalentTo(_actor);
     }
 
     [Theory]

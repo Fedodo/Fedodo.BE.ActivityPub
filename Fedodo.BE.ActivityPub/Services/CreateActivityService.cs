@@ -22,27 +22,20 @@ namespace Fedodo.BE.ActivityPub.Services;
 public class CreateActivityService : ICreateActivityService
 {
     private readonly IActivityAPI _activityApi;
-    private readonly IActivityRepository _activityRepository;
     private readonly IActorAPI _actorApi;
     private readonly ICollectionApi _collectionApi;
-    private readonly ILikesRepository _likesRepository;
     private readonly ILogger<CreateActivityService> _logger;
     private readonly IMongoDbRepository _mongoDbRepository;
     private readonly IKnownSharedInboxService _sharedInboxService;
-    private readonly IUserRepository _userRepository;
 
     public CreateActivityService(ILogger<CreateActivityService> logger, IActorAPI actorApi, IActivityAPI activityApi,
-        IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi, ILikesRepository likesRepository,
-        IActivityRepository activityRepository, IUserRepository userRepository, IMongoDbRepository mongoDbRepository)
+        IKnownSharedInboxService sharedInboxService, ICollectionApi collectionApi,IMongoDbRepository mongoDbRepository)
     {
         _logger = logger;
         _actorApi = actorApi;
         _activityApi = activityApi;
         _sharedInboxService = sharedInboxService;
         _collectionApi = collectionApi;
-        _likesRepository = likesRepository;
-        _activityRepository = activityRepository;
-        _userRepository = userRepository;
         _mongoDbRepository = mongoDbRepository;
     }
 
